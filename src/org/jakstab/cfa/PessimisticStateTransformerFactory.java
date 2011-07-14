@@ -45,6 +45,7 @@ public class PessimisticStateTransformerFactory extends ResolvingTransformerFact
 	
 	@Override
 	public Set<CFAEdge> resolveGoto(final AbstractState a, final RTLGoto stmt) {
+
 		assert stmt.getCondition() != null;
 		ExpressionFactory factory = ExpressionFactory.getInstance();
 		Set<CFAEdge> results = new FastSet<CFAEdge>();
@@ -64,6 +65,7 @@ public class PessimisticStateTransformerFactory extends ResolvingTransformerFact
 				nextLabel = stmt.getNextLabel();
 			} else {
 				if (targetValue == null) {
+					
 					// if target could not be resolved, just leave the edge out for now
 					logger.info(stmt.getLabel() + ": Cannot resolve target expression " + 
 							stmt.getTargetExpression() + ". Continuing with unsound underapproximation.");

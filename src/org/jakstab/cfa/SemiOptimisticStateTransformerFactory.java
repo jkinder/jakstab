@@ -64,7 +64,7 @@ public class SemiOptimisticStateTransformerFactory extends ResolvingTransformerF
 				// assume (condition = false), and set next statement to fallthrough
 				nextLabel = stmt.getNextLabel();
 			} else {
-				if (targetValue == RTLNumber.ALL_NUMBERS) {
+				if (targetValue == null) {
 
 					if (stmt.getType() == RTLGoto.Type.CALL) {
 						// if it's a call TOP, add an unknown call edge if we're allowing unsound analysis

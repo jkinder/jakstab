@@ -88,7 +88,7 @@ public class OptimisticStateTransformerFactory extends ResolvingTransformerFacto
 				// assume (condition = false), and set next statement to fallthrough
 				nextLabel = stmt.getNextLabel();
 			} else {
-				if (targetValue == RTLNumber.ALL_NUMBERS) {
+				if (targetValue == null) {
 					// if target could not be resolved, just leave the edge out for now
 					// Can only happen here with indirect jumps
 					logger.info(stmt.getLabel() + ": Cannot resolve target expression " + 
