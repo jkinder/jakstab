@@ -60,13 +60,9 @@ public class CallStackState implements AbstractState {
 		final RTLStatement statement = (RTLStatement)transformer;
 		return statement.accept(new DefaultStatementVisitor<CallStackState>() {
 
+			
 			@Override
-			public CallStackState visit(RTLVariableAssignment stmt) {
-				return CallStackState.this;
-			}
-
-			@Override
-			public CallStackState visit(RTLMemoryAssignment stmt) {
+			protected CallStackState visitDefault(RTLStatement stmt) {
 				return CallStackState.this;
 			}
 
@@ -128,57 +124,19 @@ public class CallStackState implements AbstractState {
 				return new CallStackState(postStack);
 			}
 
-			@Override
-			public CallStackState visit(RTLSkip stmt) {
-				return CallStackState.this;
-			}
-			
-			@Override
-			public CallStackState visit(RTLAssert stmt) {
-				return CallStackState.this;
-			}
-
-			@Override
-			public CallStackState visit(RTLAlloc stmt) {
-				return CallStackState.this;
-			}
-			
-			@Override
-			public CallStackState visit(RTLHavoc stmt) {
-				return CallStackState.this;
-			}
-
-			@Override
-			public CallStackState visit(RTLDealloc stmt) {
-				return CallStackState.this;
-			}
-
-			@Override
-			public CallStackState visit(RTLUnknownProcedureCall stmt) {
-				return CallStackState.this;
-			}
 		});		
 	}
 
-	/*
-	 * @see org.jakstab.analysis.AbstractState#getIdentifier()
-	 */
 	@Override
 	public String getIdentifier() {
 		return Integer.toString(hashCode());
 	}
 
-	/*
-	 * @see org.jakstab.analysis.AbstractState#getLocation()
-	 */
 	@Override
 	public Location getLocation() {
 		throw new UnsupportedOperationException(this.getClass().getSimpleName() + " does not contain location information.");
 	}
 
-	/*
-	 * @see org.jakstab.analysis.AbstractState#join(org.jakstab.analysis.LatticeElement)
-	 */
 	@Override
 	public AbstractState join(LatticeElement l) {
 		CallStackState other = (CallStackState)l;
@@ -187,9 +145,6 @@ public class CallStackState implements AbstractState {
 		return TOP;
 	}
 
-	/*
-	 * @see org.jakstab.analysis.AbstractState#projectionFromConcretization(org.jakstab.rtl.expressions.RTLExpression[])
-	 */
 	@Override
 	public Set<Tuple<RTLNumber>> projectionFromConcretization(
 			RTLExpression... expressions) {
@@ -211,25 +166,16 @@ public class CallStackState implements AbstractState {
 		}
 	}
 
-	/*
-	 * @see org.jakstab.analysis.LatticeElement#isBot()
-	 */
 	@Override
 	public boolean isBot() {
 		return this == BOT;
 	}
 
-	/*
-	 * @see org.jakstab.analysis.LatticeElement#isTop()
-	 */
 	@Override
 	public boolean isTop() {
 		return this == TOP;
 	}
 
-	/*
-	 * @see org.jakstab.analysis.LatticeElement#lessOrEqual(org.jakstab.analysis.LatticeElement)
-	 */
 	@Override
 	public boolean lessOrEqual(LatticeElement l) {
 		CallStackState other = (CallStackState)l;

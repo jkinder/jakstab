@@ -20,8 +20,9 @@ package org.jakstab.rtl.statements;
 import org.jakstab.util.Logger;
 
 /**
- * Skeleton statement visitor that throws UnsupportedOperationException for every type
- * of statement. 
+ * Default statement visitor that calls a default implementation for every 
+ * type of statement. When the default behavior is not overridden, throws
+ * UnsupportedOperationException. 
  * 
  * @author Johannes Kinder
  */
@@ -30,74 +31,80 @@ public abstract class DefaultStatementVisitor<T> implements StatementVisitor<T> 
 	@SuppressWarnings("unused")
 	private static final Logger logger = Logger.getLogger(DefaultStatementVisitor.class);
 
-	private static final String errorMsg(RTLStatement stmt) {
-		return "Visitor does not support statements of type " + 
-		stmt.getClass().getSimpleName() + "!";
-	}
-
 	@Override
 	public T visit(RTLVariableAssignment stmt) {
-		throw new UnsupportedOperationException(errorMsg(stmt));
+		return visitDefault(stmt);
 	}
 
 	@Override
 	public T visit(RTLMemoryAssignment stmt) {
-		throw new UnsupportedOperationException(errorMsg(stmt));
+		return visitDefault(stmt);
 	}
 
 	@Override
 	public T visit(RTLGoto stmt) {
-		throw new UnsupportedOperationException(errorMsg(stmt));
+		return visitDefault(stmt);
 	}
 
 	@Override
 	public T visit(RTLAssume stmt) {
-		throw new UnsupportedOperationException(errorMsg(stmt));
+		return visitDefault(stmt);
 	}
 
 	@Override
 	public T visit(RTLAssert stmt) {
-		throw new UnsupportedOperationException(errorMsg(stmt));
+		return visitDefault(stmt);
 	}
 
 	@Override
 	public T visit(RTLSkip stmt) {
-		throw new UnsupportedOperationException(errorMsg(stmt));
+		return visitDefault(stmt);
 	}
 
 	@Override
 	public T visit(RTLHalt stmt) {
-		throw new UnsupportedOperationException(errorMsg(stmt));
+		return visitDefault(stmt);
 	}
 
 	@Override
 	public T visit(RTLAlloc stmt) {
-		throw new UnsupportedOperationException(errorMsg(stmt));
+		return visitDefault(stmt);
 	}
 
 	@Override
 	public T visit(RTLDealloc stmt) {
-		throw new UnsupportedOperationException(errorMsg(stmt));
+		return visitDefault(stmt);
 	}
 
 	@Override
 	public T visit(RTLUnknownProcedureCall stmt) {
-		throw new UnsupportedOperationException(errorMsg(stmt));
+		return visitDefault(stmt);
 	}
 
 	@Override
 	public T visit(RTLHavoc stmt) {
-		throw new UnsupportedOperationException(errorMsg(stmt));
+		return visitDefault(stmt);
 	}
 	
 	@Override
 	public T visit(RTLMemset stmt) {
-		throw new UnsupportedOperationException(errorMsg(stmt));
+		return visitDefault(stmt);
 	}
 
 	@Override
 	public T visit(RTLMemcpy stmt) {
-		throw new UnsupportedOperationException(errorMsg(stmt));
+		return visitDefault(stmt);
 	}
 
+	/**
+	 * Called by the default implementations of the visit methods. Override this 
+	 * to provide a default implementation for statements.
+	 * @param stmt the RTLStatement passed to the visit method. 
+	 * @return An object of the parameter type.
+	 */
+	protected T visitDefault(RTLStatement stmt) {
+		throw new UnsupportedOperationException("Visitor does not support statements of type " + 
+				stmt.getClass().getSimpleName() + "!");
+	}
+	
 }

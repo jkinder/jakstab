@@ -109,11 +109,15 @@ public class IntervalAnalysis implements ConfigurableProgramAnalysis {
 	public Set<AbstractState> post(final AbstractState state, CFAEdge cfaEdge, Precision precision) {
 
 		final RTLStatement statement = (RTLStatement)cfaEdge.getTransformer();
-		//final IntervalState iState = (IntervalState)state;
 		final ValuationState iState = (ValuationState)state;
 
 		return Collections.singleton(statement.accept(new DefaultStatementVisitor<AbstractState>() {
 			
+			@Override
+			protected AbstractState visitDefault(RTLStatement stmt) {
+				return state;
+			}
+
 			@Override
 			public AbstractState visit(RTLVariableAssignment stmt) {
 				ValuationState post = new ValuationState(iState);
@@ -180,16 +184,6 @@ public class IntervalAnalysis implements ConfigurableProgramAnalysis {
 			}
 
 			@Override
-			public AbstractState visit(RTLAssert stmt) {
-				return state;
-			}
-
-			@Override
-			public AbstractState visit(RTLSkip stmt) {
-				return state;
-			}
-
-			@Override
 			public AbstractState visit(RTLAlloc stmt) {
 				ValuationState post = new ValuationState(iState);
 				Writable lhs = stmt.getPointer();
@@ -214,11 +208,6 @@ public class IntervalAnalysis implements ConfigurableProgramAnalysis {
 				}
 
 				return post;
-			}
-
-			@Override
-			public AbstractState visit(RTLDealloc stmt) {
-				return state;
 			}
 
 			@Override

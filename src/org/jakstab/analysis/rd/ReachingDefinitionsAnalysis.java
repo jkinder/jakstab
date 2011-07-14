@@ -51,16 +51,16 @@ public class ReachingDefinitionsAnalysis implements ConfigurableProgramAnalysis 
 		Set<AbstractState> abstractSuccessors = statement.accept(new DefaultStatementVisitor<Set<AbstractState>>() {
 
 			@Override
+			protected Set<AbstractState> visitDefault(RTLStatement stmt) {
+				// Just return the same state for unsupported statements.
+				return Collections.singleton((AbstractState)curState);
+			}
+
+			@Override
 			public Set<AbstractState> visit(RTLVariableAssignment stmt) {
 				// TODO Implement transfer function for assignments
 				logger.info("Processing assignment at " + stmt.getLabel() + ": " + stmt.toString());
 				return Collections.singleton((AbstractState)curState); // Dummy
-			}
-
-			@Override
-			public Set<AbstractState> visit(RTLMemoryAssignment stmt) {
-				// We don't treat memory assignments here, so just return the same state
-				return Collections.singleton((AbstractState)curState);
 			}
 
 			@Override

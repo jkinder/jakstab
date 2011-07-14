@@ -74,7 +74,7 @@ public class SignAnalysis implements ConfigurableProgramAnalysis {
 		
 		return statement.accept(new DefaultStatementVisitor<Set<AbstractState>>() {
 
-			private final Set<AbstractState> fallThroughState() {
+			protected final Set<AbstractState> visitDefault(RTLStatement stmt) {
 				return Collections.singleton(state);
 			}
 			
@@ -83,18 +83,8 @@ public class SignAnalysis implements ConfigurableProgramAnalysis {
 				SignState post = new SignState(s);
 				SignElement evaledRhs = s.abstractEval(stmt.getRightHandSide());
 				post.setValue(stmt.getLeftHandSide(), evaledRhs);
-				if (post.equals(s)) return fallThroughState();
+				if (post.equals(s)) return Collections.singleton(state);
 				return Collections.singleton((AbstractState)post);
-			}
-
-			@Override
-			public Set<AbstractState> visit(RTLMemoryAssignment stmt) {
-				return fallThroughState();
-			}
-
-				@Override
-			public Set<AbstractState> visit(RTLSkip stmt) {
-				return fallThroughState();
 			}
 
 			@Override
@@ -252,21 +242,6 @@ public class SignAnalysis implements ConfigurableProgramAnalysis {
 
 				}
 				return fallThroughState();*/
-			}
-
-			@Override
-			public Set<AbstractState> visit(RTLAssert stmt) {
-				return fallThroughState();
-			}
-
-			@Override
-			public Set<AbstractState> visit(RTLAlloc stmt) {
-				return fallThroughState();
-			}
-
-			@Override
-			public Set<AbstractState> visit(RTLDealloc stmt) {
-				return fallThroughState();
 			}
 
 			@Override

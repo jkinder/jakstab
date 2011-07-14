@@ -63,18 +63,9 @@ public abstract class ResolvingTransformerFactory implements
 
 		Set<CFAEdge> transformers = stmt.accept(new DefaultStatementVisitor<Set<CFAEdge>>() {
 			
-			private Set<CFAEdge> statementToEdgeSet(RTLStatement stmt) {
+			@Override
+			protected Set<CFAEdge> visitDefault(RTLStatement stmt) {
 				return Collections.singleton(new CFAEdge(stmt.getLabel(), stmt.getNextLabel(), stmt));
-			}
-
-			@Override
-			public Set<CFAEdge> visit(RTLVariableAssignment stmt) {
-				return statementToEdgeSet(stmt);
-			}
-
-			@Override
-			public Set<CFAEdge> visit(RTLMemoryAssignment stmt) {
-				return statementToEdgeSet(stmt);
 			}
 
 			@Override
@@ -84,44 +75,10 @@ public abstract class ResolvingTransformerFactory implements
 			}
 
 			@Override
-			public Set<CFAEdge> visit(RTLSkip stmt) {
-				return statementToEdgeSet(stmt);
-			}
-
-			@Override
 			public Set<CFAEdge> visit(RTLHalt stmt) {
 				return Collections.emptySet();
 			}
 
-			@Override
-			public Set<CFAEdge> visit(RTLAlloc stmt) {
-				return statementToEdgeSet(stmt);
-			}
-
-			@Override
-			public Set<CFAEdge> visit(RTLDealloc stmt) {
-				return statementToEdgeSet(stmt);
-			}
-			
-			@Override
-			public Set<CFAEdge> visit(RTLAssert stmt) {
-				return statementToEdgeSet(stmt);
-			}
-
-			@Override
-			public Set<CFAEdge> visit(RTLHavoc stmt) {
-				return statementToEdgeSet(stmt);
-			}
-
-			@Override
-			public Set<CFAEdge> visit(RTLMemcpy stmt) {
-				return statementToEdgeSet(stmt);
-			}
-
-			@Override
-			public Set<CFAEdge> visit(RTLMemset stmt) {
-				return statementToEdgeSet(stmt);
-			}
 		});		
 		
 		saveNewEdges(transformers, a.getLocation());

@@ -171,10 +171,6 @@ public final class SubstitutionState implements AbstractState {
 		
 		return statement.accept(new DefaultStatementVisitor<SubstitutionState>() {
 
-			private final SubstitutionState fallThroughState() {
-				return SubstitutionState.this;
-			}
-			
 			private SubstitutionState clobber(Writable x) {
 				SubstitutionState post = new SubstitutionState(SubstitutionState.this);
 				
@@ -192,7 +188,12 @@ public final class SubstitutionState implements AbstractState {
 				if (post.equals(SubstitutionState.this)) return SubstitutionState.this;
 				return post;
 			}
-
+			
+			@Override
+			protected SubstitutionState visitDefault(RTLStatement stmt) {
+				return SubstitutionState.this;
+			}
+			
 			@Override
 			public SubstitutionState visit(RTLVariableAssignment stmt) {
 
@@ -278,28 +279,8 @@ public final class SubstitutionState implements AbstractState {
 			}
 
 			@Override
-			public SubstitutionState visit(RTLSkip stmt) {
-				return fallThroughState();
-			}
-
-			@Override
-			public SubstitutionState visit(RTLAssume stmt) {
-				return fallThroughState();
-			}
-			
-			@Override
 			public SubstitutionState visit(RTLAlloc stmt) {
 				return clobber(stmt.getPointer());
-			}
-
-			@Override
-			public SubstitutionState visit(RTLAssert stmt) {
-				return fallThroughState();
-			}
-
-			@Override
-			public SubstitutionState visit(RTLDealloc stmt) {
-				return fallThroughState();
 			}
 
 			@Override

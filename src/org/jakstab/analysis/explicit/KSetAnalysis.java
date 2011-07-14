@@ -131,24 +131,10 @@ public class KSetAnalysis implements ConfigurableProgramAnalysis {
 			}
 
 			@Override
-			public AbstractState visit(RTLAssert stmt) {
+			protected AbstractState visitDefault(RTLStatement stmt) {
 				return iState;
 			}
 
-			@Override
-			public AbstractState visit(RTLDealloc stmt) {
-				return iState;
-			}
-
-			@Override
-			public AbstractState visit(RTLHavoc stmt) {
-				return iState;
-			}
-
-			@Override
-			public AbstractState visit(RTLSkip stmt) {
-				return iState;
-			}			
 		}));
 
 	}

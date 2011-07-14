@@ -34,36 +34,24 @@ public class CallStackAnalysis implements ConfigurableProgramAnalysis {
 
 	@SuppressWarnings("unused")
 	private static final Logger logger = Logger.getLogger(CallStackAnalysis.class);
-
-	/*
-	 * @see org.jakstab.analysis.ConfigurableProgramAnalysis#initPrecision()
-	 */
+	
+	
 	@Override
 	public Precision initPrecision(Location location, StateTransformer transformer) {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
-	/*
-	 * @see org.jakstab.analysis.ConfigurableProgramAnalysis#initStartState(org.jakstab.rtl.RTLLabel)
-	 */
 	@Override
 	public AbstractState initStartState(Location label) {
 		return new CallStackState();
 	}
 
-	/*
-	 * @see org.jakstab.analysis.ConfigurableProgramAnalysis#merge(org.jakstab.analysis.AbstractState, org.jakstab.analysis.AbstractState, org.jakstab.analysis.Precision)
-	 */
 	@Override
 	public AbstractState merge(AbstractState s1, AbstractState s2,
 			Precision precision) {
 		return CPAOperators.mergeSep(s1, s2, precision);
 	}
 
-	/*
-	 * @see org.jakstab.analysis.ConfigurableProgramAnalysis#post(org.jakstab.analysis.AbstractState, org.jakstab.analysis.StateTransformer, org.jakstab.analysis.Precision)
-	 */
 	@Override
 	public Set<AbstractState> post(AbstractState state,
 			CFAEdge cfaEdge, Precision precision) {
@@ -76,18 +64,12 @@ public class CallStackAnalysis implements ConfigurableProgramAnalysis {
 		return s;
 	}
 
-	/*
-	 * @see org.jakstab.analysis.ConfigurableProgramAnalysis#prec(org.jakstab.analysis.AbstractState, org.jakstab.analysis.Precision, org.jakstab.analysis.ReachedSet)
-	 */
 	@Override
 	public Pair<AbstractState, Precision> prec(AbstractState s,
 			Precision precision, ReachedSet reached) {
 		return Pair.create(s, precision);
 	}
 
-	/*
-	 * @see org.jakstab.analysis.ConfigurableProgramAnalysis#stop(org.jakstab.analysis.AbstractState, org.jakstab.analysis.ReachedSet, org.jakstab.analysis.Precision)
-	 */
 	@Override
 	public boolean stop(AbstractState s, ReachedSet reached, Precision precision) {
 		return CPAOperators.stopSep(s, reached, precision);
