@@ -44,7 +44,7 @@ public class Main {
 
 	private static Logger logger;
 
-	private final static String version = "0.8.1";
+	private final static String version = "0.8.2";
 
 	private static volatile Algorithm activeAlgorithm;
 	private static volatile Thread mainThread;
