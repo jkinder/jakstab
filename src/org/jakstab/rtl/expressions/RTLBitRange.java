@@ -57,7 +57,6 @@ public class RTLBitRange extends AbstractRTLExpression implements RTLExpression,
 				lastBit - firstBit + 1);
 	}
 
-	private static final long serialVersionUID = -6616877010939334147L;
 	private final static Logger logger = Logger.getLogger(RTLBitRange.class);
 
 	private final RTLExpression firstBit;

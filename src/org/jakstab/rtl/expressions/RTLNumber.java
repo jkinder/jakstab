@@ -40,8 +40,6 @@ public class RTLNumber extends AbstractRTLExpression implements RTLExpression, A
 	
 	@SuppressWarnings("unused")
 	private static final Logger logger = Logger.getLogger(RTLNumber.class);
-	private static final long serialVersionUID = 638505726787646920L;
-	
 	private final int bitWidth;
 	private final long value;
 

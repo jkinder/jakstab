@@ -33,7 +33,6 @@ import org.jakstab.util.Logger;
  */
 public class RTLSkip extends AbstractRTLStatement implements RTLStatement {
 
-	private static final long serialVersionUID = -7383403712289791790L;
 	@SuppressWarnings("unused")
 	private final static Logger logger = Logger.getLogger(RTLSkip.class);
 

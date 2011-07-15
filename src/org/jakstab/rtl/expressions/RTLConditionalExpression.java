@@ -32,8 +32,6 @@ import org.jakstab.util.Logger;
  */
 public class RTLConditionalExpression extends AbstractRTLExpression implements RTLExpression {
 
-	private static final long serialVersionUID = 827041404555557904L;
-
 	@SuppressWarnings("unused")
 	private final static Logger logger = Logger.getLogger(RTLConditionalExpression.class);
 

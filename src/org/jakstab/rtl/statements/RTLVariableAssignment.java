@@ -36,8 +36,6 @@ public class RTLVariableAssignment extends AbstractRTLStatement implements RTLSt
 
 	private static final Logger logger = Logger.getLogger(RTLVariableAssignment.class);
 
-	private static final long serialVersionUID = 77230387535470541L;
-
 	private RTLVariable leftHandSide;
 	private RTLExpression rightHandSide;
 
