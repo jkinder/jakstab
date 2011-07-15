@@ -17,6 +17,7 @@
  */
 package org.jakstab.util;
 
+import java.awt.Color;
 import java.io.IOException;
 import java.util.Map;
 
@@ -37,6 +38,9 @@ public interface GraphWriter {
 	public void writeLabeledEdge(String id1, String id2, String label)
 			throws IOException;
 	
+	public void writeLabeledEdge(String id1, String id2, String label, Color color)
+			throws IOException;
+
 	public String getFilename();
 
 }

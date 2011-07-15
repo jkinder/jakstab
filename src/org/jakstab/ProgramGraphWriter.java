@@ -17,6 +17,7 @@
  */
 package org.jakstab;
 
+import java.awt.Color;
 import java.io.IOException;
 import java.util.*;
 
@@ -121,9 +122,11 @@ public class ProgramGraphWriter {
 			}
 
 			for (CFAEdge e : program.getCFA()) {
+				if (e.getKind() == null) logger.error("Null kind? " + e);
 				gwriter.writeLabeledEdge(e.getSource().toString(), 
 						e.getTarget().toString(), 
-						e.getTransformer().toString());
+						e.getTransformer().toString(),
+						e.getKind().equals(CFAEdge.Kind.MAY) ? Color.BLACK : Color.GREEN);
 			}
 
 			gwriter.close();
