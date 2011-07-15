@@ -40,8 +40,7 @@ public class CompositeState implements AbstractState {
 	@SuppressWarnings("unused")
 	private static final Logger logger = Logger.getLogger(CompositeState.class);
 		
-	private final AbstractState[] components;
-	private int hashCode = 0; 
+	protected final AbstractState[] components;
 	
 	/**
 	 * @param components
@@ -51,17 +50,6 @@ public class CompositeState implements AbstractState {
 		this.components = components;
 	}
 	
-	public CompositeState(Tuple<AbstractState> tuple) {
-		super();
-		components = new AbstractState[tuple.size()];
-		for (int i=0; i<components.length; i++) {
-			components[i] = tuple.get(i);
-		}
-	}
-
-	/*
-	 * @see org.jakstab.analysis.AbstractState#getIdentifier()
-	 */
 	@Override
 	public String getIdentifier() {
 		StringBuilder id = new StringBuilder();
@@ -71,9 +59,6 @@ public class CompositeState implements AbstractState {
 		return id.toString();
 	}
 
-	/*
-	 * @see org.jakstab.analysis.AbstractState#getLocation()
-	 */
 	@Override
 	public Location getLocation() {
 		return ((LocationState)components[0]).getLocation();
@@ -83,9 +68,6 @@ public class CompositeState implements AbstractState {
 		return components[index];
 	}
 
-	/*
-	 * @see org.jakstab.analysis.AbstractState#join(org.jakstab.analysis.LatticeElement)
-	 */
 	@Override
 	public AbstractState join(LatticeElement l) {
 		CompositeState other = (CompositeState)l;
@@ -152,25 +134,16 @@ public class CompositeState implements AbstractState {
 		return result;
 	}
 
-	/*
-	 * @see org.jakstab.analysis.LatticeElement#isBot()
-	 */
 	@Override
 	public boolean isBot() {
 		return false;
 	}
 
-	/*
-	 * @see org.jakstab.analysis.LatticeElement#isTop()
-	 */
 	@Override
 	public boolean isTop() {
 		return false;
 	}
 
-	/*
-	 * @see org.jakstab.analysis.LatticeElement#lessOrEqual(org.jakstab.analysis.LatticeElement)
-	 */
 	@Override
 	public boolean lessOrEqual(LatticeElement l) {
 		CompositeState other = (CompositeState)l;
@@ -194,26 +167,14 @@ public class CompositeState implements AbstractState {
 		return res.toString();
 	}
 
-	/*
-	 * @see java.lang.Object#hashCode()
-	 */
 	@Override
 	public int hashCode() {
-		if (hashCode == 0)
-			hashCode = deepHashCode();
-		return hashCode;
-	}
-	
-	private int deepHashCode() {
 		final int prime = 31;
 		int result = 1;
 		result = prime * result + Arrays.hashCode(components);
 		return result;
 	}
 
-	/*
-	 * @see java.lang.Object#equals(java.lang.Object)
-	 */
 	@Override
 	public boolean equals(Object obj) {
 		CompositeState other = (CompositeState) obj;

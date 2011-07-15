@@ -69,20 +69,14 @@ public class CompositeProgramAnalysis implements ConfigurableProgramAnalysis {
 			}
 	}
 
-	/*
-	 * @see org.jakstab.analysis.ConfigurableProgramAnalysis#initStartState(org.jakstab.rtl.RTLLabel)
-	 */
 	@Override
 	public AbstractState initStartState(Location label) {
 		AbstractState[] components = new AbstractState[cpas.length];
 		for (int i=0; i<cpas.length; i++)
 			components[i] = cpas[i].initStartState(label);
-		return new CompositeState(components);
+		return createCompositeState(components);
 	}
 
-	/*
-	 * @see org.jakstab.analysis.ConfigurableProgramAnalysis#merge(org.jakstab.analysis.AbstractState, org.jakstab.analysis.AbstractState)
-	 */
 	@Override
 	public AbstractState merge(AbstractState s1, AbstractState s2, Precision precision) {
 		// Cartesian merge
@@ -104,12 +98,9 @@ public class CompositeProgramAnalysis implements ConfigurableProgramAnalysis {
 					((CompositePrecision)precision).getComponent(i)
 					);
 		}
-		return new CompositeState(mergedComponents);
+		return createCompositeState(mergedComponents);
 	}
 
-	/*
-	 * @see org.jakstab.analysis.ConfigurableProgramAnalysis#post(org.jakstab.analysis.AbstractState, org.jakstab.analysis.StateTransformer)
-	 */
 	@Override
 	public Set<AbstractState> post(AbstractState state, CFAEdge cfaEdge, Precision precision) {
 
@@ -211,7 +202,7 @@ public class CompositeProgramAnalysis implements ConfigurableProgramAnalysis {
 			if (succs.isEmpty()) return Collections.emptySet();
 			sComponents.set(i, succs);
 		}
-		//return new CompositeState(sComponents);
+		//return createCompositeState(sComponents);
 		Set<Tuple<AbstractState>> crossp = Sets.crossProduct(sComponents);
 		Set<AbstractState> succ = new FastSet<AbstractState>();
 		
@@ -225,14 +216,11 @@ public class CompositeProgramAnalysis implements ConfigurableProgramAnalysis {
 				tuple.set(i, s1);
 			}
 			
-			succ.add(new CompositeState(tuple));
+			succ.add(createCompositeState(tuple));
 		}
 		return succ;
 	}
 
-	/*
-	 * @see org.jakstab.analysis.ConfigurableProgramAnalysis#prec(org.jakstab.analysis.AbstractState, java.util.Set)
-	 */
 	@Override
 	public Pair<AbstractState, Precision> prec(AbstractState s, Precision precision, ReachedSet reached) {
 		CompositeState cs = (CompositeState)s;
@@ -247,13 +235,10 @@ public class CompositeProgramAnalysis implements ConfigurableProgramAnalysis {
 			 newPrecComponents[i] = pair.getRight();
 		}
 		
-		return Pair.create((AbstractState)(new CompositeState(newComponents)),
+		return Pair.create((AbstractState)(createCompositeState(newComponents)),
 				(Precision)(new CompositePrecision(newPrecComponents)));
 	}
 
-	/*
-	 * @see org.jakstab.analysis.ConfigurableProgramAnalysis#stop(org.jakstab.analysis.AbstractState, java.util.Set)
-	 */
 	@Override
 	public boolean stop(AbstractState s, ReachedSet reached, Precision precision) {
 
@@ -297,6 +282,18 @@ public class CompositeProgramAnalysis implements ConfigurableProgramAnalysis {
 	public AbstractState strengthen(AbstractState s, Iterable<AbstractState> otherStates,
 			CFAEdge cfaEdge, Precision precision) {
 		throw new UnsupportedOperationException("Strengthening should never be called on composite analysis!");
+	}
+	
+	protected CompositeState createCompositeState(Tuple<AbstractState> tuple) {
+		AbstractState[] components = new AbstractState[tuple.size()];
+		for (int i=0; i<components.length; i++) {
+			components[i] = tuple.get(i);
+		}
+		return createCompositeState(components);
+	}
+
+	protected CompositeState createCompositeState(AbstractState[] components) {
+		return new CompositeState(components);
 	}
 
 }
