@@ -175,6 +175,11 @@ public class Main {
 			// org.jakstab.solver.yices.YicesWrapper.getVersion();
 			eclipseShutdownThread.start();
 		}
+		
+		// If we do trace replay and did not specify a trace file, use default name
+		if (Options.cpas.contains("t") && Options.traceFiles == null)
+			Options.traceFiles = new String[]{ baseFileName + ".parsed" };
+		
 
 		// Necessary to stop shutdown thread on exceptions being thrown
 		try {

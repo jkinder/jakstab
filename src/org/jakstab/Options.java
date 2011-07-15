@@ -72,6 +72,7 @@ public class Options {
 	public static String cpas = "x";
 	public static String secondaryCPAs = null;
 	public static int timeout = -1;
+	public static String[] traceFiles;
 	
 
 	/**
@@ -136,7 +137,10 @@ public class Options {
 						}
 						secondaryCPAs = args[++i];
 						backward = true;
+					} else if (arg.equals("--trace-file")) {
+						traceFiles = args[++i].split(",");
 					} 
+
 				} else {
 					logger.fatal("Invalid command line argument: " + arg);
 					logger.fatal("");
@@ -159,6 +163,7 @@ public class Options {
 		// Use default value if not specified
 		if (heapDataThreshold < 0)
 			heapDataThreshold = explicitThreshold;
+		
 	}
 	
 	public static void printOptions() {
@@ -180,6 +185,7 @@ public class Options {
 		logger.fatal("         f         Forward expression substitution");
 		logger.fatal("         i         Strided intervals");
 		logger.fatal("         s         Call stack analysis (unsound on non-standard code)");
+		logger.fatal("         t         Trace replay analysis (under-approximation)");
 		logger.fatal("  --procedures n   Level of procedure assumptions:");
 		logger.fatal("         0         Pessimistic: No assumptions, treat calls and returns as jumps.");
 		logger.fatal("         1         Semi-optimistic: Abstract unknown calls according to ABI contract.");
@@ -204,6 +210,8 @@ public class Options {
 		logger.fatal("  --ssl SSLfile    Use SSLfile instead of pentium.ssl"); 
 		logger.fatal("  --summarize-reps Use summarizing transformer for string instructions."); 
 		logger.fatal("  --toplocs        Output the 10 locations with the highest state count.");
+		logger.fatal("  --trace-file     Comma separated list of trace files used for tracereplay. Default is");
+		logger.fatal("                   filename with .traced extension");
 		logger.fatal("  --wdm            WDM mode, export main function as DriverMain.");
 	}
 

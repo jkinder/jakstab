@@ -17,6 +17,7 @@
  */
 package org.jakstab.analysis.composite;
 
+import java.util.Arrays;
 import java.util.Set;
 
 import org.jakstab.analysis.AbstractState;
@@ -24,6 +25,7 @@ import org.jakstab.analysis.UnderApproximateState;
 import org.jakstab.rtl.expressions.RTLExpression;
 import org.jakstab.rtl.expressions.RTLNumber;
 import org.jakstab.util.FastSet;
+import org.jakstab.util.Logger;
 import org.jakstab.util.Tuple;
 
 /**
@@ -33,6 +35,9 @@ import org.jakstab.util.Tuple;
  *
  */
 public class DualCompositeState extends CompositeState {
+
+	@SuppressWarnings("unused")
+	private static final Logger logger = Logger.getLogger(DualCompositeState.class);
 
 	public DualCompositeState(AbstractState[] components) {
 		super(components);
@@ -55,7 +60,7 @@ public class DualCompositeState extends CompositeState {
 				result.addAll(concreteTuples); 
 			}
 		}
-		//logger.info("Project " + Arrays.toString(expressions) + " to " + result);
+		logger.info("Under-approximation projects " + Arrays.toString(expressions) + " to " + result);
 		assert result != null;
 		return result;
 	}

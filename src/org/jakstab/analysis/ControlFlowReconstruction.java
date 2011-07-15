@@ -24,10 +24,12 @@ import org.jakstab.Program;
 import org.jakstab.Algorithm;
 import org.jakstab.analysis.callstack.CallStackAnalysis;
 import org.jakstab.analysis.composite.CompositeProgramAnalysis;
+import org.jakstab.analysis.composite.DualCompositeAnalysis;
 import org.jakstab.analysis.explicit.*;
 import org.jakstab.analysis.intervals.IntervalAnalysis;
 import org.jakstab.analysis.location.LocationAnalysis;
 import org.jakstab.analysis.substitution.ExpressionSubstitutionAnalysis;
+import org.jakstab.analysis.tracereplay.TraceReplayAnalysis;
 import org.jakstab.asm.*;
 import org.jakstab.asm.x86.X86Instruction;
 import org.jakstab.cfa.*;
@@ -134,6 +136,7 @@ public class ControlFlowReconstruction implements Algorithm {
 		// Init CPAs
 		ConfigurableProgramAnalysis[] cpas = new ConfigurableProgramAnalysis[Options.cpas.length()];
 		boolean addedExplicitAnalysis = false;
+		boolean addedUnderApproximation = false;
 		
 		for (int i=0; i<Options.cpas.length(); i++) {
 			switch (Options.cpas.charAt(i)) {
@@ -170,6 +173,13 @@ public class ControlFlowReconstruction implements Algorithm {
 				cpas[i] = new KSetAnalysis(Options.explicitThreshold);
 				addedExplicitAnalysis = true;
 				break;
+			case 't':
+				logger.info("--- Using trace replay analysis.");
+				cpas[i] = new TraceReplayAnalysis();
+				addedExplicitAnalysis = true;
+				addedUnderApproximation = true;
+				break;
+
 			default:
 				logger.fatal("No analysis corresponds to letter \"" + Options.cpas.charAt(i) + "\"!");
 				System.exit(1);
@@ -181,14 +191,26 @@ public class ControlFlowReconstruction implements Algorithm {
 			System.exit(1);
 		}
 		
-		ConfigurableProgramAnalysis cpa = new CompositeProgramAnalysis(
-				new LocationAnalysis(),
-				cpas
-		);
+		ConfigurableProgramAnalysis cpa;
+		if (!addedUnderApproximation) {
+			cpa = new CompositeProgramAnalysis(new LocationAnalysis(), cpas);
+		} else {
+			cpa = new DualCompositeAnalysis(new LocationAnalysis(), cpas);
+		}
 
 		// Init State transformer factory
 		if (Options.basicBlocks) {
+			
+			if (addedUnderApproximation) {
+				logger.fatal("Currently, basic block summarization cannot be combined with under-approximations!");
+				System.exit(1);
+			}
 			transformerFactory = new PessimisticBasicBlockFactory();
+			
+		} else if (addedUnderApproximation) {
+			
+			transformerFactory = new AlternatingStateTransformerFactory();
+			
 		} else {
 			switch (Options.procedureAbstraction) {
 			case 0: 
