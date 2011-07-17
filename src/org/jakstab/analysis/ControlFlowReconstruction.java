@@ -134,7 +134,7 @@ public class ControlFlowReconstruction implements Algorithm {
 		this.program = program;
 
 		// Init CPAs
-		ConfigurableProgramAnalysis[] cpas = new ConfigurableProgramAnalysis[Options.cpas.length()];
+		List<ConfigurableProgramAnalysis> cpas = new LinkedList<ConfigurableProgramAnalysis>();
 		boolean addedExplicitAnalysis = false;
 		boolean addedUnderApproximation = false;
 		
@@ -142,40 +142,42 @@ public class ControlFlowReconstruction implements Algorithm {
 			switch (Options.cpas.charAt(i)) {
 			case 'c':
 				logger.info("--- Using constant propagation.");
-				cpas[i] = new ConstantPropagation();
+				cpas.add(new ConstantPropagation());
 				addedExplicitAnalysis = true;
 				break;
 			case 'b':
 				logger.info("--- Using based constant propagation.");
-				cpas[i] = new BasedConstantPropagation();
+				cpas.add(new BasedConstantPropagation());
 				addedExplicitAnalysis = true;
 				break;
 			case 'x':
 				logger.info("--- Using bounded address tracking.");
-				cpas[i] = new BoundedAddressTracking();
+				cpas.add(new BoundedAddressTracking());
 				addedExplicitAnalysis = true;
 				break;
 			case 'i':
 				logger.info("--- Using interval analysis.");
-				cpas[i] = new IntervalAnalysis();
+				cpas.add(new IntervalAnalysis());
 				addedExplicitAnalysis = true;
 				break;
 			case 's':
 				logger.info("--- Using call stack analysis.");
-				cpas[i] = new CallStackAnalysis();
+				cpas.add(new CallStackAnalysis());
 				break;
 			case 'f':
 				logger.info("--- Using forward expression substitution.");
-				cpas[i] = new ExpressionSubstitutionAnalysis();
+				cpas.add(new ExpressionSubstitutionAnalysis());
 				break;
 			case 'k':
 				logger.info("--- Using K-set analysis.");
-				cpas[i] = new KSetAnalysis(Options.explicitThreshold);
+				cpas.add(new KSetAnalysis(Options.explicitThreshold));
 				addedExplicitAnalysis = true;
 				break;
 			case 't':
 				logger.info("--- Using trace replay analysis.");
-				cpas[i] = new TraceReplayAnalysis();
+				for (String fileName : Options.traceFiles) {
+					cpas.add(new TraceReplayAnalysis(fileName));
+				}
 				addedExplicitAnalysis = true;
 				addedUnderApproximation = true;
 				break;
@@ -193,9 +195,9 @@ public class ControlFlowReconstruction implements Algorithm {
 		
 		ConfigurableProgramAnalysis cpa;
 		if (!addedUnderApproximation) {
-			cpa = new CompositeProgramAnalysis(new LocationAnalysis(), cpas);
+			cpa = new CompositeProgramAnalysis(new LocationAnalysis(), cpas.toArray(new ConfigurableProgramAnalysis[cpas.size()]));
 		} else {
-			cpa = new DualCompositeAnalysis(new LocationAnalysis(), cpas);
+			cpa = new DualCompositeAnalysis(new LocationAnalysis(), cpas.toArray(new ConfigurableProgramAnalysis[cpas.size()]));
 		}
 
 		// Init State transformer factory

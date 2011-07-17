@@ -10,7 +10,6 @@ import java.util.Collections;
 import java.util.Set;
 import java.util.StringTokenizer;
 
-import org.jakstab.Options;
 import org.jakstab.Program;
 import org.jakstab.analysis.AbstractState;
 import org.jakstab.analysis.CPAOperators;
@@ -30,15 +29,31 @@ public class TraceReplayAnalysis implements ConfigurableProgramAnalysis {
 	private int lineNumber = 0;
 	private long precedingAddress = -1;
 	private long newAddress = -1;
-	
+
 	private FileReader temuTrace;
 	private String entireLineInTrace;
 	private BufferedReader in;
 	private File fin;
-	
+
 	@SuppressWarnings("unused")
 	private static final Logger logger = Logger
-			.getLogger(TraceReplayAnalysis.class);
+	.getLogger(TraceReplayAnalysis.class);
+
+
+	public TraceReplayAnalysis(String filename) {
+		try {
+			fin = new File(filename).getAbsoluteFile(); //CanonicalFile();
+			temuTrace = new FileReader (fin);
+			in = new BufferedReader (temuTrace);
+			entireLineInTrace = in.readLine();
+		} catch (FileNotFoundException e) {
+			logger.fatal("Trace file not found: " + e.getMessage());
+			throw new RuntimeException(e);
+		} catch (IOException e) {
+			logger.fatal("IOException while parsing trace! ", e);
+			throw new RuntimeException(e);
+		}
+	}
 
 	@Override
 	public Precision initPrecision(Location location,
@@ -47,39 +62,15 @@ public class TraceReplayAnalysis implements ConfigurableProgramAnalysis {
 		return null;
 	}
 
-	public AbstractState initStartState (Location label){
-		assert lineNumber==0;
-		try {
-			fin = new File (Options.traceFiles[0]).getAbsoluteFile(); //CanonicalFile();
-			temuTrace = new FileReader (fin);
-			in = new BufferedReader (temuTrace);
-			entireLineInTrace = in.readLine();
-			return new TraceReplayState(((RTLLabel)label).getAddress().getValue(), lineNumber, label); //linNumberis equals here to '0' and '0' is used because we have just started observing Trace/ParsedFile 
-		}
-		catch (FileNotFoundException e) {
-			logger.fatal("File not found: " + e.getMessage());
-			throw new RuntimeException(e);
-			//return new TraceReplayState(null, 0);
-		}
-		catch (IOException e) { //When I tried to use IOException I got an compilation Error, therefore I use here second Exception e1
-			logger.fatal("IOException while parsing executable!", e);
-			try {
-				temuTrace.close();
-			} catch (IOException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-				throw new RuntimeException(e);
-			}
-		}
-		return new TraceReplayState(0, 0, null);  //this return method should be invoked if exception is happend 
+	public AbstractState initStartState(Location label){
+		//linNumberis equals here to '0' and '0' is used because we have just started observing Trace/ParsedFile 
+		return new TraceReplayState(((RTLLabel)label).getAddress().getValue(), lineNumber, label); 
 	}
-	
+
 	@Override
 	public AbstractState merge(AbstractState s1, AbstractState s2,
 			Precision precision) {
-		assert s1 instanceof TraceReplayState;
-		assert s2 instanceof TraceReplayState;
-		
+
 		if (s2.isBot()) return s1;
 		else return s2;
 	}
@@ -190,8 +181,7 @@ public class TraceReplayAnalysis implements ConfigurableProgramAnalysis {
 					return Collections.singleton((AbstractState)TraceReplayState.BOT);
 					//TODO Actually here a kind of exception should be invoked, because it is not standard case; here return-statement should be specified
 				}
-		}
-		catch (IOException e){
+		} catch (IOException e){
 			logger.fatal("IOException while parsing executable!", e);		
 			//return Collections.singleton ((AbstractState)new TraceReplayState(null, 0));
 			return Collections.singleton((AbstractState)TraceReplayState.BOT);
@@ -206,9 +196,9 @@ public class TraceReplayAnalysis implements ConfigurableProgramAnalysis {
 
 	@Override
 	public boolean stop(AbstractState s, ReachedSet reached, Precision precision) {
-		
+
 		if ( ((TraceReplayState)s).isBot() )	//This conditional is used to patch fault with empty ReachedSedUnderApp. 
-												//In new version of Jakstba only one ReachedSet should exist!
+			//In new version of Jakstab only one ReachedSet should exist!
 			return true;
 		else
 			return CPAOperators.stopSep(s, reached, precision);
