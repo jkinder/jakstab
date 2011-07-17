@@ -35,8 +35,8 @@ public class DefaultHarness implements Harness {
 	@SuppressWarnings("unused")
 	private static final Logger logger = Logger.getLogger(DefaultHarness.class);
 
-	private long PROLOGUE_BASE = 0xface0000L;
-	private long EPILOGUE_BASE = 0xfee70000L;
+	public static long PROLOGUE_BASE = 0xface0000L;
+	public static long EPILOGUE_BASE = 0xfee70000L;
 	private AbsoluteAddress prologueAddress = new AbsoluteAddress(PROLOGUE_BASE);
 	private AbsoluteAddress epilogueAddress = new AbsoluteAddress(EPILOGUE_BASE);
 

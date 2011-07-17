@@ -17,6 +17,7 @@
  */
 package org.jakstab.cfa;
 
+import org.jakstab.analysis.LatticeElement;
 import org.jakstab.util.Logger;
 
 /**
@@ -29,8 +30,35 @@ public class CFAEdge implements Comparable<CFAEdge> {
 
 	@SuppressWarnings("unused")
 	private static final Logger logger = Logger.getLogger(CFAEdge.class);
-	
-	public enum Kind { MAY, MUST }
+
+	/**
+	 * The kind of a CFAEdge, i.e., it's value in a multi-valued logic.
+	 */
+	public enum Kind implements LatticeElement { 
+		
+		MAY, MUST;
+
+		@Override
+		public LatticeElement join(LatticeElement l) {
+			if (l.equals(MAY)) return this;
+			else return MUST;
+		}
+
+		@Override
+		public boolean lessOrEqual(LatticeElement l) {
+			return this.equals(MAY) || l.equals(MUST);
+		}
+
+		@Override
+		public boolean isTop() {
+			return equals(MUST);
+		}
+
+		@Override
+		public boolean isBot() {
+			return equals(MAY);
+		} 
+	}
 
 	private Location source;
 	private Location target;

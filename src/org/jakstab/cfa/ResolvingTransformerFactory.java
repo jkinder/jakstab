@@ -37,7 +37,7 @@ import com.google.common.collect.SetMultimap;
  * @author Johannes Kinder
  */
 public abstract class ResolvingTransformerFactory implements
-		StateTransformerFactory {
+StateTransformerFactory {
 
 	@SuppressWarnings("unused")
 	private static final Logger logger = Logger.getLogger(ResolvingTransformerFactory.class);
@@ -45,10 +45,7 @@ public abstract class ResolvingTransformerFactory implements
 	protected final Set<Location> unresolvedBranches = new FastSet<Location>();
 	protected boolean sound = true;
 	protected SetMultimap<Location,CFAEdge> outEdges = HashMultimap.create();
-	
-	/*
-	 * @see org.jakstab.analysis.StateTransformerFactory#isSound()
-	 */
+
 	public boolean isSound() {
 		return sound;
 	}
@@ -56,13 +53,13 @@ public abstract class ResolvingTransformerFactory implements
 	public Set<Location> getUnresolvedBranches() {
 		return unresolvedBranches;
 	}
-	
+
 	@Override
 	public Set<CFAEdge> getTransformers(final AbstractState a) {
 		RTLStatement stmt = Program.getProgram().getStatement((RTLLabel)a.getLocation());
 
 		Set<CFAEdge> transformers = stmt.accept(new DefaultStatementVisitor<Set<CFAEdge>>() {
-			
+
 			@Override
 			protected Set<CFAEdge> visitDefault(RTLStatement stmt) {
 				return Collections.singleton(new CFAEdge(stmt.getLabel(), stmt.getNextLabel(), stmt));
@@ -80,35 +77,44 @@ public abstract class ResolvingTransformerFactory implements
 			}
 
 		});		
-		
+
 		saveNewEdges(transformers, a.getLocation());
-		
+
 		return transformers;
 	}
-	
+
 	protected void saveNewEdges(Set<CFAEdge> transformers, Location l) {
 		// Make sure we only add new edges. Edges are mutable so we cannot just implement
 		// hashCode and equals and add everything into a HashSet.
-		Set<CFAEdge> newEdges;
-		if (outEdges.containsKey(l)) {
-			newEdges = new FastSet<CFAEdge>();
-			for (CFAEdge edge : transformers) {
-				boolean found = false;
+		for (CFAEdge edge : transformers) {
+			boolean found = false;
+			// We check for this in the loop, because transformers may contain duplicate edges
+			// that only differ in their kind. So we check them against each other for upgrading
+			if (outEdges.containsKey(l)) {
 				for (CFAEdge existingEdge : outEdges.get(l)) {
 					if (existingEdge.getTarget().equals(edge.getTarget())) {
+
+						// There is an edge with the same target
 						found = true;
+
+						// If the new kind is greater than the existing, upgrade to new kind
+						if (!existingEdge.getKind().equals(edge.getKind()) && existingEdge.getKind().lessOrEqual(edge.getKind())) {
+							logger.debug("Upgrading existing edge " + existingEdge + " from " + 
+									existingEdge.getKind() + " to " + edge.getKind());
+							existingEdge.setKind(edge.getKind());
+						}
+						// Incomparable edge kinds cannot happen with current logic
+						assert edge.getKind().lessOrEqual(existingEdge.getKind()) : "Incomparable edge kinds!";
+
 						break;
 					}
 				}
-				if (!found) newEdges.add(edge);
 			}
-			
-		} else {
-			newEdges = transformers;
+			if (!found) outEdges.put(l,  edge); //newEdges.add(edge);
 		}
-		outEdges.putAll(l, newEdges);
+
 	}
-	
+
 	public Set<CFAEdge> getExistingOutEdges(Location l) {
 		return outEdges.get(l);
 	}
@@ -120,7 +126,7 @@ public abstract class ResolvingTransformerFactory implements
 		}
 		return cfa;
 	}
-	
+
 	protected abstract Set<CFAEdge> resolveGoto(final AbstractState a, final RTLGoto stmt);
 
 	@Override

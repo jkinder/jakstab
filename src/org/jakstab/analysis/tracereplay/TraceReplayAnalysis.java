@@ -1,5 +1,6 @@
 package org.jakstab.analysis.tracereplay;
 
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -29,14 +30,15 @@ public class TraceReplayAnalysis implements ConfigurableProgramAnalysis {
 	private int lineNumber = 0;
 	private long precedingAddress = -1;
 	private long newAddress = -1;
-
+	
 	private FileReader temuTrace;
-	private String line1;
+	private String entireLineInTrace;
 	private BufferedReader in;
 	private File fin;
-
+	
 	@SuppressWarnings("unused")
-	private static final Logger logger = Logger.getLogger(TraceReplayAnalysis.class);
+	private static final Logger logger = Logger
+			.getLogger(TraceReplayAnalysis.class);
 
 	@Override
 	public Precision initPrecision(Location location,
@@ -45,47 +47,41 @@ public class TraceReplayAnalysis implements ConfigurableProgramAnalysis {
 		return null;
 	}
 
-	@Override
-	public AbstractState initStartState(Location label) {
+	public AbstractState initStartState (Location label){
+		assert lineNumber==0;
 		try {
-			fin = new File (Options.traceFiles[0]).getAbsoluteFile();
+			fin = new File (Options.traceFiles[0]).getAbsoluteFile(); //CanonicalFile();
 			temuTrace = new FileReader (fin);
-			//FileReader temuTrace = new FileReader ("/home/dima2/Desktop/tracesTemu/TracedJohannesSample/simple_final.parsed");
 			in = new BufferedReader (temuTrace);
-			line1 = in.readLine();
-			return new TraceReplayState((RTLLabel)label, 0);
+			entireLineInTrace = in.readLine();
+			return new TraceReplayState(((RTLLabel)label).getAddress().getValue(), lineNumber, label); //linNumberis equals here to '0' and '0' is used because we have just started observing Trace/ParsedFile 
 		}
 		catch (FileNotFoundException e) {
 			logger.fatal("File not found: " + e.getMessage());
 			throw new RuntimeException(e);
 			//return new TraceReplayState(null, 0);
 		}
-		catch (IOException e) { //When I tried to use IOException I got an compilation Error, therefore I use here Exception
+		catch (IOException e) { //When I tried to use IOException I got an compilation Error, therefore I use here second Exception e1
 			logger.fatal("IOException while parsing executable!", e);
 			try {
 				temuTrace.close();
 			} catch (IOException e1) {
 				// TODO Auto-generated catch block
 				e1.printStackTrace();
-				throw new RuntimeException(e1);
+				throw new RuntimeException(e);
 			}
-			return new TraceReplayState(null, 0);
-
 		}
+		return new TraceReplayState(0, 0, null);  //this return method should be invoked if exception is happend 
 	}
-
+	
 	@Override
 	public AbstractState merge(AbstractState s1, AbstractState s2,
 			Precision precision) {
-		//return CPAOperators.mergeSep(s1, s2, precision);
 		assert s1 instanceof TraceReplayState;
 		assert s2 instanceof TraceReplayState;
-
-		if (s2.isBot()) 
-			return s1;
-		else
-			return s2;
-
+		
+		if (s2.isBot()) return s1;
+		else return s2;
 	}
 
 	@Override
@@ -118,15 +114,15 @@ public class TraceReplayAnalysis implements ConfigurableProgramAnalysis {
 							//return Collections.singleton((AbstractState)new TraceReplayState(null, 0));
 							return Collections.singleton((AbstractState)TraceReplayState.BOT);
 
-						line1 = in.readLine();
-						while (line1 != null) {
-							st = new StringTokenizer (line1, "\t ");
+						entireLineInTrace = in.readLine();
+						while (entireLineInTrace != null) {
+							st = new StringTokenizer (entireLineInTrace, "\t ");
 							st.nextToken();
 							l = Long.parseLong(st.nextToken(), 16);
 							lineNumber++;
 							if (Program.getProgram().getModule(new AbsoluteAddress(l)) == null){ //We are parsing external function and looking for it's end 
 								//precedingAddress = newAddress;
-								line1 = in.readLine();
+								entireLineInTrace = in.readLine();
 							}
 							else { //We have reached the end of external function and next line belongs to source code
 								//System.out.println(lineNumber);
@@ -166,15 +162,15 @@ public class TraceReplayAnalysis implements ConfigurableProgramAnalysis {
 
 					if (lineNumber == 0)
 						lineNumber++;
-					while (line1 != null) {
-						st = new StringTokenizer (line1, "\t ");
+					while (entireLineInTrace != null) {
+						st = new StringTokenizer (entireLineInTrace, "\t ");
 						st.nextToken();
 						if (Long.parseLong(st.nextToken(), 16) == l){
-							line1 = in.readLine();
+							entireLineInTrace = in.readLine();
 							lineNumber++;
 							precedingAddress = l;
-							if (line1 != null){
-								st = new StringTokenizer (line1, "\t ");
+							if (entireLineInTrace != null){
+								st = new StringTokenizer (entireLineInTrace, "\t ");
 								st.nextToken();
 								newAddress = Long.parseLong(st.nextToken(), 16);
 								return Collections.singleton ((AbstractState)new TraceReplayState(newAddress, lineNumber, cfaEdge.getTarget())); //index = 0, We return next line
@@ -187,7 +183,7 @@ public class TraceReplayAnalysis implements ConfigurableProgramAnalysis {
 							} //index = 0
 							//temuTrace.close();
 						}
-						line1 = in.readLine();
+						entireLineInTrace = in.readLine();
 						lineNumber++;
 					}
 					//return Collections.singleton ((AbstractState)new TraceReplayState(null, 0));	//index = 0
@@ -202,7 +198,6 @@ public class TraceReplayAnalysis implements ConfigurableProgramAnalysis {
 		}
 	}
 
-
 	@Override
 	public Pair<AbstractState, Precision> prec(AbstractState s,
 			Precision precision, ReachedSet reached) {
@@ -211,23 +206,12 @@ public class TraceReplayAnalysis implements ConfigurableProgramAnalysis {
 
 	@Override
 	public boolean stop(AbstractState s, ReachedSet reached, Precision precision) {
-
-		//ReachedSetUnderApp rS = (ReachedSetUnderApp) reached;
-
-		//for (AbstractState a : reached){
-		//if (((RTLLabel)a.getLocation()).getAddress().getValue() != 0)
-		//CPAOperators.stopSep(s, reached, precision);
-		//}
-
-		if (((RTLLabel)s.getLocation()).getAddress().getValue() == 0) {
-			logger.error("Invoking on value... isBot is" + s.isBot());
-			logger.error(reached);
-		}
-//			return true;
-//		else
 		
-		return CPAOperators.stopSep(s, reached, precision);
-
+		if ( ((TraceReplayState)s).isBot() )	//This conditional is used to patch fault with empty ReachedSedUnderApp. 
+												//In new version of Jakstba only one ReachedSet should exist!
+			return true;
+		else
+			return CPAOperators.stopSep(s, reached, precision);
 	}
 
 	@Override

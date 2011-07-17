@@ -6,6 +6,7 @@ import java.util.Set;
 import org.jakstab.Program;
 import org.jakstab.analysis.AbstractState;
 import org.jakstab.analysis.LatticeElement;
+import org.jakstab.analysis.UnderApproximateState;
 import org.jakstab.asm.AbsoluteAddress;
 import org.jakstab.cfa.Location;
 import org.jakstab.rtl.RTLLabel;
@@ -17,79 +18,43 @@ import org.jakstab.rtl.expressions.RTLVariable;
 import org.jakstab.util.Logger;
 import org.jakstab.util.Tuple;
 
-//import org.jakstab.asm.AbsoluteAddress;
-
-public class TraceReplayState implements AbstractState {
+public class TraceReplayState implements UnderApproximateState {
 
 	@SuppressWarnings("unused")
-	private static final Logger logger = Logger
-			.getLogger(TraceReplayState.class);
+	private static final Logger logger = Logger.getLogger(TraceReplayState.class);
 
 	public static TraceReplayState TOP = new TraceReplayState();
 	public static TraceReplayState BOT = new TraceReplayState();
+	
 	private RTLNumber pcValue;
 	private RTLLabel pcLabel;
-	//private int index;
-	
-	//static private int count = 0;
-	//static public int mod3 = 0;
-	
-	
 	int lineNumber;
-	//static int counter = 0;
 	
-
 	public TraceReplayState() {
-		super ();
+		super();
 		ExpressionFactory factory = ExpressionFactory.getInstance();
 		pcValue = factory.createNumber(0, 32);
-		pcLabel = new RTLLabel(new AbsoluteAddress(pcValue), 0);
-		//this.index = 0;
-		lineNumber = 0;
-		//System.out.println(toString1());
-		logger.debug(toString1());
-	}
-	
-	public TraceReplayState(RTLLabel label, int lineNumber) {
-		
-		ExpressionFactory factory = ExpressionFactory.getInstance();
-			
-		if (label == null){
-			pcValue = factory.createNumber(0,32);
-			
-		}
-		else
-			pcValue = factory.createNumber(label.getAddress().getValue(), 32);
 		pcLabel = new RTLLabel(new AbsoluteAddress(pcValue));
-		//mod3++;
-		//this.index = pcLabel.getIndex();
-		
-		this.lineNumber = lineNumber;
-		//System.out.println(toString1());
-		logger.debug(toString1());
+		lineNumber = 0;
+		logger.debug(toString());
 	}
 	
 	public TraceReplayState(long address, int lineNumber, Location location) {
 		ExpressionFactory factory = ExpressionFactory.getInstance();
 		pcValue = factory.createNumber(address, 32);
-		//this.index = index;
-		//pcLabel = new RTLLabel(new AbsoluteAddress(address), this.index);
-		pcLabel = (RTLLabel)location;
-
+		if (location == null)
+			pcLabel = new RTLLabel(new AbsoluteAddress(pcValue));
+		else pcLabel = (RTLLabel)location;
 		this.lineNumber = lineNumber;
-		//System.out.println(toString1());
-		logger.debug(toString1());
-		
-		
+		logger.debug(toString());
 	}
 	
 	@Override
 	public String getIdentifier() {
-		// TODO Auto-generated method stub
-		return null;
+		return Integer.toString(lineNumber);
 	}
 
-	public int getLineNumber () {
+	public int getLineNumber() {
 		return lineNumber;
 	}
 	
@@ -100,16 +65,11 @@ public class TraceReplayState implements AbstractState {
 		//return null;
 	}
 	
-	//public LocationState getLocationState(){
-		//return pcLocation;
-	//}
-	
-	public RTLNumber getRTLNumber () {
+	public RTLNumber getRTLNumber() {
 		return pcValue;
 	}
 	
-	
-	public long getpcCounter (){
+	public long getpcCounter(){
 		return pcValue.longValue();
 	}
 	@Override
@@ -121,11 +81,9 @@ public class TraceReplayState implements AbstractState {
 	@Override
 	public Set<Tuple<RTLNumber>> projectionFromConcretization(
 			RTLExpression... expressions) {
-		
 		ExpressionFactory factory = ExpressionFactory.getInstance();
-		
+				
 		if (expressions[expressions.length-1] instanceof RTLNumber)
-			
 			if (((RTLNumber)expressions[expressions.length-1]).longValue() == getpcCounter() || 
 					Program.getProgram().getModule(new AbsoluteAddress (pcValue.longValue())) == null)
 				return Collections.singleton(Tuple.create(
@@ -133,16 +91,15 @@ public class TraceReplayState implements AbstractState {
 						(RTLNumber)expressions[expressions.length-1]));
 			else 
 				return Collections.singleton(Tuple.create(
-					factory.FALSE,
-					(RTLNumber)expressions[expressions.length-1])); //pcValue));
-					//pcValue));
-		
+						factory.FALSE,
+						(RTLNumber)expressions[expressions.length-1])); //pcValue));
+		//pcValue));
 		else {
 			if (expressions[expressions.length-1] instanceof RTLMemoryLocation)
 				if (Program.getProgram().getModule(new AbsoluteAddress(pcValue.longValue())) == null)
 					return Collections.singleton(Tuple.create(factory.TRUE, null));
-				//else
-					//return null;
+			//else
+			//return null;
 			if (expressions[expressions.length-1] instanceof RTLVariable)
 				if (((RTLNumber)expressions[0]).longValue()== -1)
 					if (Program.getProgram().getModule(new AbsoluteAddress (pcValue.longValue())) == null)
@@ -156,18 +113,14 @@ public class TraceReplayState implements AbstractState {
 
 	@Override
 	public boolean isBot() {
-		if (this == BOT)
-			return true;
-		else
-			return false;
+		if (this == BOT) return true;
+		else return false;
 	}
 
 	@Override
 	public boolean isTop() {
-		if (this == TOP)
-			return true;
-		else
-			return false;
+		if (this == TOP) return true;
+		else return false;
 	}
 
 	@Override
@@ -181,7 +134,7 @@ public class TraceReplayState implements AbstractState {
 			return true;
 		if (obj == null)
 			return false;
-		if (!(obj instanceof TraceReplayState)) return false;
+
 		TraceReplayState other = (TraceReplayState) obj;
 		if (lineNumber != other.lineNumber)
 			return false;
@@ -196,13 +149,7 @@ public class TraceReplayState implements AbstractState {
 	}
 	
 	public String toString() {
-		//return pcLabel.toString();
-		return pcValue.toHexString() + ' ' + pcValue.toString() + ' ' + lineNumber + ' ' + pcLabel.toString();
-		//return  pcValue.toString() +' ' + lineNumber;
-	}
-	
-	public String toString1() {
-		//return pcLabel.toString();
 		return pcValue.toHexString() + ' ' + pcValue.toString() + ' ' + lineNumber + ' ' + pcLabel.toString();
 	}
 }
+	
