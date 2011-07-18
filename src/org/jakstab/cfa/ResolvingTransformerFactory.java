@@ -36,8 +36,7 @@ import com.google.common.collect.SetMultimap;
  * 
  * @author Johannes Kinder
  */
-public abstract class ResolvingTransformerFactory implements
-StateTransformerFactory {
+public abstract class ResolvingTransformerFactory implements StateTransformerFactory {
 
 	@SuppressWarnings("unused")
 	private static final Logger logger = Logger.getLogger(ResolvingTransformerFactory.class);

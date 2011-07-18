@@ -67,6 +67,10 @@ public class CompositeState implements AbstractState {
 	public AbstractState getComponent(int index) {
 		return components[index];
 	}
+	
+	public int numComponents() {
+		return components.length;
+	}
 
 	@Override
 	public AbstractState join(LatticeElement l) {
