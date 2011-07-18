@@ -9,7 +9,6 @@ import org.jakstab.analysis.LatticeElement;
 import org.jakstab.analysis.UnderApproximateState;
 import org.jakstab.asm.AbsoluteAddress;
 import org.jakstab.cfa.Location;
-import org.jakstab.rtl.RTLLabel;
 import org.jakstab.rtl.expressions.ExpressionFactory;
 import org.jakstab.rtl.expressions.RTLExpression;
 import org.jakstab.rtl.expressions.RTLMemoryLocation;
@@ -23,30 +22,20 @@ public class TraceReplayState implements UnderApproximateState {
 	@SuppressWarnings("unused")
 	private static final Logger logger = Logger.getLogger(TraceReplayState.class);
 
-	public static TraceReplayState TOP = new TraceReplayState();
 	public static TraceReplayState BOT = new TraceReplayState();
 	
-	private RTLNumber pcValue;
-	private RTLLabel pcLabel;
-	int lineNumber;
+	private final int lineNumber;
+	private final AbsoluteAddress[] trace;
 	
 	public TraceReplayState() {
 		super();
-		ExpressionFactory factory = ExpressionFactory.getInstance();
-		pcValue = factory.createNumber(0, 32);
-		pcLabel = new RTLLabel(new AbsoluteAddress(pcValue));
-		lineNumber = 0;
-		logger.debug(toString());
+		lineNumber = -1;
+		trace = null;
 	}
 	
-	public TraceReplayState(long address, int lineNumber, Location location) {
-		ExpressionFactory factory = ExpressionFactory.getInstance();
-		pcValue = factory.createNumber(address, 32);
-		if (location == null)
-			pcLabel = new RTLLabel(new AbsoluteAddress(pcValue));
-		else pcLabel = (RTLLabel)location;
+	public TraceReplayState(AbsoluteAddress[] trace, int lineNumber) {
+		this.trace = trace;
 		this.lineNumber = lineNumber;
-		logger.debug(toString());
 	}
 	
 	@Override
@@ -54,61 +43,105 @@ public class TraceReplayState implements UnderApproximateState {
 		return Integer.toString(lineNumber);
 	}
 
-	public int getLineNumber() {
-		return lineNumber;
-	}
-	
 	@Override
 	public Location getLocation() {
-		return pcLabel;
-		// TODO Auto-generated method stub
-		//return null;
+		throw new UnsupportedOperationException();
 	}
 	
-	public RTLNumber getRTLNumber() {
-		return pcValue;
+	public AbsoluteAddress getCurrentPC() {
+		if (lineNumber < 0)
+			return new AbsoluteAddress(0xF0000B07L);
+		else 
+			return trace[lineNumber];
+	}
+
+	public AbsoluteAddress getNextPC() {
+		if (lineNumber < 0)
+			return new AbsoluteAddress(0xF0100B07L);
+		else 
+			return trace[lineNumber+1];
 	}
 	
-	public long getpcCounter(){
-		return pcValue.longValue();
-	}
-	@Override
-	public AbstractState join(LatticeElement l) {
-		// TODO Auto-generated method stub
-		return null;
+	int getLineNumber() {
+		return lineNumber;
 	}
 
 	@Override
-	public Set<Tuple<RTLNumber>> projectionFromConcretization(
-			RTLExpression... expressions) {
+	public AbstractState join(LatticeElement l) {
+		throw new UnsupportedOperationException();
+	}
+	
+	private static boolean isProgramAddress(RTLNumber n) {
+		return Program.getProgram().getModule(new AbsoluteAddress(n.longValue())) != null;
+	}
+
+	@Override
+	public Set<Tuple<RTLNumber>> projectionFromConcretization(RTLExpression... expressions) {
 		ExpressionFactory factory = ExpressionFactory.getInstance();
-				
-		if (expressions[expressions.length-1] instanceof RTLNumber)
-			if (((RTLNumber)expressions[expressions.length-1]).longValue() == getpcCounter() || 
-					Program.getProgram().getModule(new AbsoluteAddress (pcValue.longValue())) == null)
-				return Collections.singleton(Tuple.create(
-						factory.TRUE,
-						(RTLNumber)expressions[expressions.length-1]));
-			else 
-				return Collections.singleton(Tuple.create(
-						factory.FALSE,
-						(RTLNumber)expressions[expressions.length-1])); //pcValue));
-		//pcValue));
-		else {
-			if (expressions[expressions.length-1] instanceof RTLMemoryLocation)
-				if (Program.getProgram().getModule(new AbsoluteAddress(pcValue.longValue())) == null)
-					return Collections.singleton(Tuple.create(factory.TRUE, null));
-			//else
-			//return null;
-			if (expressions[expressions.length-1] instanceof RTLVariable)
-				if (((RTLNumber)expressions[0]).longValue()== -1)
-					if (Program.getProgram().getModule(new AbsoluteAddress (pcValue.longValue())) == null)
-						return Collections.singleton(Tuple.create(factory.TRUE, factory.createNumber(-18415616, 32)));
-					else
-						return Collections.singleton(Tuple.create(factory.TRUE, pcValue));
+
+		// Only concretize expression requests from transformerFactory
+		if (expressions.length != 2) return null;
+		
+		// If not on trace, don't concretize
+		if (isBot()) return null;
+
+		RTLExpression condition = expressions[0];
+		RTLExpression target = expressions[1];
+		RTLNumber cCondition;
+		RTLNumber cTarget;
+		
+		RTLNumber nextPC = getNextPC().toNumericConstant();
+
+		if (target instanceof RTLNumber) {
+			// If target is a number, this is a direct jump, and maybe conditional
+
+			cTarget = (RTLNumber)target;
+
+			if (condition instanceof RTLNumber) {
+				// Direct, unconditional jump
+				cCondition = (RTLNumber)condition;
+			} else if (target.equals(nextPC)) {
+				// Conditional jump that is taken according to the trace
+				cCondition = factory.TRUE;
+			} else { 
+				// Conditional jump that is not taken
+				cCondition = factory.FALSE;
+			}
+
+		} else {
+			// Target is not a number, so this is an indirect jump
+
+			assert (condition instanceof RTLNumber) : "There should be no conditional indirect jumps in x86!";
+			cCondition = (RTLNumber)condition;
+
+			if (target instanceof RTLMemoryLocation) {
+				// Target address is read from memory
+				if (isProgramAddress(nextPC)) {
+					// Points to program, e.g., jump table
+					cTarget = nextPC;
+				} else {
+					// Points outside, i.e., to an imported function
+					// Set target to null, so that static analysis can provide correct stub address
+					cTarget = null;
+				}
+			} else if (target instanceof RTLVariable) {
+				// Target address is a variable, i.e., a register or the special retval variable
+				if (isProgramAddress(nextPC)) {
+					// Points to program
+					cTarget = nextPC;
+				} else {
+					// Points out of program, make this also null. This could point to the epilogue, 
+					// but also to library functions (because of storing import addresses in a register
+					// or because of a return into a library function from a callback) 
+					cTarget = null;
+					//cTarget = factory.createNumber(DefaultHarness.EPILOGUE_BASE, 32);
+				}
+			} else {
+				logger.error("Unhandled target type for indirect jump to " + nextPC.toHexString() + ": " + target.getClass().getSimpleName());
+				cTarget = null;
+			}
 		}
-		//This is a kind of stub, because if-else statements above doesn't cover all cases 
-		return Collections.singleton(Tuple.create(factory.TRUE,null));
+		return Collections.singleton(Tuple.create(cCondition, cTarget));
 	}
 
 	@Override
@@ -119,8 +152,7 @@ public class TraceReplayState implements UnderApproximateState {
 
 	@Override
 	public boolean isTop() {
-		if (this == TOP) return true;
-		else return false;
+		return false;
 	}
 
 	@Override
@@ -149,7 +181,7 @@ public class TraceReplayState implements UnderApproximateState {
 	}
 	
 	public String toString() {
-		return pcValue.toHexString() + ' ' + pcValue.toString() + ' ' + lineNumber + ' ' + pcLabel.toString();
+		return "Trace@" + getCurrentPC() + ": Next: " + getNextPC() + " Line: " + lineNumber;
 	}
 }
 	

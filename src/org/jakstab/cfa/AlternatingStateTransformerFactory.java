@@ -73,7 +73,7 @@ public class AlternatingStateTransformerFactory extends ResolvingTransformerFact
 							!componentState.isBot()) {
 						edgeKind = Kind.MUST;
 						break;
-					}
+					} 
 				}
 				
 				return Collections.singleton(new CFAEdge(stmt.getLabel(), stmt.getNextLabel(), stmt, edgeKind));
@@ -103,7 +103,7 @@ public class AlternatingStateTransformerFactory extends ResolvingTransformerFact
 		});		
 
 		saveNewEdges(transformers, a.getLocation());
-
+		
 		return transformers;
 	}
 
@@ -149,7 +149,62 @@ public class AlternatingStateTransformerFactory extends ResolvingTransformerFact
 				logger.warn("Control flow from " + stmt.getLabel() + " reaches address " + nextLabel.getAddress() + "!");
 			}
 
-			results.add(new CFAEdge(assume.getLabel(), assume.getNextLabel(), assume, kind));
+			// Check for duplicate edges (possibly of different kind) in the transformers set
+			boolean found = false;
+			for (CFAEdge edge : results) {
+				if (edge.getTarget().equals(assume.getNextLabel())) {
+					found = true;
+					if (edge.getKind().lessOrEqual(kind)) {
+						// Old edge kind was less than new one, so upgrade
+						edge.setKind(kind);
+					}
+				}
+			}
+			if (!found)
+				results.add(new CFAEdge(assume.getLabel(), assume.getNextLabel(), assume, kind));
+		}
+
+	}
+	
+	@Override
+	protected void saveNewEdges(Set<CFAEdge> transformers, Location l) {
+		// Make sure we only add new edges. Edges are mutable so we cannot just implement
+		// hashCode and equals and add everything into a HashSet.
+		for (CFAEdge edge : transformers) {
+			boolean found = false;
+			// We check for this in the loop, because transformers may contain duplicate edges
+			// that only differ in their kind. So we check them against each other for upgrading
+			if (outEdges.containsKey(l)) {
+				for (CFAEdge existingEdge : outEdges.get(l)) {
+					if (existingEdge.getTarget().equals(edge.getTarget())) {
+
+						// There is an edge with the same target
+						found = true;
+
+						// Different kinds of edges
+						if (!existingEdge.getKind().equals(edge.getKind())) {
+
+							if (existingEdge.getKind().lessOrEqual(edge.getKind())) {
+								// If the new kind is greater than the existing, upgrade to new kind
+								logger.debug("Upgrading existing edge " + existingEdge + " from " + 
+										existingEdge.getKind() + " to " + edge.getKind());
+								existingEdge.setKind(edge.getKind());
+							} else if (edge.getKind().lessOrEqual(existingEdge.getKind())) {
+								// If the existing kind is greater than the new one, upgrade new one
+								logger.debug("Upgrading new edge " + edge + " from " + 
+										edge.getKind() + " to " + existingEdge.getKind());
+								edge.setKind(existingEdge.getKind());
+							} else {
+								// Incomparable edge kinds cannot happen with current logic
+								assert false : "Incomparable edge kinds!";
+							}
+						}
+
+						//break;
+					}
+				}
+			}
+			if (!found) outEdges.put(l,  edge); //newEdges.add(edge);
 		}
 
 	}

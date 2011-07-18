@@ -124,7 +124,7 @@ public class CFAEdge implements Comparable<CFAEdge> {
 
 	@Override
 	public String toString() {
-		return source + " -> " + target;
+		return source + " -" + kind + "-> " + target;
 	}
 	
 	@Override

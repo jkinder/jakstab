@@ -85,33 +85,24 @@ public abstract class ResolvingTransformerFactory implements StateTransformerFac
 	protected void saveNewEdges(Set<CFAEdge> transformers, Location l) {
 		// Make sure we only add new edges. Edges are mutable so we cannot just implement
 		// hashCode and equals and add everything into a HashSet.
-		for (CFAEdge edge : transformers) {
-			boolean found = false;
-			// We check for this in the loop, because transformers may contain duplicate edges
-			// that only differ in their kind. So we check them against each other for upgrading
-			if (outEdges.containsKey(l)) {
+		Set<CFAEdge> newEdges;
+		if (outEdges.containsKey(l)) {
+			newEdges = new FastSet<CFAEdge>();
+			for (CFAEdge edge : transformers) {
+				boolean found = false;
 				for (CFAEdge existingEdge : outEdges.get(l)) {
 					if (existingEdge.getTarget().equals(edge.getTarget())) {
-
-						// There is an edge with the same target
 						found = true;
-
-						// If the new kind is greater than the existing, upgrade to new kind
-						if (!existingEdge.getKind().equals(edge.getKind()) && existingEdge.getKind().lessOrEqual(edge.getKind())) {
-							logger.debug("Upgrading existing edge " + existingEdge + " from " + 
-									existingEdge.getKind() + " to " + edge.getKind());
-							existingEdge.setKind(edge.getKind());
-						}
-						// Incomparable edge kinds cannot happen with current logic
-						assert edge.getKind().lessOrEqual(existingEdge.getKind()) : "Incomparable edge kinds!";
-
 						break;
 					}
 				}
+				if (!found) newEdges.add(edge);
 			}
-			if (!found) outEdges.put(l,  edge); //newEdges.add(edge);
+			
+		} else {
+			newEdges = transformers;
 		}
-
+		outEdges.putAll(l, newEdges);
 	}
 
 	public Set<CFAEdge> getExistingOutEdges(Location l) {
