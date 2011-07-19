@@ -1,8 +1,24 @@
+/*
+ * TraceReplayAnalysis.java - This file is part of the Jakstab project.
+ * Copyright 2011 Johannes Kinder <kinder@cs.tu-darmstadt.de>
+ *
+ * This code is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License version 2 only, as
+ * published by the Free Software Foundation.
+ *
+ * This code is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * version 2 for more details (a copy is included in the LICENSE file that
+ * accompanied this code).
+ *
+ * You should have received a copy of the GNU General Public License version
+ * 2 along with this work; if not, see <http://www.gnu.org/licenses/>.
+ */
 package org.jakstab.analysis.tracereplay;
 
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
@@ -25,21 +41,22 @@ import org.jakstab.rtl.RTLLabel;
 import org.jakstab.util.Logger;
 import org.jakstab.util.Pair;
 
+/**
+ * Analysis for replaying the program counter values of a single recorded trace.
+ */
 public class TraceReplayAnalysis implements ConfigurableProgramAnalysis {
 
 	@SuppressWarnings("unused")
 	private static final Logger logger = Logger.getLogger(TraceReplayAnalysis.class);
 
-	private AbsoluteAddress[] trace;
+	private final AbsoluteAddress[] trace;
 
 	public TraceReplayAnalysis(String filename) {
 
 		BufferedReader in;
 		
 		try {
-			File fin = new File(filename).getAbsoluteFile();
-			FileReader temuTrace = new FileReader (fin);
-			in = new BufferedReader (temuTrace);
+			in = new BufferedReader(new FileReader(filename));
 		} catch (FileNotFoundException e) {
 			logger.fatal("Trace file not found: " + e.getMessage());
 			throw new RuntimeException(e);
@@ -174,8 +191,7 @@ public class TraceReplayAnalysis implements ConfigurableProgramAnalysis {
 	}
 	
 	@Override
-	public Pair<AbstractState, Precision> prec(AbstractState s,
-			Precision precision, ReachedSet reached) {
+	public Pair<AbstractState, Precision> prec(AbstractState s, Precision precision, ReachedSet reached) {
 		return Pair.create(s, precision);
 	}
 
@@ -185,10 +201,7 @@ public class TraceReplayAnalysis implements ConfigurableProgramAnalysis {
 	}
 
 	@Override
-	public AbstractState strengthen(AbstractState s,
-			Iterable<AbstractState> otherStates, CFAEdge cfaEdge,
-			Precision precision) {
-		// TODO Auto-generated method stub
+	public AbstractState strengthen(AbstractState s, Iterable<AbstractState> otherStates, CFAEdge cfaEdge, Precision precision) {
 		return null;
 	}
 

@@ -17,7 +17,6 @@
  */
 package org.jakstab.analysis.composite;
 
-import java.util.Arrays;
 import java.util.Set;
 
 import org.jakstab.analysis.AbstractState;
@@ -60,7 +59,7 @@ public class DualCompositeState extends CompositeState {
 				result.addAll(concreteTuples); 
 			}
 		}
-		logger.info("Under-approximation projects " + Arrays.toString(expressions) + " to " + result);
+		//logger.debug("Under-approximation projects " + Arrays.toString(expressions) + " to " + result);
 		assert result != null;
 		return result;
 	}

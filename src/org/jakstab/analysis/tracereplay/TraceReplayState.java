@@ -1,3 +1,20 @@
+/*
+ * TraceReplayState.java - This file is part of the Jakstab project.
+ * Copyright 2011 Johannes Kinder <kinder@cs.tu-darmstadt.de>
+ *
+ * This code is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License version 2 only, as
+ * published by the Free Software Foundation.
+ *
+ * This code is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * version 2 for more details (a copy is included in the LICENSE file that
+ * accompanied this code).
+ *
+ * You should have received a copy of the GNU General Public License version
+ * 2 along with this work; if not, see <http://www.gnu.org/licenses/>.
+ */
 package org.jakstab.analysis.tracereplay;
 
 import java.util.Collections;
@@ -17,6 +34,10 @@ import org.jakstab.rtl.expressions.RTLVariable;
 import org.jakstab.util.Logger;
 import org.jakstab.util.Tuple;
 
+/**
+ * States corresponding to a line number within a pre-recorded trace. Each state
+ * stores a reference to the trace to allow direct access to recorded PC values.
+ */
 public class TraceReplayState implements UnderApproximateState {
 
 	@SuppressWarnings("unused")
@@ -48,18 +69,32 @@ public class TraceReplayState implements UnderApproximateState {
 		throw new UnsupportedOperationException();
 	}
 	
+	/**
+	 * Get the value of the program counter at the current state. 
+	 * 
+	 * @return an AbsoluteAddress corresponding to the PC value for the analyzed module. 
+	 */
 	public AbsoluteAddress getCurrentPC() {
-		if (lineNumber < 0)
+		if (lineNumber < 0) {
+			// BOT
 			return new AbsoluteAddress(0xF0000B07L);
-		else 
+		} else {
 			return trace[lineNumber];
+		}
 	}
 
+	/**
+	 * Get the value of the program counter at the current state's successor state. 
+	 * 
+	 * @return an AbsoluteAddress corresponding to the next PC value for the analyzed module. 
+	 */
 	public AbsoluteAddress getNextPC() {
-		if (lineNumber < 0)
+		if (lineNumber < 0) {
+			// BOT
 			return new AbsoluteAddress(0xF0100B07L);
-		else 
+		} else {
 			return trace[lineNumber+1];
+		}
 	}
 	
 	int getLineNumber() {
@@ -80,6 +115,8 @@ public class TraceReplayState implements UnderApproximateState {
 		ExpressionFactory factory = ExpressionFactory.getInstance();
 
 		// Only concretize expression requests from transformerFactory
+		// Warning: If this method is invoked with 2 parameters for other reasons, it will 
+		//          likely fail!
 		if (expressions.length != 2) return null;
 		
 		// If not on trace, don't concretize
@@ -146,8 +183,7 @@ public class TraceReplayState implements UnderApproximateState {
 
 	@Override
 	public boolean isBot() {
-		if (this == BOT) return true;
-		else return false;
+		return this == BOT;
 	}
 
 	@Override
@@ -166,18 +202,15 @@ public class TraceReplayState implements UnderApproximateState {
 			return true;
 		if (obj == null)
 			return false;
-
-		TraceReplayState other = (TraceReplayState) obj;
-		if (lineNumber != other.lineNumber)
-			return false;
-		return true;
+		
+		return lineNumber == ((TraceReplayState)obj).lineNumber;
 	}
 
 	@Override
 	public boolean lessOrEqual(LatticeElement l) {
 		TraceReplayState other = (TraceReplayState)l;
 		if (other.isTop() || this.isBot()) return true;
-		return (this.equals(l)); 
+		return this.equals(l); 
 	}
 	
 	public String toString() {
