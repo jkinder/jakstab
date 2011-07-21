@@ -26,6 +26,7 @@ import org.jakstab.transformation.ExpressionSubstitution;
 import org.jakstab.util.*;
 import org.jakstab.analysis.*;
 import org.jakstab.analysis.composite.CompositeState;
+import org.jakstab.analysis.explicit.BoundedAddressTracking;
 import org.jakstab.analysis.procedures.ProcedureAnalysis;
 import org.jakstab.analysis.procedures.ProcedureState;
 import org.jakstab.asm.*;
@@ -52,6 +53,9 @@ public class Main {
 	public static void main(String[] args) {
 
 		mainThread = Thread.currentThread();
+
+		// Load analysis classes
+		AnalysisManager analysisManager = AnalysisManager.getInstance();
 
 		// Parse command line
 		Options.parseOptions(args);
@@ -138,11 +142,7 @@ public class Main {
 		program.installHarness(Options.heuristicEntryPoints ? new HeuristicHarness() : new DefaultHarness());
 
 		//StatsPlotter.create(baseFileName + "_states.dat");
-		//StatsPlotter.plot("#Time(ms)\tStates\tInstructions\tGC Time\tSpeed(st/s)");
-		
-		// Load analysis classes
-		AnalysisManager analysisManager = AnalysisManager.getInstance();
-		
+		//StatsPlotter.plot("#Time(ms)\tStates\tInstructions\tGC Time\tSpeed(st/s)");		
 		
 		// Catches control-c and System.exit
 		Thread shutdownThread = new Thread() {
@@ -269,7 +269,7 @@ public class Main {
 					program.getCFA().size() + "\t" + indirectBranches + "\t" + program.getUnresolvedBranches().size() +  "\t" +
 					cfr.getNumberOfStatesVisited() + "\t" + stateCount + "\t" + 
 					Math.round((overallEndTime - overallStartTime)/1000.0) + "s\t" + cfr.getStatus() + "\t" + 
-					version + "\t" + Options.explicitThreshold + "\t" + Options.heapDataThreshold + "\t" + 
+					version + "\t" + BoundedAddressTracking.varThreshold.getValue() + "\t" + BoundedAddressTracking.heapThreshold.getValue() + "\t" + 
 					(Options.basicBlocks ? "y" : "n" )+ "\t" + (Options.summarizeRep ? "y" : "n" ));
 
 			ProgramGraphWriter graphWriter = new ProgramGraphWriter(program);

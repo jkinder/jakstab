@@ -18,6 +18,7 @@
 package org.jakstab;
 
 import java.io.File;
+import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -51,12 +52,20 @@ public class AnalysisManager {
 		for(Class<? extends ConfigurableProgramAnalysis> cpaClass : classes) {
 			AnalysisProperties aProps = new AnalysisProperties();
 			try {
+				logger.debug("Trying to register " + cpaClass.getSimpleName());
 				cpaClass.getMethod("register", AnalysisProperties.class).invoke(cpaClass, aProps);
 				shortHandMap.put(aProps.getShortHand(), cpaClass);
 				analysisProperties.put(cpaClass, aProps);
+				for (Field field : cpaClass.getFields()) {
+					if (field.getType().equals(Option.class)) {
+						Options.addOption((Option<?>)field.get(cpaClass));
+					}
+				}
 				// apply properties
 			} catch (Exception e) {
-				logger.warn("Failed to register " + cpaClass);
+				logger.warn("Failed to register " + cpaClass.getSimpleName());
+				if (e instanceof RuntimeException) 
+					e.printStackTrace();
 			}
 		}
 
@@ -71,7 +80,7 @@ public class AnalysisManager {
             if (file.isDirectory()) {
                 assert !fileName.contains(".");
             	classes.addAll(findCPAClasses(file, packageName + "." + fileName));
-            } else if (fileName.endsWith("Analysis.class")) {
+            } else if (fileName.endsWith(".class")) {
             	Class<?> clazz;
             	try {
             		try {

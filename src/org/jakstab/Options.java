@@ -20,6 +20,8 @@ package org.jakstab;
 import java.io.File;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
 import org.jakstab.util.Logger;
 
@@ -66,12 +68,22 @@ public class Options {
 	public static boolean repPrecBoost = false;
 	public static boolean basicBlocks = false;
 	public static int verbosity = 3;
-	public static int explicitThreshold = 5;
-	public static int heapDataThreshold = -1;
+	//public static int explicitThreshold = 5;
+	//public static int heapDataThreshold = -1;
 	public static int procedureAbstraction = 0;
 	public static String cpas = "x";
 	public static String secondaryCPAs = null;
 	public static int timeout = -1;
+	
+	private static Map<String,Option<?>> options = new TreeMap<String,Option<?>>();
+	static void addOption(Option<?> o) {
+		if (options.containsKey(o.getName())) {
+			logger.fatal("Option " + o.getName() + " already present!");
+			System.exit(1);
+		} else {
+			options.put(o.getName(), o);
+		}
+	}
 	
 
 	/**
@@ -85,7 +97,24 @@ public class Options {
 			String arg = args[i];
 			// Dash (-) arguments
 			if (arg.startsWith("-")) {
-				if (arg.equals("--wdm")) wdm = true;
+				
+				Option<?> opt = options.get(arg);
+				if (opt != null) {
+					if (opt.getDefaultValue() instanceof Boolean) {
+						opt.setValue(Boolean.TRUE);
+					} else if (opt.getDefaultValue() instanceof Integer) {
+						opt.setValue(Integer.parseInt(args[++i]));
+					} else if (opt.getDefaultValue() instanceof Long) {
+						arg = args[++i];
+						if (arg.startsWith("0x")) 
+							opt.setValue(Long.parseLong(arg.substring(2), 16));
+						else
+							opt.setValue(Long.parseLong(arg));
+					} else {
+						assert false : "Unhandled Option type " + opt.getDefaultValue().getClass().getSimpleName();
+					}
+				}			
+				else if (arg.equals("--wdm")) wdm = true;
 				else if (arg.equals("--fail-fast")) failFast = true;
 				else if (arg.equals("--bot-heap")) initHeapToBot = true;
 				else if (arg.equals("--error-trace")) errorTrace = true;
@@ -115,10 +144,10 @@ public class Options {
 						verbosity = Integer.parseInt(args[++i]);
 					} else if (arg.equals("-t")) {
 						timeout = Integer.parseInt(args[++i]);
-					} else if (arg.equals("--explicit-threshold")) {
-						explicitThreshold = Integer.parseInt(args[++i]);
-					} else if (arg.equals("--heap-threshold")) {
-						heapDataThreshold = Integer.parseInt(args[++i]);
+					//} else if (arg.equals("--explicit-threshold")) {
+					//	explicitThreshold = Integer.parseInt(args[++i]);
+					//} else if (arg.equals("--heap-threshold")) {
+					//	heapDataThreshold = Integer.parseInt(args[++i]);
 					} else if (arg.equals("--procedures")) {
 						procedureAbstraction = Integer.parseInt(args[++i]);
 					} else if (arg.equals("--cpa")) {
@@ -157,13 +186,11 @@ public class Options {
 		}
 		
 		// Use default value if not specified
-		if (heapDataThreshold < 0)
-			heapDataThreshold = explicitThreshold;
+		//if (heapDataThreshold < 0)
+		//	heapDataThreshold = explicitThreshold;
 	}
 	
 	public static void printOptions() {
-		AnalysisManager mgr = AnalysisManager.getInstance();
-		
 		logger.fatal("Usage: jakstab [options] -m mainfile [ modules... ]");
 		logger.fatal("");
 		logger.fatal("Options:");

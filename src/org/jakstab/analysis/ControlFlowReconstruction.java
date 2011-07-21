@@ -167,7 +167,7 @@ public class ControlFlowReconstruction implements Algorithm {
 				break;
 			case 'k':
 				logger.info("--- Using K-set analysis.");
-				cpas[i] = new KSetAnalysis(Options.explicitThreshold);
+				cpas[i] = new KSetAnalysis(BoundedAddressTracking.varThreshold.getValue());
 				addedExplicitAnalysis = true;
 				break;
 			default:

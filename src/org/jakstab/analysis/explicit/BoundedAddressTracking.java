@@ -21,6 +21,7 @@ package org.jakstab.analysis.explicit;
 import java.util.*;
 
 import org.jakstab.AnalysisProperties;
+import org.jakstab.Option;
 import org.jakstab.Options;
 import org.jakstab.Program;
 import org.jakstab.analysis.*;
@@ -51,9 +52,10 @@ public class BoundedAddressTracking implements ConfigurableProgramAnalysis {
 		p.setName("Bounded Address Tracking");
 		p.setDescription("Enumerate region-based addresses up to a bound per variable per location.");
 		p.setExplicit(true);
-		p.addOption("--explicit-threshold", "k", "Set the maximum number of values tracked per variable per location.", Integer.class);
-		p.addOption("--heap-threshold", "k", "Explicit threshold for data stored on the heap.", Integer.class);
 	}
+	
+	public static Option<Integer> varThreshold = Option.create("explicit-threshold", "k", 5, "Set the maximum number of values tracked per variable per location.");
+	public static Option<Integer> heapThreshold = Option.create("heap-threshold", "k", 5, "Explicit threshold for data stored on the heap.");
 	
 	public BoundedAddressTracking() {
 	}
@@ -90,7 +92,7 @@ public class BoundedAddressTracking implements ConfigurableProgramAnalysis {
 		BasedNumberValuation widenedState = (BasedNumberValuation)s;
 
 		// Only check value counts if we have at least enough states to reach it
-		if (reached.size() > Options.explicitThreshold) {
+		if (reached.size() > Math.min(varThreshold.getValue(), heapThreshold.getValue())) {
 			
 			boolean changed = false;
 
@@ -189,7 +191,7 @@ public class BoundedAddressTracking implements ConfigurableProgramAnalysis {
 
 	@Override
 	public Precision initPrecision(Location location, StateTransformer transformer) {
-		ExplicitPrecision p = new ExplicitPrecision(Options.explicitThreshold);
+		ExplicitPrecision p = new ExplicitPrecision(varThreshold.getValue());
 		
 		// Increase precision of ecx, esi, edi for REP prefixed instructions
 		Program program = Program.getProgram();
