@@ -162,6 +162,8 @@ public class Options {
 	}
 	
 	public static void printOptions() {
+		AnalysisManager mgr = AnalysisManager.getInstance();
+		
 		logger.fatal("Usage: jakstab [options] -m mainfile [ modules... ]");
 		logger.fatal("");
 		logger.fatal("Options:");

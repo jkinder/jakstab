@@ -140,6 +140,10 @@ public class Main {
 		//StatsPlotter.create(baseFileName + "_states.dat");
 		//StatsPlotter.plot("#Time(ms)\tStates\tInstructions\tGC Time\tSpeed(st/s)");
 		
+		// Load analysis classes
+		AnalysisManager analysisManager = AnalysisManager.getInstance();
+		
+		
 		// Catches control-c and System.exit
 		Thread shutdownThread = new Thread() {
 			@Override
@@ -392,7 +396,7 @@ public class Main {
 			logger.error("Cannot write to outputfile!", e);
 		}
 	}
-
+	
 	@SuppressWarnings("unused")
 	private static final void printDisassembly(Program program) {
 		logger.info();

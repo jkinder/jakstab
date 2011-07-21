@@ -20,6 +20,7 @@ package org.jakstab.analysis.explicit;
 
 import java.util.*;
 
+import org.jakstab.AnalysisProperties;
 import org.jakstab.Options;
 import org.jakstab.Program;
 import org.jakstab.analysis.*;
@@ -45,7 +46,14 @@ public class BoundedAddressTracking implements ConfigurableProgramAnalysis {
 	@SuppressWarnings("unused")
 	private final static Logger logger = Logger.getLogger(BoundedAddressTracking.class);
 
-	//private final int stackThreshold; 
+	public static void register(AnalysisProperties p) {
+		p.setShortHand('x');
+		p.setName("Bounded Address Tracking");
+		p.setDescription("Enumerate region-based addresses up to a bound per variable per location.");
+		p.setExplicit(true);
+		p.addOption("--explicit-threshold", "k", "Set the maximum number of values tracked per variable per location.", Integer.class);
+		p.addOption("--heap-threshold", "k", "Explicit threshold for data stored on the heap.", Integer.class);
+	}
 	
 	public BoundedAddressTracking() {
 	}
