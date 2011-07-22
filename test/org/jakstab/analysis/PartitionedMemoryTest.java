@@ -54,12 +54,12 @@ public class PartitionedMemoryTest {
 		alloc1 = MemoryRegion.create("PartA");
 		alloc2 = MemoryRegion.create("PartB");
 		valueFactory = new NumberElementFactory();
-		Options.debug = false;
+		Options.debug.setValue(false);
 	}
 
 	@After
 	public void tearDown() throws Exception {
-		Options.debug = true;
+		Options.debug.setValue(true);
 	}
 
 	@Test
@@ -160,7 +160,7 @@ public class PartitionedMemoryTest {
 		store1.set(alloc1, 120, 32, n32b);
 		assertFalse(store1.equals(store2));
 		store1.set(alloc1, 120, 32, valueFactory.createTop(32));
-		if (!Options.initHeapToBot)
+		if (!Options.initHeapToBot.getValue())
 			assertEquals(store1, store2);
 		store1 = new PartitionedMemory<NumberElement>(
 				valueFactory);
@@ -174,7 +174,7 @@ public class PartitionedMemoryTest {
 		
 		store1.set(alloc1, 121, 8, valueFactory.createTop(8));
 		store2.set(alloc1, 121, 16, valueFactory.createTop(16));
-		if (!Options.initHeapToBot)
+		if (!Options.initHeapToBot.getValue())
 			assertEquals(store1, store2);
 	}
 	

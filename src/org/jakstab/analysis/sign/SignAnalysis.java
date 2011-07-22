@@ -20,6 +20,7 @@ package org.jakstab.analysis.sign;
 import java.util.Collections;
 import java.util.Set;
 
+import org.jakstab.AnalysisProperties;
 import org.jakstab.analysis.*;
 import org.jakstab.cfa.CFAEdge;
 import org.jakstab.cfa.Location;
@@ -36,6 +37,12 @@ import org.jakstab.util.Pair;
  * @author Johannes Kinder
  */
 public class SignAnalysis implements ConfigurableProgramAnalysis {
+
+	public static void register(AnalysisProperties p) {
+		p.setShortHand('g');
+		p.setName("Sign analysis");
+		p.setDescription("For each variable, compute its sign (-, 0, or +).");
+	}
 
 	@SuppressWarnings("unused")
 	private static final Logger logger = Logger.getLogger(SignAnalysis.class);

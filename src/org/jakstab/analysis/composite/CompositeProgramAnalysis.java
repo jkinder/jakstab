@@ -20,7 +20,8 @@ package org.jakstab.analysis.composite;
 import java.util.Collections;
 import java.util.Set;
 
-import org.jakstab.Options;
+import org.jakstab.AnalysisProperties;
+import org.jakstab.Option;
 import org.jakstab.analysis.*;
 import org.jakstab.analysis.callstack.CallStackAnalysis;
 import org.jakstab.analysis.location.BackwardLocationAnalysis;
@@ -41,6 +42,13 @@ import org.jakstab.util.*;
  */
 public class CompositeProgramAnalysis implements ConfigurableProgramAnalysis {
 
+	public static void register(AnalysisProperties p) {
+		p.setName("Composite Program Analysis");
+		p.setDescription("Default composition of multiple CPAs.");
+	}
+	
+	public static Option<Boolean> ignoreCallingContext = Option.create("ignore-context", "Allow merging of different calling contexts even with call stack analysis enabled.");
+	
 	@SuppressWarnings("unused")
 	private static final Logger logger = Logger.getLogger(CompositeProgramAnalysis.class);
 	
@@ -91,7 +99,7 @@ public class CompositeProgramAnalysis implements ConfigurableProgramAnalysis {
 		AbstractState[] mergedComponents = new AbstractState[cpas.length];
 		
 		// If analysis is context sensitive, never merge different calling contexts
-		if (callStackAnalysisIndex >= 0 && Options.callingContextSensitive) {
+		if (callStackAnalysisIndex >= 0 && !ignoreCallingContext.getValue().booleanValue()) {
 			if (!cs1.getComponent(callStackAnalysisIndex).equals(cs2.getComponent(callStackAnalysisIndex))) {
 				return CPAOperators.mergeSep(cs1, cs2, precision);
 			}

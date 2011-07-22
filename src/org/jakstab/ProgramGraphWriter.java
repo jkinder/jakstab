@@ -47,7 +47,7 @@ public class ProgramGraphWriter {
 	
 	private GraphWriter createGraphWriter(String filename) {
 		try {
-			if (Options.graphML) {
+			if (Options.graphML.getValue()) {
 				return new GraphMLWriter(filename);
 			} else {
 				return new GraphvizWriter(filename);

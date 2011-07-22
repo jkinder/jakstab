@@ -21,6 +21,7 @@ package org.jakstab.analysis.location;
 import java.util.Collections;
 import java.util.Set;
 
+import org.jakstab.AnalysisProperties;
 import org.jakstab.analysis.*;
 import org.jakstab.cfa.CFAEdge;
 import org.jakstab.util.Logger;
@@ -31,6 +32,11 @@ import org.jakstab.util.Logger;
  * @author Johannes Kinder
  */
 public class BackwardLocationAnalysis extends LocationAnalysis implements ConfigurableProgramAnalysis {
+
+	public static void register(AnalysisProperties p) {
+		p.setName("Backward location analysis");
+		p.setDescription("A backward location analysis, used for backward analyses.");
+	}
 
 	@SuppressWarnings("unused")
 	private static final Logger logger = Logger.getLogger(BackwardLocationAnalysis.class);

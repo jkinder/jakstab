@@ -18,9 +18,9 @@
 package org.jakstab;
 
 import java.io.File;
-import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -52,15 +52,16 @@ public class AnalysisManager {
 		for(Class<? extends ConfigurableProgramAnalysis> cpaClass : classes) {
 			AnalysisProperties aProps = new AnalysisProperties();
 			try {
-				logger.debug("Trying to register " + cpaClass.getSimpleName());
+				//logger.debug("Trying to register " + cpaClass.getSimpleName());
 				cpaClass.getMethod("register", AnalysisProperties.class).invoke(cpaClass, aProps);
-				shortHandMap.put(aProps.getShortHand(), cpaClass);
-				analysisProperties.put(cpaClass, aProps);
-				for (Field field : cpaClass.getFields()) {
-					if (field.getType().equals(Option.class)) {
-						Options.addOption((Option<?>)field.get(cpaClass));
+				if (aProps.getShortHand() != ' ') {
+					if (shortHandMap.containsKey(aProps.getShortHand())) {
+						logger.fatal("Duplicate short hand '" + aProps.getShortHand() + "' registered by " + 
+								shortHandMap.get(aProps.getShortHand()).getSimpleName() + " and " + cpaClass.getSimpleName() + ".");
 					}
+					shortHandMap.put(aProps.getShortHand(), cpaClass);
 				}
+				analysisProperties.put(cpaClass, aProps);
 				// apply properties
 			} catch (Exception e) {
 				logger.warn("Failed to register " + cpaClass.getSimpleName());
@@ -69,6 +70,55 @@ public class AnalysisManager {
 			}
 		}
 
+	}
+	
+	public ConfigurableProgramAnalysis createAnalysis(char shortHand) {
+		Class<? extends ConfigurableProgramAnalysis> cpaClass = shortHandMap.get(shortHand);
+		
+		if (cpaClass == null)
+			return null;
+		
+		try {
+			return cpaClass.newInstance();
+		} catch (InstantiationException e) {
+			e.printStackTrace();
+			throw new RuntimeException(e);
+		} catch (IllegalAccessException e) {
+			e.printStackTrace();
+			throw new RuntimeException(e);
+		}
+	}
+	
+	public String getName(char shortHand) {
+		Class<? extends ConfigurableProgramAnalysis> cpaClass = shortHandMap.get(shortHand);
+		
+		if (cpaClass == null)
+			return null;
+		
+		return analysisProperties.get(cpaClass).getName();
+	}
+	
+	public String getDescription(char shortHand) {
+		Class<? extends ConfigurableProgramAnalysis> cpaClass = shortHandMap.get(shortHand);
+		
+		if (cpaClass == null)
+			return null;
+		
+		return analysisProperties.get(cpaClass).getDescription();
+	}
+	
+	public AnalysisProperties getProperties(ConfigurableProgramAnalysis cpa) {
+		return analysisProperties.get(cpa.getClass());
+	}
+	
+	public String getShorthandsString() {
+		char[] shds = new char[shortHandMap.size()];
+		int i = 0;
+		for (Character c : shortHandMap.keySet()) {
+			shds[i++] = c;
+		}
+		Arrays.sort(shds);
+		return new String(shds);
 	}
 	
 	private static List<Class<? extends ConfigurableProgramAnalysis>> findCPAClasses(File directory, String packageName) {

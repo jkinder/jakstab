@@ -20,6 +20,7 @@ package org.jakstab.analysis.callstack;
 import java.util.Collections;
 import java.util.Set;
 
+import org.jakstab.AnalysisProperties;
 import org.jakstab.analysis.*;
 import org.jakstab.cfa.CFAEdge;
 import org.jakstab.cfa.Location;
@@ -31,6 +32,12 @@ import org.jakstab.util.Pair;
  * @author Johannes Kinder
  */
 public class CallStackAnalysis implements ConfigurableProgramAnalysis {
+
+	public static void register(AnalysisProperties p) {
+		p.setShortHand('s');
+		p.setName("Call-stack analysis");
+		p.setDescription("Maintain a history of call-sites for each location.");
+	}
 
 	@SuppressWarnings("unused")
 	private static final Logger logger = Logger.getLogger(CallStackAnalysis.class);

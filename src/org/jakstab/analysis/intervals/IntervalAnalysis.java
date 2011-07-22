@@ -19,6 +19,7 @@ package org.jakstab.analysis.intervals;
 
 import java.util.*;
 
+import org.jakstab.AnalysisProperties;
 import org.jakstab.Program;
 import org.jakstab.analysis.*;
 import org.jakstab.analysis.explicit.BasedNumberElement;
@@ -38,6 +39,13 @@ import org.jakstab.util.MapMap.EntryIterator;
  * @author Johannes Kinder
  */
 public class IntervalAnalysis implements ConfigurableProgramAnalysis {
+
+	public static void register(AnalysisProperties p) {
+		p.setShortHand('i');
+		p.setName("Interval analysis");
+		p.setDescription("Compute strided intervals with region information.");
+		p.setExplicit(true);
+	}
 
 	@SuppressWarnings("unused")
 	private static final Logger logger = Logger.getLogger(IntervalAnalysis.class);

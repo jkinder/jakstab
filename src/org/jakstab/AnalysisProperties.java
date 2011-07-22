@@ -4,8 +4,8 @@ public class AnalysisProperties {
 
 	private String name;
 	private String description;
-	private char shortHand;
-	private boolean isExplicit;
+	private char shortHand = ' ';
+	private boolean isExplicit = false;
 
 	public String getName() {
 		return name;

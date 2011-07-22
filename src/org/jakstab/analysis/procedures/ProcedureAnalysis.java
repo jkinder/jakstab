@@ -21,6 +21,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.jakstab.AnalysisProperties;
 import org.jakstab.analysis.*;
 import org.jakstab.cfa.CFAEdge;
 import org.jakstab.cfa.Location;
@@ -35,6 +36,11 @@ import org.jakstab.util.Pair;
  * @author Johannes Kinder
  */
 public class ProcedureAnalysis implements ConfigurableProgramAnalysis {
+
+	public static void register(AnalysisProperties p) {
+		p.setName("Procedure detection");
+		p.setDescription("Detect procedures using call-return matching.");
+	}
 
 	@SuppressWarnings("unused")
 	private static final Logger logger = Logger.getLogger(ProcedureAnalysis.class);

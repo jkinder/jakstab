@@ -22,7 +22,6 @@ import java.util.*;
 
 import org.jakstab.AnalysisProperties;
 import org.jakstab.Option;
-import org.jakstab.Options;
 import org.jakstab.Program;
 import org.jakstab.analysis.*;
 import org.jakstab.asm.AbsoluteAddress;
@@ -56,6 +55,7 @@ public class BoundedAddressTracking implements ConfigurableProgramAnalysis {
 	
 	public static Option<Integer> varThreshold = Option.create("explicit-threshold", "k", 5, "Set the maximum number of values tracked per variable per location.");
 	public static Option<Integer> heapThreshold = Option.create("heap-threshold", "k", 5, "Explicit threshold for data stored on the heap.");
+	public static Option<Boolean> repPrecBoost = Option.create("rep-prec-boost", "Increase precision for rep-prefixed instructions.");
 	
 	public BoundedAddressTracking() {
 	}
@@ -195,7 +195,7 @@ public class BoundedAddressTracking implements ConfigurableProgramAnalysis {
 		
 		// Increase precision of ecx, esi, edi for REP prefixed instructions
 		Program program = Program.getProgram();
-		if (Options.repPrecBoost) {
+		if (BoundedAddressTracking.repPrecBoost.getValue()) {
 			AbsoluteAddress addr = ((RTLLabel)location).getAddress();
 			X86Instruction instr = (X86Instruction)program.getInstruction(addr);
 			if (instr != null && (instr.hasPrefixREPZ() || instr.hasPrefixREPNZ())) {

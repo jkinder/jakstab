@@ -62,7 +62,7 @@ public class ControlFlowReconstructionTest {
 
 	private void checkProgram(String file, int numEdges, int numInstructions, int numStatements, boolean checkCompleteness, String cpa) throws Exception {
 		
-		Options.cpas = cpa;
+		Options.cpas.setValue(cpa);
 		
 		File peFile = new File(Options.jakstabHome + "/input/bin/" + file);
 		logger.info("----------");

@@ -278,7 +278,7 @@ public class Architecture {
 			if (instr.getOperandCount() == proto.getParameterCount()) 
 				score += NUM_OPERANDS_SCORE;
 			
-			if (Options.summarizeRep && proto.getName().startsWith("REP") &&
+			if (Options.summarizeRep.getValue() && proto.getName().startsWith("REP") &&
 					proto.getName().endsWith("SUMMARY")) {
 				score++;
 			}

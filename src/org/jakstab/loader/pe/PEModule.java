@@ -270,7 +270,7 @@ public class PEModule extends AbstractCOFFModule {
 	public Set<ExportedSymbol> getExportedSymbols() {
 		Set<ExportedSymbol> exportedSymbols = new FastSet<ExportedSymbol>();
 		
-		if (Options.wdm && fileName.endsWith(".sys")) {
+		if (Options.wdm.getValue() && fileName.endsWith(".sys")) {
 			//FIXME: adds multiple DriverEntries for multiple PE modules, and is generally hackish
 			logger.debug("Exporting DriverEntry at " + getEntryPoint());
 			exportedSymbols.add(new ExportedSymbol(this, "_DriverEntry@8", getEntryPoint()));

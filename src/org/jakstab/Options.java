@@ -18,9 +18,11 @@
 package org.jakstab;
 
 import java.io.File;
+import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.StringTokenizer;
 import java.util.TreeMap;
 
 import org.jakstab.util.Logger;
@@ -45,45 +47,57 @@ public class Options {
 		jakstabHome = (new File(classFileName)).getParentFile().getParentFile().getParentFile().getParent();
 	}
 	
-	public static String sslFilename = jakstabHome + "/ssl/pentium.ssl";
-	public static String mainFilename = null;
-	public static List<String> moduleFilenames = new LinkedList<String>();
-	public static long startAddress = -1;
-	public static boolean callingContextSensitive = true;
-	public static boolean wdm = false;
-	public static boolean dumpStates = false;
-	public static boolean outputLocationsWithMostStates = false;
-	public static boolean failFast = false;
-	public static boolean debug = false;
-	public static boolean asmTrace = false;
-	public static boolean errorTrace = false;
-	public static boolean backward = false;
-	public static boolean background = false;
-	public static boolean graphML = false;
-	public static boolean writeGraphs = true;
-	public static boolean heuristicEntryPoints = false;
-	public static boolean ignoreWeakUpdates = false;
-	public static boolean initHeapToBot = false;
-	public static boolean summarizeRep = false;
-	public static boolean repPrecBoost = false;
-	public static boolean basicBlocks = false;
-	public static int verbosity = 3;
-	//public static int explicitThreshold = 5;
-	//public static int heapDataThreshold = -1;
-	public static int procedureAbstraction = 0;
-	public static String cpas = "x";
-	public static String secondaryCPAs = null;
-	public static int timeout = -1;
+	private static Map<String,Option<?>> options = new TreeMap<String,Option<?>>(new Comparator<String>() {
+		public int compare(String s1, String s2) {
+			if (s1.length() != 2 && s2.length() == 2) return 1;
+			if (s1.length() == 2 && s2.length() != 2) return -1;
+			else return s1.compareTo(s2);
+		}
+	});
 	
-	private static Map<String,Option<?>> options = new TreeMap<String,Option<?>>();
 	static void addOption(Option<?> o) {
-		if (options.containsKey(o.getName())) {
-			logger.fatal("Option " + o.getName() + " already present!");
+		String name = o.getName().toLowerCase();
+		if (options.containsKey(name)) {
+			logger.fatal("Option " + name + " already present!");
 			System.exit(1);
 		} else {
-			options.put(o.getName(), o);
+			options.put(name, o);
 		}
 	}
+	
+	private static AnalysisManager mgr = AnalysisManager.getInstance();
+
+	
+	public static String mainFilename = null;
+	public static List<String> moduleFilenames = new LinkedList<String>();
+
+	public static Option<String> cpas = Option.create("cpa", "{" + mgr.getShorthandsString() + "}", "x", "Configure which analyses to use for control flow reconstruction.");
+	public static Option<String> secondaryCPAs = Option.create("cpa2", "{" + mgr.getShorthandsString() + "}", "", "Secondary analyses to be performed after the initial CFG reconstruction and dead code elimination are completed.");
+	
+	public static Option<String> sslFilename = Option.create("ssl", "file", jakstabHome + "/ssl/pentium.ssl", "Use <file> instead of pentium.ssl.");
+	public static Option<Long> startAddress = Option.create("a", "address", -1L, "Start analysis at given virtual address.");
+	public static Option<Boolean> wdm = Option.create("wdm", "WDM mode, export main function as DriverMain.");
+	public static Option<Boolean> dumpStates = Option.create("s", "Output all reached states after analysis.");	
+	public static Option<Boolean> outputLocationsWithMostStates = Option.create("toplocs", "Output the 10 locations with the highest state count.");
+	public static Option<Boolean> failFast = Option.create("fail-fast", "Stop when unsound assumptions are necessary to continue.");
+	public static Option<Boolean> debug = Option.create("debug", "Stop on failed assertions or weak updates to the complete stack or all store regions.");
+	public static Option<Boolean> asmTrace = Option.create("asm-trace", "Output any error trace as a list of assembly instructions instead of IL statements.");
+	public static Option<Boolean> errorTrace = Option.create("error-trace", "Build an abstract error trace for failed assertions and debug stops.");
+	public static Option<Boolean> backward = Option.create("backward", "Perform secondary cpa as a backward analysis.");
+	public static Option<Boolean> background = Option.create("b", "Background mode, i.e., disable shutdown hook on enter.");
+	public static Option<Boolean> graphML = Option.create("graphML", "Produce graphML output instead of GraphViz .dot files.");
+	public static Option<Boolean> noGraphs = Option.create("no-graphs", "Do not generate output graphs");
+	public static Option<Boolean> heuristicEntryPoints = Option.create("h", "Use heuristics to determine additional procedures and add pseudo-calls to include them in disassembly.");
+	public static Option<Boolean> ignoreWeakUpdates = Option.create("ignore-weak-updates", "Do not perform weak store updates (unsound).");
+	public static Option<Boolean> initHeapToBot = Option.create("bot-heap", "Initialize heap cells to BOT to force strong updates.");
+	public static Option<Boolean> summarizeRep = Option.create("summarize-rep", "Use summarizing transformer for string instructions.");
+	public static Option<Boolean> basicBlocks = Option.create("basicblocks", "Build CFA from basic-blocks instead of single statements.");
+	public static Option<Integer> verbosity = Option.create("v", "level", 3, "Set verbosity to value. Default is 3.");
+	public static Option<Integer> timeout = Option.create("timeout", "t", -1, "Set timeout in seconds for the analysis.");
+	public static Option<Integer> procedureAbstraction = Option.create("procedures", "n", 0, "Level of procedure assumptions: " +
+			"0: Pessimistic: No assumptions, treat calls and returns as jumps. " + 
+			"1: Semi-optimistic: Abstract unknown calls according to ABI contract. " + 
+			"2: Optimistic: Abstract all calls to ABI contract (fastest).");
 	
 
 	/**
@@ -92,9 +106,12 @@ public class Options {
 	 * @param args
 	 */
 	public static void parseOptions(String args[]) {
-
+		
+		// Pre-load analyses so that they can register their options
+		AnalysisManager.getInstance();
+		
 		for (int i = 0; i < args.length; i++) {
-			String arg = args[i];
+			String arg = args[i].toLowerCase();
 			// Dash (-) arguments
 			if (arg.startsWith("-")) {
 				
@@ -110,62 +127,17 @@ public class Options {
 							opt.setValue(Long.parseLong(arg.substring(2), 16));
 						else
 							opt.setValue(Long.parseLong(arg));
+					} else if (opt.getDefaultValue() instanceof String) {
+						opt.setValue(args[++i]);
 					} else {
 						assert false : "Unhandled Option type " + opt.getDefaultValue().getClass().getSimpleName();
 					}
 				}			
-				else if (arg.equals("--wdm")) wdm = true;
-				else if (arg.equals("--fail-fast")) failFast = true;
-				else if (arg.equals("--bot-heap")) initHeapToBot = true;
-				else if (arg.equals("--error-trace")) errorTrace = true;
-				else if (arg.equals("--asm-trace")) asmTrace = true;
-				else if (arg.equals("--debug")) debug = true;
-				else if (arg.equals("--boost-rep")) repPrecBoost = true;
-				else if (arg.equals("--no-graphs")) writeGraphs = false;
-				else if (arg.equals("--summarize-rep")) summarizeRep = true;
-				else if (arg.equals("--basic-blocks")) basicBlocks = true;
-				else if (arg.equals("--graphml")) graphML = true;
-				else if (arg.equals("--ignore-weak-updates")) ignoreWeakUpdates = true;
-				else if (arg.equals("--toplocs")) outputLocationsWithMostStates = true;
-				else if (arg.equals("-b")) background = true;
-				else if (arg.equals("-h")) heuristicEntryPoints = true;
-				else if (arg.equals("-s")) dumpStates = true;
 				// Arguments which require arguments
 				else if (i + 1 < args.length) {
-					if (arg.equals("--ssl")) {
-						sslFilename = args[++i];
-					} else if (arg.equals("-m")) {
+					if (arg.equals("-m")) {
 						mainFilename = args[++i];
-					} else if (arg.equals("-a")) {
-						String addr = args[++i];
-						if (addr.startsWith("0x")) startAddress = Long.parseLong(addr.substring(2), 16);
-						else startAddress = Long.parseLong(addr, 16);
-					} else if (arg.equals("-v")) {
-						verbosity = Integer.parseInt(args[++i]);
-					} else if (arg.equals("-t")) {
-						timeout = Integer.parseInt(args[++i]);
-					//} else if (arg.equals("--explicit-threshold")) {
-					//	explicitThreshold = Integer.parseInt(args[++i]);
-					//} else if (arg.equals("--heap-threshold")) {
-					//	heapDataThreshold = Integer.parseInt(args[++i]);
-					} else if (arg.equals("--procedures")) {
-						procedureAbstraction = Integer.parseInt(args[++i]);
-					} else if (arg.equals("--cpa")) {
-						cpas = args[++i];
-					} else if (arg.equals("--cpa2")) {
-						if (secondaryCPAs != null) {
-							logger.fatal("--cpa2 and --backward-cpa2 are mutually exclusive!");
-							System.exit(1);
-						}
-						secondaryCPAs = args[++i];
-					} else if (arg.equals("--backward-cpa2")) {
-						if (secondaryCPAs != null) {
-							logger.fatal("--cpa2 and --backward-cpa2 are mutually exclusive!");
-							System.exit(1);
-						}
-						secondaryCPAs = args[++i];
-						backward = true;
-					} 
+					}
 				} else {
 					logger.fatal("Invalid command line argument: " + arg);
 					logger.fatal("");
@@ -184,56 +156,68 @@ public class Options {
 			Options.printOptions();
 			System.exit(1);
 		}
-		
-		// Use default value if not specified
-		//if (heapDataThreshold < 0)
-		//	heapDataThreshold = explicitThreshold;
 	}
 	
+	private final static int lineLength = 100;
+	private final static int indentation = 22;
+
 	public static void printOptions() {
 		logger.fatal("Usage: jakstab [options] -m mainfile [ modules... ]");
 		logger.fatal("");
 		logger.fatal("Options:");
-		logger.fatal("  -a address       Start analysis at given virtual address.");
-		logger.fatal("  -b               Background mode, i.e., disable shutdown hook on enter.");
-		logger.fatal("  -h               Use heuristics to determine additional procedures and");
-		logger.fatal("                   add pseudo-calls to include them in disassembly.");
-		logger.fatal("  -s               Output all reached states.");
-		logger.fatal("  -t seconds       Set timeout in seconds for the analysis.");
-		logger.fatal("  -v value         Set verbosity to value. Default is " + (5 - Logger.defaultLevel.ordinal()) + ".");
-		logger.fatal("  --cpa {cbxfis}   Configure which analyses to use for control flow");
-		logger.fatal("                   reconstruction and in which order:");
-		logger.fatal("         c         Constant propagation");
-		logger.fatal("         b         Based constant propagation (memory regions)");
-		logger.fatal("         x         Bounded Address Tracking ('b' with path-sensitivity)");
-		logger.fatal("         f         Forward expression substitution");
-		logger.fatal("         i         Strided intervals");
-		logger.fatal("         s         Call stack analysis (unsound on non-standard code)");
-		logger.fatal("  --procedures n   Level of procedure assumptions:");
-		logger.fatal("         0         Pessimistic: No assumptions, treat calls and returns as jumps.");
-		logger.fatal("         1         Semi-optimistic: Abstract unknown calls according to ABI contract.");
-		logger.fatal("         2         Optimistic: Abstract all calls to ABI contract (fastest).");
-		logger.fatal("  --cpa2 class1,... Comma separated list of subpackage and class names of");
-		logger.fatal("                   secondary analyses to run after CFA reconstruction, e.g.,");
-		logger.fatal("                   'rd.ReachingDefinitionsAnalysis,callstack.CallStackAnalysis'.");
-		logger.fatal("  --backward-cpa2  Same as --cpa2, but performs backward analysis. Mutually");
-		logger.fatal("                   exclusive with --cpa2.");
-		logger.fatal("  --basic-blocks   Build CFA from basic-blocks instead of single statements.");
-		logger.fatal("  --bot-heap       Initialize heap cells to BOT to force strong updates.");
-		logger.fatal("  --debug          stop on failed assertions or weak updates to the complete stack ");
-		logger.fatal("                   or all store regions");
-		logger.fatal("  --error-trace    Build an abstract error trace for failed assertions and debug stops.");
-		logger.fatal("  --explicit-threshold t   Set the maximum number of explicit values");
-		logger.fatal("                   tracked per variable and location.");
-		logger.fatal("  --fail-fast      Stop when unsound assumptions are necessary to continue.");
-		logger.fatal("  --graphml        Produce graphML output instead of GraphViz .dot files");
-		logger.fatal("  --heap-threshold t   Explicit threshold for data stored on the heap.");
-		logger.fatal("  --ignore-weak-updates Do not perform weak store updates (unsound!)");
-		logger.fatal("  --no-graphs      Do not generate output graphs.");
-		logger.fatal("  --ssl SSLfile    Use SSLfile instead of pentium.ssl"); 
-		logger.fatal("  --summarize-reps Use summarizing transformer for string instructions."); 
-		logger.fatal("  --toplocs        Output the 10 locations with the highest state count.");
-		logger.fatal("  --wdm            WDM mode, export main function as DriverMain.");
+		
+		for (Option<?> o : options.values()) {
+			StringBuilder os = new StringBuilder(lineLength);
+			os.append("  ").append(o.getName());
+			if (o.getParamName() != null)
+				os.append(' ').append(o.getParamName());
+			os.append(' ');
+
+			printWithIndentedLineWrap(os, o.getDescription());
+			
+			// Special treatment for CPAs option
+			if (o.equals(cpas)) {
+				String shorthands = mgr.getShorthandsString();
+				for (int i=0; i<shorthands.length(); i++) {
+					Character cpa = shorthands.charAt(i);
+					
+					os = new StringBuilder(lineLength);
+					os.append("        ").append(cpa);
+					
+					printWithIndentedLineWrap(os, mgr.getName(cpa) + ": " + mgr.getDescription(cpa));
+				}
+			}
+			
+		}
+	}
+	
+	private static void printWithIndentedLineWrap(StringBuilder os, String s) {
+		StringTokenizer st = new StringTokenizer(s, " ");
+		String nextWord = st.nextToken();
+		printLine: while (true) {
+			// We are at the first or a new line
+			while (os.length() < indentation) {
+				os.append(' ');
+			}
+			os.append(nextWord);
+
+			// Output text until end of line
+			while (true) {
+				if (!st.hasMoreTokens())
+					break printLine;
+				nextWord = st.nextToken();
+				
+				if (os.length() + 1 + nextWord.length() <= lineLength) {
+					os.append(" ").append(nextWord);
+				} else {
+					logger.fatal(os.toString());
+					os = new StringBuilder(lineLength);
+					// Start new line
+					continue printLine;
+				}
+			}
+		}
+		logger.fatal(os.toString());
 	}
 
 }

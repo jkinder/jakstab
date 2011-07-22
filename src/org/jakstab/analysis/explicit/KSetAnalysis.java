@@ -3,6 +3,7 @@ package org.jakstab.analysis.explicit;
 import java.util.Collections;
 import java.util.Set;
 
+import org.jakstab.AnalysisProperties;
 import org.jakstab.analysis.*;
 import org.jakstab.cfa.CFAEdge;
 import org.jakstab.cfa.Location;
@@ -25,15 +26,22 @@ import org.jakstab.util.Pair;
  */
 public class KSetAnalysis implements ConfigurableProgramAnalysis {
 
+	public static void register(AnalysisProperties p) {
+		p.setShortHand('k');
+		p.setName("K-Set analysis");
+		p.setDescription("For each variable, collect up to k values per location (non-relational).");
+		p.setExplicit(true);
+	}
+	
 	@SuppressWarnings("unused")
 	private static final Logger logger = Logger.getLogger(KSetAnalysis.class);
 	
 	private AbstractValueFactory<KSet> valueFactory;
 	private int bound;
 
-	public KSetAnalysis(int k) {
-		this.valueFactory = new KSetFactory(k);
-		this.bound = k;
+	public KSetAnalysis() {
+		bound = BoundedAddressTracking.varThreshold.getValue();;
+		valueFactory = new KSetFactory(bound);
 	}
 
 	@Override

@@ -92,7 +92,7 @@ public class CPAAlgorithm implements Algorithm {
 		this.worklist = worklist;
 		this.failFast = failFast;
 		
-		if (Options.errorTrace || Options.asmTrace)
+		if (Options.errorTrace.getValue() || Options.asmTrace.getValue())
 			art = new AbstractReachabilityTree();
 		else
 			art = null;
@@ -187,7 +187,7 @@ public class CPAAlgorithm implements Algorithm {
 				lastSteps = statesVisited;
 				lastTime = now;
 				
-				if (Options.timeout > 0 && (System.currentTimeMillis() - startTime > Options.timeout * 1000)) {
+				if (Options.timeout.getValue() > 0 && (System.currentTimeMillis() - startTime > Options.timeout.getValue() * 1000)) {
 					logger.error("Timeout after " + Options.timeout + "s!");
 					stop = true;
 				}
