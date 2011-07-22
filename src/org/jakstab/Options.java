@@ -36,6 +36,10 @@ public class Options {
 
 	@SuppressWarnings("unused")
 	private static final Logger logger = Logger.getLogger(Options.class);
+
+	private final static int lineLength = 80;
+	private final static int indentation = 22;
+
 	
 	public static final String jakstabHome;
 	static {
@@ -158,9 +162,6 @@ public class Options {
 		}
 	}
 	
-	private final static int lineLength = 100;
-	private final static int indentation = 22;
-
 	public static void printOptions() {
 		logger.fatal("Usage: jakstab [options] -m mainfile [ modules... ]");
 		logger.fatal("");
