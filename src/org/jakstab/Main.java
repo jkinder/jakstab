@@ -180,7 +180,7 @@ public class Main {
 		
 		// If we do trace replay and did not specify a trace file, use default name
 		if (Options.cpas.getValue().contains("t") && TraceReplayAnalysis.traceFiles.getValue().isEmpty())
-			TraceReplayAnalysis.traceFiles.setValue(baseFileName + ".trace");
+			TraceReplayAnalysis.traceFiles.setValue(baseFileName + ".parsed");
 		
 
 		// Necessary to stop shutdown thread on exceptions being thrown
