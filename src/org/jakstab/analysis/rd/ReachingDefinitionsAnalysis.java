@@ -3,6 +3,7 @@ package org.jakstab.analysis.rd;
 import java.util.Collections;
 import java.util.Set;
 
+import org.jakstab.AnalysisProperties;
 import org.jakstab.analysis.*;
 import org.jakstab.cfa.CFAEdge;
 import org.jakstab.cfa.Location;
@@ -21,6 +22,13 @@ public class ReachingDefinitionsAnalysis implements ConfigurableProgramAnalysis 
 
 	@SuppressWarnings("unused")
 	private static final Logger logger = Logger.getLogger(ReachingDefinitionsAnalysis.class);
+	
+	public static void register(AnalysisProperties p) {
+		p.setShortHand('r');
+		p.setName("Reaching definitions analysis");
+		p.setDescription("For each program point, calculate the set of variable definitions that reach it.");
+		p.setExplicit(false);
+	}
 
 	@Override
 	public AbstractState initStartState(Location label) {

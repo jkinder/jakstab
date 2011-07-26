@@ -20,6 +20,7 @@ package org.jakstab.analysis.explicit;
 
 import java.util.Set;
 
+import org.jakstab.AnalysisProperties;
 import org.jakstab.analysis.*;
 import org.jakstab.cfa.CFAEdge;
 import org.jakstab.cfa.Location;
@@ -33,6 +34,14 @@ import org.jakstab.util.Pair;
  */
 public class BasedConstantPropagation implements ConfigurableProgramAnalysis {
 
+	
+	public static void register(AnalysisProperties p) {
+		p.setShortHand('b');
+		p.setName("Based Constant Propagation");
+		p.setDescription("Constant propagation with region-offset values.");
+		p.setExplicit(true);
+	}
+	
 	@SuppressWarnings("unused")
 	private final static Logger logger = Logger.getLogger(BasedConstantPropagation.class);
 	

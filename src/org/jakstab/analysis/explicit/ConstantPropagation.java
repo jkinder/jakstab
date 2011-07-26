@@ -21,6 +21,7 @@ package org.jakstab.analysis.explicit;
 import java.util.Collections;
 import java.util.Set;
 
+import org.jakstab.AnalysisProperties;
 import org.jakstab.analysis.*;
 import org.jakstab.cfa.CFAEdge;
 import org.jakstab.cfa.Location;
@@ -33,6 +34,13 @@ import org.jakstab.util.Pair;
  */
 public class ConstantPropagation implements ConfigurableProgramAnalysis {
 
+	public static void register(AnalysisProperties p) {
+		p.setShortHand('c');
+		p.setName("Constant Propagation");
+		p.setDescription("For each location, compute the variables and memory locations that have a constant value.");
+		p.setExplicit(true);
+	}
+	
 	@SuppressWarnings("unused")
 	private final static Logger logger = Logger.getLogger(ConstantPropagation.class);
 	

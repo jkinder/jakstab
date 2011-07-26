@@ -19,17 +19,14 @@ package org.jakstab.analysis;
 
 import java.util.*;
 
+import org.jakstab.AnalysisManager;
+import org.jakstab.AnalysisProperties;
 import org.jakstab.Options;
 import org.jakstab.Program;
 import org.jakstab.Algorithm;
-import org.jakstab.analysis.callstack.CallStackAnalysis;
 import org.jakstab.analysis.composite.CompositeProgramAnalysis;
 import org.jakstab.analysis.composite.DualCompositeAnalysis;
-import org.jakstab.analysis.explicit.*;
-import org.jakstab.analysis.intervals.IntervalAnalysis;
 import org.jakstab.analysis.location.LocationAnalysis;
-import org.jakstab.analysis.substitution.ExpressionSubstitutionAnalysis;
-import org.jakstab.analysis.tracereplay.TraceReplayAnalysis;
 import org.jakstab.asm.*;
 import org.jakstab.asm.x86.X86Instruction;
 import org.jakstab.cfa.*;
@@ -137,56 +134,28 @@ public class ControlFlowReconstruction implements Algorithm {
 		List<ConfigurableProgramAnalysis> cpas = new LinkedList<ConfigurableProgramAnalysis>();
 		boolean addedExplicitAnalysis = false;
 		boolean addedUnderApproximation = false;
-		
-		for (int i=0; i<Options.cpas.length(); i++) {
-			switch (Options.cpas.charAt(i)) {
-			case 'c':
-				logger.info("--- Using constant propagation.");
-				cpas.add(new ConstantPropagation());
-				addedExplicitAnalysis = true;
-				break;
-			case 'b':
-				logger.info("--- Using based constant propagation.");
-				cpas.add(new BasedConstantPropagation());
-				addedExplicitAnalysis = true;
-				break;
-			case 'x':
-				logger.info("--- Using bounded address tracking.");
-				cpas.add(new BoundedAddressTracking());
-				addedExplicitAnalysis = true;
-				break;
-			case 'i':
-				logger.info("--- Using interval analysis.");
-				cpas.add(new IntervalAnalysis());
-				addedExplicitAnalysis = true;
-				break;
-			case 's':
-				logger.info("--- Using call stack analysis.");
-				cpas.add(new CallStackAnalysis());
-				break;
-			case 'f':
-				logger.info("--- Using forward expression substitution.");
-				cpas.add(new ExpressionSubstitutionAnalysis());
-				break;
-			case 'k':
-				logger.info("--- Using K-set analysis.");
-				cpas.add(new KSetAnalysis(Options.explicitThreshold));
-				addedExplicitAnalysis = true;
-				break;
-			case 't':
-				logger.info("--- Using trace replay analysis.");
-				for (String fileName : Options.traceFiles) {
-					cpas.add(new TraceReplayAnalysis(fileName));
-				}
-				addedExplicitAnalysis = true;
-				addedUnderApproximation = true;
-				break;
+		AnalysisManager mgr = AnalysisManager.getInstance();
 
-			default:
-				logger.fatal("No analysis corresponds to letter \"" + Options.cpas.charAt(i) + "\"!");
+//				logger.info("--- Using trace replay analysis.");
+//				for (String fileName : Options.traceFiles) {
+//					cpas.add(new TraceReplayAnalysis(fileName));
+//				}
+//				addedExplicitAnalysis = true;
+//				addedUnderApproximation = true;
+//				break;
+
+		for (int i=0; i<Options.cpas.getValue().length(); i++) {			
+			ConfigurableProgramAnalysis cpa = mgr.createAnalysis(Options.cpas.getValue().charAt(i));
+			if (cpa != null) {
+				AnalysisProperties p = mgr.getProperties(cpa);
+				logger.info("--- Using " + p.getName());
+				addedExplicitAnalysis |= p.isExplicit();
+				cpas.add(cpa);
+			} else {
+				logger.fatal("No analysis corresponds to letter \"" + Options.cpas.getValue().charAt(i) + "\"!");
 				System.exit(1);
 			}
-		}
+		}			
 		
 		if (!addedExplicitAnalysis) {
 			logger.fatal("You need to specify at least one explicit value analysis: c, b, x or i");
@@ -201,7 +170,7 @@ public class ControlFlowReconstruction implements Algorithm {
 		}
 
 		// Init State transformer factory
-		if (Options.basicBlocks) {
+		if (Options.basicBlocks.getValue()) {
 			
 			if (addedUnderApproximation) {
 				logger.fatal("Currently, basic block summarization cannot be combined with under-approximations!");
@@ -214,7 +183,7 @@ public class ControlFlowReconstruction implements Algorithm {
 			transformerFactory = new AlternatingStateTransformerFactory();
 			
 		} else {
-			switch (Options.procedureAbstraction) {
+			switch (Options.procedureAbstraction.getValue()) {
 			case 0: 
 				transformerFactory = new PessimisticStateTransformerFactory();
 				break;
@@ -233,7 +202,7 @@ public class ControlFlowReconstruction implements Algorithm {
 		Worklist<AbstractState> worklist = new PriorityWorklist();
 		//Worklist<AbstractState> worklist = new FastSet<AbstractState>();
 
-		cpaAlgorithm = new CPAAlgorithm(program, cpa, transformerFactory, worklist, Options.failFast);
+		cpaAlgorithm = new CPAAlgorithm(program, cpa, transformerFactory, worklist, Options.failFast.getValue());
 	}
 
 	public ReachedSet getReachedStates() {
@@ -253,7 +222,7 @@ public class ControlFlowReconstruction implements Algorithm {
 	}
 	
 	public boolean isSound() {
-		return !Options.ignoreWeakUpdates && transformerFactory.isSound();
+		return !Options.ignoreWeakUpdates.getValue() && transformerFactory.isSound();
 	}
 	
 	public void run() {
@@ -268,7 +237,7 @@ public class ControlFlowReconstruction implements Algorithm {
 			Deque<AbstractState> trace = new LinkedList<AbstractState>();
 			
 			if (cpaAlgorithm.getART() != null) {
-				if (Options.errorTrace) {
+				if (Options.errorTrace.getValue()) {
 
 					AbstractState s = e.getState();
 					while (s != null) {
@@ -342,7 +311,7 @@ public class ControlFlowReconstruction implements Algorithm {
 */
 				}
 
-				if (Options.asmTrace) {
+				if (Options.asmTrace.getValue()) {
 					logger.warn("==== Error trace (ASM) ====");
 					AbsoluteAddress lastAddr = null;
 					AbsoluteAddress addr = null;

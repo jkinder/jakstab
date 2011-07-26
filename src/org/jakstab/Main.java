@@ -26,6 +26,7 @@ import org.jakstab.transformation.ExpressionSubstitution;
 import org.jakstab.util.*;
 import org.jakstab.analysis.*;
 import org.jakstab.analysis.composite.CompositeState;
+import org.jakstab.analysis.explicit.BoundedAddressTracking;
 import org.jakstab.analysis.procedures.ProcedureAnalysis;
 import org.jakstab.analysis.procedures.ProcedureState;
 import org.jakstab.asm.*;
@@ -56,7 +57,7 @@ public class Main {
 		// Parse command line
 		Options.parseOptions(args);
 		// Initialize logger with given verbosity  
-		if (Options.verbosity >= 0) Logger.setVerbosity(Options.verbosity);
+		if (Options.verbosity.getValue() >= 0) Logger.setVerbosity(Options.verbosity.getValue());
 		logger = Logger.getLogger(Main.class);
 
 		logger.error(Characters.DOUBLE_LINE_FULL_WIDTH);
@@ -73,7 +74,7 @@ public class Main {
 
 		Architecture arch;
 		try {
-			arch = new Architecture(Options.sslFilename);
+			arch = new Architecture(Options.sslFilename.getValue());
 		} catch (IOException e) {
 			logger.fatal("Unable to open SSL file!", e);
 			return;
@@ -101,7 +102,7 @@ public class Main {
 				program.loadModule(moduleFile);
 				
 				// If we are processing drivers, use the driver's name as base name
-				if (Options.wdm && moduleFile.getName().toLowerCase().endsWith(".sys")) {
+				if (Options.wdm.getValue() && moduleFile.getName().toLowerCase().endsWith(".sys")) {
 					baseFileName = getBaseFileName(moduleFile);
 				}
 			}
@@ -129,16 +130,16 @@ public class Main {
 
 
 		// Change entry point if requested
-		if (Options.startAddress > 0) {
-			logger.verbose("Setting start address to 0x" + Long.toHexString(Options.startAddress));
-			program.setEntryAddress(new AbsoluteAddress(Options.startAddress));
+		if (Options.startAddress.getValue() > 0) {
+			logger.verbose("Setting start address to 0x" + Long.toHexString(Options.startAddress.getValue()));
+			program.setEntryAddress(new AbsoluteAddress(Options.startAddress.getValue()));
 		}
 
 		// Add surrounding "%DF := 1; call entrypoint; halt;" 
-		program.installHarness(Options.heuristicEntryPoints ? new HeuristicHarness() : new DefaultHarness());
+		program.installHarness(Options.heuristicEntryPoints.getValue() ? new HeuristicHarness() : new DefaultHarness());
 
 		//StatsPlotter.create(baseFileName + "_states.dat");
-		//StatsPlotter.plot("#Time(ms)\tStates\tInstructions\tGC Time\tSpeed(st/s)");
+		//StatsPlotter.plot("#Time(ms)\tStates\tInstructions\tGC Time\tSpeed(st/s)");		
 		
 		// Catches control-c and System.exit
 		Thread shutdownThread = new Thread() {
@@ -158,7 +159,7 @@ public class Main {
 		Runtime.getRuntime().addShutdownHook(shutdownThread);
 
 		// Add shutdown on return pressed for eclipse
-		if (!Options.background && System.console() == null) {
+		if (!Options.background.getValue() && System.console() == null) {
 			logger.info("No console detected (eclipse?). Press return to terminate analysis and print statistics.");
 			Thread eclipseShutdownThread = new Thread() { 
 				public void run() { 
@@ -177,7 +178,7 @@ public class Main {
 		}
 		
 		// If we do trace replay and did not specify a trace file, use default name
-		if (Options.cpas.contains("t") && Options.traceFiles == null)
+		if (Options.cpas.getValue().contains("t") && Options.traceFiles == null)
 			Options.traceFiles = new String[]{ baseFileName + ".parsed" };
 		
 
@@ -197,7 +198,7 @@ public class Main {
 			long overallEndTime = System.currentTimeMillis();
 
 			ReachedSet reached = cfr.getReachedStates();
-			if (Options.dumpStates) {
+			if (Options.dumpStates.getValue()) {
 				// output
 				logger.fatal("=================");
 				logger.fatal(" Reached states:");
@@ -221,7 +222,7 @@ public class Main {
 
 			int stateCount = reached.size();
 
-			if (Options.outputLocationsWithMostStates) reached.logHighestStateCounts(10);
+			if (Options.outputLocationsWithMostStates.getValue()) reached.logHighestStateCounts(10);
 
 			if (!cfr.isCompleted()) {
 				logger.error(Characters.starredBox("WARNING: Analysis interrupted, CFG might be incomplete!"));
@@ -270,15 +271,13 @@ public class Main {
 					program.getCFA().size() + "\t" + indirectBranches + "\t" + program.getUnresolvedBranches().size() +  "\t" +
 					cfr.getNumberOfStatesVisited() + "\t" + stateCount + "\t" + 
 					Math.round((overallEndTime - overallStartTime)/1000.0) + "s\t" + cfr.getStatus() + "\t" + 
-					version + "\t" + Options.explicitThreshold + "\t" + Options.heapDataThreshold + "\t" + 
-					(Options.basicBlocks ? "y" : "n" )+ "\t" + (Options.summarizeRep ? "y" : "n" ));
+					version + "\t" + BoundedAddressTracking.varThreshold.getValue() + "\t" + BoundedAddressTracking.heapThreshold.getValue() + "\t" + 
+					(Options.basicBlocks.getValue() ? "y" : "n" )+ "\t" + (Options.summarizeRep.getValue() ? "y" : "n" ));
 
 			ProgramGraphWriter graphWriter = new ProgramGraphWriter(program);
 
 			// If control flow reconstruction finished normally, start other analyses now 
-			if (cfr.isCompleted() && Options.secondaryCPAs != null) {
-
-				String[] cpaNames = Options.secondaryCPAs.split(",");
+			if (cfr.isCompleted() && Options.secondaryCPAs.getValue().length() > 0) {
 
 				// Simplify CFA
 				logger.info("=== Simplifying CFA ===");
@@ -292,35 +291,36 @@ public class Main {
 				} while (dce.getRemovalCount() > 0);
 				logger.info("=== Finished CFA simplification, removed " + totalRemoved + " edges. ===");
 
-				ConfigurableProgramAnalysis[] secondaryCPAs = new ConfigurableProgramAnalysis[cpaNames.length];
-				for (int i=0; i<secondaryCPAs.length; i++) {
-					try {
-						secondaryCPAs[i] = (ConfigurableProgramAnalysis)Class
-						.forName("org.jakstab.analysis." + cpaNames[i]).newInstance();
-					} catch (Exception e) {
-						logger.fatal("Error loading analysis class: " + cpaNames[i] + "!");
-						logger.fatal(e);
+				AnalysisManager mgr = AnalysisManager.getInstance();				
+				ConfigurableProgramAnalysis[] secondaryCPAs = new ConfigurableProgramAnalysis[Options.secondaryCPAs.getValue().length()];
+				for (int i=0; i<Options.secondaryCPAs.getValue().length(); i++) {			
+					ConfigurableProgramAnalysis cpa = mgr.createAnalysis(Options.secondaryCPAs.getValue().charAt(i));
+					if (cpa != null) {
+						AnalysisProperties p = mgr.getProperties(cpa);
+						logger.info("--- Using " + p.getName());
+						secondaryCPAs[i] = cpa;
+					} else {
+						logger.fatal("No analysis corresponds to letter \"" + Options.secondaryCPAs.getValue().charAt(i) + "\"!");
 						System.exit(1);
-					} 
+					}
 				}
 				// Do custom analysis
 				long customAnalysisStartTime = System.currentTimeMillis();
 				CPAAlgorithm cpaAlg;
-				if (Options.backward) {
+				if (Options.backward.getValue()) {
 					cpaAlg = CPAAlgorithm.createBackwardAlgorithm(program, secondaryCPAs);
 				} else {
 					cpaAlg = CPAAlgorithm.createForwardAlgorithm(program, secondaryCPAs);
 				}
-				logger.info("Starting " + Arrays.toString(cpaNames) + ".");
 				activeAlgorithm = cpaAlg;
 				cpaAlg.run();
 				long customAnalysisEndTime = System.currentTimeMillis();
 
-				if (Options.writeGraphs)
+				if (!Options.noGraphs.getValue())
 					graphWriter.writeControlFlowAutomaton(baseFileName + "_cfa", cpaAlg.getReachedStates().select(1));
 
 				logger.error(Characters.DOUBLE_LINE_FULL_WIDTH);
-				logger.error( "   Statistics for " + Arrays.toString(cpaNames));
+				logger.error( "   Statistics for " + Options.secondaryCPAs.getValue());
 				logger.error(Characters.DOUBLE_LINE_FULL_WIDTH);
 				logger.error( "   Runtime:                " + String.format("%8dms", (customAnalysisEndTime - customAnalysisStartTime)));
 				logger.error( "   States:                   " + String.format("%8d", cpaAlg.getReachedStates().size()));
@@ -328,13 +328,13 @@ public class Main {
 
 
 			} else {
-				if (Options.writeGraphs)
+				if (!Options.noGraphs.getValue())
 					graphWriter.writeControlFlowAutomaton(baseFileName + "_cfa");
 				//if (Options.errorTrace) graphWriter.writeART(baseFileName + "_art", cfr.getART());
 			}
 
 			// If procedure abstraction is active, detect procedures now
-			if (cfr.isCompleted() && Options.procedureAbstraction == 2) {
+			if (cfr.isCompleted() && Options.procedureAbstraction.getValue() == 2) {
 				cfr = null;
 				reached = null;
 				ProcedureAnalysis procedureAnalysis = new ProcedureAnalysis();		
@@ -356,7 +356,7 @@ public class Main {
 				}
 				logger.info("Found " + procedures.size() + " function entry points from procedure analysis.");
 
-				if (Options.writeGraphs)
+				if (!Options.noGraphs.getValue())
 					graphWriter.writeCallGraph(baseFileName + "_callgraph", callGraph);
 			}
 
@@ -397,7 +397,7 @@ public class Main {
 			logger.error("Cannot write to outputfile!", e);
 		}
 	}
-
+	
 	@SuppressWarnings("unused")
 	private static final void printDisassembly(Program program) {
 		logger.info();

@@ -33,7 +33,7 @@ import antlr.ANTLRException;
 
 /**
  *  This class represents the physical architecture a program runs on. It is 
- *  initialized by loading the correspoinding SSL specification. It should 
+ *  initialized by loading the corresponding SSL specification. It should 
  *  encapsulate all architecture specific aspects of the analyses, and
  *  also supports the conversion of disassembled instructions to RTL statements.
  *  
@@ -278,7 +278,7 @@ public class Architecture {
 			if (instr.getOperandCount() == proto.getParameterCount()) 
 				score += NUM_OPERANDS_SCORE;
 			
-			if (Options.summarizeRep && proto.getName().startsWith("REP") &&
+			if (Options.summarizeRep.getValue() && proto.getName().startsWith("REP") &&
 					proto.getName().endsWith("SUMMARY")) {
 				score++;
 			}

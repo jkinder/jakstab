@@ -20,7 +20,8 @@ package org.jakstab.analysis.explicit;
 
 import java.util.*;
 
-import org.jakstab.Options;
+import org.jakstab.AnalysisProperties;
+import org.jakstab.Option;
 import org.jakstab.Program;
 import org.jakstab.analysis.*;
 import org.jakstab.asm.AbsoluteAddress;
@@ -45,7 +46,16 @@ public class BoundedAddressTracking implements ConfigurableProgramAnalysis {
 	@SuppressWarnings("unused")
 	private final static Logger logger = Logger.getLogger(BoundedAddressTracking.class);
 
-	//private final int stackThreshold; 
+	public static void register(AnalysisProperties p) {
+		p.setShortHand('x');
+		p.setName("Bounded Address Tracking");
+		p.setDescription("Enumerate region-based addresses up to a bound per variable per location.");
+		p.setExplicit(true);
+	}
+	
+	public static Option<Integer> varThreshold = Option.create("explicit-threshold", "k", 5, "Set the maximum number of values tracked per variable per location.");
+	public static Option<Integer> heapThreshold = Option.create("heap-threshold", "k", 5, "Explicit threshold for data stored on the heap.");
+	public static Option<Boolean> repPrecBoost = Option.create("rep-prec-boost", "Increase precision for rep-prefixed instructions.");
 	
 	public BoundedAddressTracking() {
 	}
@@ -82,7 +92,7 @@ public class BoundedAddressTracking implements ConfigurableProgramAnalysis {
 		BasedNumberValuation widenedState = (BasedNumberValuation)s;
 
 		// Only check value counts if we have at least enough states to reach it
-		if (reached.size() > Options.explicitThreshold) {
+		if (reached.size() > Math.min(varThreshold.getValue(), heapThreshold.getValue())) {
 			
 			boolean changed = false;
 
@@ -181,11 +191,11 @@ public class BoundedAddressTracking implements ConfigurableProgramAnalysis {
 
 	@Override
 	public Precision initPrecision(Location location, StateTransformer transformer) {
-		ExplicitPrecision p = new ExplicitPrecision(Options.explicitThreshold);
+		ExplicitPrecision p = new ExplicitPrecision(varThreshold.getValue());
 		
 		// Increase precision of ecx, esi, edi for REP prefixed instructions
 		Program program = Program.getProgram();
-		if (Options.repPrecBoost) {
+		if (BoundedAddressTracking.repPrecBoost.getValue()) {
 			AbsoluteAddress addr = ((RTLLabel)location).getAddress();
 			X86Instruction instr = (X86Instruction)program.getInstruction(addr);
 			if (instr != null && (instr.hasPrefixREPZ() || instr.hasPrefixREPNZ())) {

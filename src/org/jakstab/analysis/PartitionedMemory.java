@@ -104,14 +104,14 @@ public final class PartitionedMemory<A extends AbstractValue> implements Lattice
 	}
 	
 	public void setTop() {
-		if (Options.ignoreWeakUpdates) {
+		if (Options.ignoreWeakUpdates.getValue()) {
 			logger.warn("Ignoring weak universal update!");
 			return;
 		}
 		store.clear();
 		dataIsTop = true;
 		logger.verbose("Overapproximated all memory regions to TOP!");
-		if (Options.debug)
+		if (Options.debug.getValue())
 			throw new UnknownPointerAccessException("Set all memory regions to TOP!");
 	}
 	
@@ -121,7 +121,7 @@ public final class PartitionedMemory<A extends AbstractValue> implements Lattice
 			return;
 		}
 
-		if (Options.ignoreWeakUpdates) {
+		if (Options.ignoreWeakUpdates.getValue()) {
 			logger.warn("Ignoring weak update to " + region);
 			return;
 		}
@@ -132,7 +132,7 @@ public final class PartitionedMemory<A extends AbstractValue> implements Lattice
 			dataIsTop = true;
 
 		logger.verbose("Overapproximated all of " + region + " to TOP!");
-		if (Options.debug && region == MemoryRegion.STACK)
+		if (Options.debug.getValue() && region == MemoryRegion.STACK)
 			throw new UnknownPointerAccessException("Set all of stack to TOP!");
 	}
 	
@@ -141,7 +141,7 @@ public final class PartitionedMemory<A extends AbstractValue> implements Lattice
 			// We need to explicitly remember TOP memory cells in the global region,
 			// as it is initialized to the static data of the executable.
 			// If heap cells are assumed to be initially BOT, we also need to do this.
-			if ((Options.initHeapToBot && region != MemoryRegion.STACK) || region == MemoryRegion.GLOBAL) {
+			if ((Options.initHeapToBot.getValue() && region != MemoryRegion.STACK) || region == MemoryRegion.GLOBAL) {
 				MemoryCell topCell = new MemoryCell(offset + i, 1, 
 						valueFactory.createTop(8));
 				store.put(region, offset + i, topCell);
@@ -204,7 +204,7 @@ public final class PartitionedMemory<A extends AbstractValue> implements Lattice
 		A oldValue = get(region, offset, bitWidth);
 		
 		// If we treat heap cells as initialized to BOT, just set uninitialized cells to the new value
-		if (Options.initHeapToBot && oldValue.isTop() && !store.containsKey(region, offset))
+		if (Options.initHeapToBot.getValue() && oldValue.isTop() && !store.containsKey(region, offset))
 			set(region, offset, bitWidth, value);
 		else
 			set(region, offset, bitWidth, (A)value.join(oldValue));

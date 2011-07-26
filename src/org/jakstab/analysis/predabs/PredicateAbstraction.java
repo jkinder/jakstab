@@ -23,6 +23,7 @@ import java.util.Set;
 import net.sf.javabdd.BDD;
 import net.sf.javabdd.BDDFactory;
 
+import org.jakstab.AnalysisProperties;
 import org.jakstab.analysis.*;
 import org.jakstab.cfa.CFAEdge;
 import org.jakstab.cfa.Location;
@@ -40,6 +41,13 @@ import org.jakstab.util.Pair;
  * @author Johannes Kinder
  */
 public class PredicateAbstraction implements ConfigurableProgramAnalysis {
+
+	public static void register(AnalysisProperties p) {
+		p.setShortHand('p');
+		p.setName("Predicate abstraction");
+		p.setDescription("Experimental, partial implementation of predicate abstraction.");
+		p.setExplicit(true);
+	}
 
 	@SuppressWarnings("unused")
 	private static final Logger logger = Logger.getLogger(PredicateAbstraction.class);

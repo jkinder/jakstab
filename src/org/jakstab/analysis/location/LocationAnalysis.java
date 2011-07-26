@@ -21,6 +21,7 @@ package org.jakstab.analysis.location;
 import java.util.Collections;
 import java.util.Set;
 
+import org.jakstab.AnalysisProperties;
 import org.jakstab.analysis.*;
 import org.jakstab.cfa.CFAEdge;
 import org.jakstab.cfa.Location;
@@ -35,6 +36,11 @@ import org.jakstab.util.Pair;
  */
 public class LocationAnalysis implements ConfigurableProgramAnalysis {
 
+	public static void register(AnalysisProperties p) {
+		p.setName("Forward location analysis");
+		p.setDescription("The default location analysis.");
+	}
+	
 	@SuppressWarnings("unused")
 	private static final Logger logger = Logger.getLogger(LocationAnalysis.class);
 

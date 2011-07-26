@@ -302,7 +302,7 @@ public final class Program {
 				halt.setLabel(label);
 				putStatement(halt);
 				logger.error("ERROR: Replacing unknown instruction with HALT.");
-				if (Options.debug)
+				if (Options.debug.getValue())
 					throw new DisassemblyException("Disassembly failed at " + address);
 			} else {
 				StatementSequence seq = arch.getRTLEquivalent(address, instr);

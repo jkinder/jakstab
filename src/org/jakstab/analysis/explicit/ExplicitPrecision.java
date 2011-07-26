@@ -19,7 +19,6 @@ package org.jakstab.analysis.explicit;
 
 import java.util.*;
 
-import org.jakstab.Options;
 import org.jakstab.analysis.MemoryRegion;
 import org.jakstab.analysis.Precision;
 import org.jakstab.rtl.expressions.RTLVariable;
@@ -93,7 +92,7 @@ public class ExplicitPrecision implements Precision {
 		if (region.equals(MemoryRegion.GLOBAL) || region.equals(MemoryRegion.STACK))
 			return defaultThreshold;
 		else
-			return Options.heapDataThreshold;
+			return BoundedAddressTracking.heapThreshold.getValue();
 	}
 	
 	public int getThreshold(RTLVariable v) {

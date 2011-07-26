@@ -21,6 +21,7 @@ package org.jakstab.analysis.substitution;
 import java.util.Collections;
 import java.util.Set;
 
+import org.jakstab.AnalysisProperties;
 import org.jakstab.analysis.*;
 import org.jakstab.cfa.CFAEdge;
 import org.jakstab.cfa.Location;
@@ -32,6 +33,13 @@ import org.jakstab.util.Pair;
  * @author Johannes Kinder
  */
 public class ExpressionSubstitutionAnalysis implements ConfigurableProgramAnalysis {
+
+	public static void register(AnalysisProperties p) {
+		p.setShortHand('f');
+		p.setName("Forward substitution");
+		p.setDescription("Substitute expressions that are guaranteed to be constant over all paths, and use the substituted statements for other analyses.");
+		p.setExplicit(true);
+	}
 
 	@SuppressWarnings("unused")
 	private final static Logger logger = Logger.getLogger(ExpressionSubstitutionAnalysis.class);

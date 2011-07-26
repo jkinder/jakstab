@@ -109,7 +109,7 @@ public class PessimisticBasicBlockFactory extends ResolvingTransformerFactory im
 					logger.debug("State is: " + a);
 					sound = false;
 					unresolvedBranches.add(stmt.getLabel());
-					if (Options.debug)
+					if (Options.debug.getValue())
 						throw new ControlFlowException(a, "Unresolvable control flow from " + stmt.getLabel());
 					continue;
 				} else {

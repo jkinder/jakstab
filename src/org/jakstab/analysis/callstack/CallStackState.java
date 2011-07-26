@@ -42,7 +42,6 @@ public class CallStackState implements AbstractState {
 	public static CallStackState BOT = new CallStackState(null);
 	
 	private final Deque<Location> callStack;
-	private static final RTLVariable retVar = Program.getProgram().getArchitecture().returnAddressVariable();
 	
 	public CallStackState() {
 		this(new LinkedList<Location>());
@@ -151,7 +150,7 @@ public class CallStackState implements AbstractState {
 		ExpressionFactory factory = ExpressionFactory.getInstance();
 		if (!isBot() && !isTop() && expressions.length == 2 && 
  				expressions[0].equals(ExpressionFactory.getInstance().TRUE) && 
-				expressions[1].equals(retVar)) {
+				expressions[1].equals(Program.getProgram().getArchitecture().stackPointer())) {
 			logger.debug("Concretizing callstack element: " + callStack.peek());
 			return Collections.singleton(Tuple.create(
 					factory.TRUE,
