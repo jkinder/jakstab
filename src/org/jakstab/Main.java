@@ -29,6 +29,7 @@ import org.jakstab.analysis.composite.CompositeState;
 import org.jakstab.analysis.explicit.BoundedAddressTracking;
 import org.jakstab.analysis.procedures.ProcedureAnalysis;
 import org.jakstab.analysis.procedures.ProcedureState;
+import org.jakstab.analysis.tracereplay.TraceReplayAnalysis;
 import org.jakstab.asm.*;
 import org.jakstab.cfa.Location;
 import org.jakstab.loader.*;
@@ -178,8 +179,8 @@ public class Main {
 		}
 		
 		// If we do trace replay and did not specify a trace file, use default name
-		if (Options.cpas.getValue().contains("t") && Options.traceFiles == null)
-			Options.traceFiles = new String[]{ baseFileName + ".parsed" };
+		if (Options.cpas.getValue().contains("t") && TraceReplayAnalysis.traceFiles.getValue().isEmpty())
+			TraceReplayAnalysis.traceFiles.setValue(baseFileName + ".trace");
 		
 
 		// Necessary to stop shutdown thread on exceptions being thrown
@@ -292,13 +293,13 @@ public class Main {
 				logger.info("=== Finished CFA simplification, removed " + totalRemoved + " edges. ===");
 
 				AnalysisManager mgr = AnalysisManager.getInstance();				
-				ConfigurableProgramAnalysis[] secondaryCPAs = new ConfigurableProgramAnalysis[Options.secondaryCPAs.getValue().length()];
+				List<ConfigurableProgramAnalysis> secondaryCPAs = new LinkedList<ConfigurableProgramAnalysis>();
 				for (int i=0; i<Options.secondaryCPAs.getValue().length(); i++) {			
 					ConfigurableProgramAnalysis cpa = mgr.createAnalysis(Options.secondaryCPAs.getValue().charAt(i));
 					if (cpa != null) {
 						AnalysisProperties p = mgr.getProperties(cpa);
 						logger.info("--- Using " + p.getName());
-						secondaryCPAs[i] = cpa;
+						secondaryCPAs.add(cpa);
 					} else {
 						logger.fatal("No analysis corresponds to letter \"" + Options.secondaryCPAs.getValue().charAt(i) + "\"!");
 						System.exit(1);
@@ -307,10 +308,11 @@ public class Main {
 				// Do custom analysis
 				long customAnalysisStartTime = System.currentTimeMillis();
 				CPAAlgorithm cpaAlg;
+				ConfigurableProgramAnalysis[] cpaArray = secondaryCPAs.toArray(new ConfigurableProgramAnalysis[secondaryCPAs.size()]);
 				if (Options.backward.getValue()) {
-					cpaAlg = CPAAlgorithm.createBackwardAlgorithm(program, secondaryCPAs);
+					cpaAlg = CPAAlgorithm.createBackwardAlgorithm(program, cpaArray);
 				} else {
-					cpaAlg = CPAAlgorithm.createForwardAlgorithm(program, secondaryCPAs);
+					cpaAlg = CPAAlgorithm.createForwardAlgorithm(program, cpaArray);
 				}
 				activeAlgorithm = cpaAlg;
 				cpaAlg.run();

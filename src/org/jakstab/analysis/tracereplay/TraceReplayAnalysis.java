@@ -27,6 +27,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
+import org.jakstab.AnalysisProperties;
+import org.jakstab.Option;
 import org.jakstab.Program;
 import org.jakstab.analysis.AbstractState;
 import org.jakstab.analysis.CPAOperators;
@@ -45,6 +47,14 @@ import org.jakstab.util.Pair;
  * Analysis for replaying the program counter values of a single recorded trace.
  */
 public class TraceReplayAnalysis implements ConfigurableProgramAnalysis {
+
+	public static void register(AnalysisProperties p) {
+		p.setShortHand('t');
+		p.setName("Trace replay analysis");
+		p.setDescription("Replays pre-recorded traces as an under-approximation of control flow.");
+	}
+	
+	public static Option<String> traceFiles = Option.create("trace-file", "f", "", "Comma separated list of trace files to use for tracereplay (default is <mainFile>.trace)");
 
 	@SuppressWarnings("unused")
 	private static final Logger logger = Logger.getLogger(TraceReplayAnalysis.class);

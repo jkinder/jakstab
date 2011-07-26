@@ -27,6 +27,7 @@ import org.jakstab.Algorithm;
 import org.jakstab.analysis.composite.CompositeProgramAnalysis;
 import org.jakstab.analysis.composite.DualCompositeAnalysis;
 import org.jakstab.analysis.location.LocationAnalysis;
+import org.jakstab.analysis.tracereplay.TraceReplayAnalysis;
 import org.jakstab.asm.*;
 import org.jakstab.asm.x86.X86Instruction;
 import org.jakstab.cfa.*;
@@ -136,23 +137,30 @@ public class ControlFlowReconstruction implements Algorithm {
 		boolean addedUnderApproximation = false;
 		AnalysisManager mgr = AnalysisManager.getInstance();
 
-//				logger.info("--- Using trace replay analysis.");
-//				for (String fileName : Options.traceFiles) {
-//					cpas.add(new TraceReplayAnalysis(fileName));
-//				}
-//				addedExplicitAnalysis = true;
-//				addedUnderApproximation = true;
-//				break;
 
-		for (int i=0; i<Options.cpas.getValue().length(); i++) {			
-			ConfigurableProgramAnalysis cpa = mgr.createAnalysis(Options.cpas.getValue().charAt(i));
+		for (int i=0; i<Options.cpas.getValue().length(); i++) {
+			
+			char shortHand = Options.cpas.getValue().charAt(i);
+			
+			// Special handling for trace replay analysis that really creates multiple CPAs
+			if (shortHand == 't') {
+				logger.info("--- Using trace replay analysis.");
+				for (String fileName : TraceReplayAnalysis.traceFiles.getValue().split(",")) {
+					cpas.add(new TraceReplayAnalysis(fileName));
+				}
+				addedExplicitAnalysis = true;
+				addedUnderApproximation = true;
+				continue;
+			}
+
+			ConfigurableProgramAnalysis cpa = mgr.createAnalysis(shortHand);
 			if (cpa != null) {
 				AnalysisProperties p = mgr.getProperties(cpa);
 				logger.info("--- Using " + p.getName());
 				addedExplicitAnalysis |= p.isExplicit();
 				cpas.add(cpa);
 			} else {
-				logger.fatal("No analysis corresponds to letter \"" + Options.cpas.getValue().charAt(i) + "\"!");
+				logger.fatal("No analysis corresponds to letter \"" + shortHand + "\"!");
 				System.exit(1);
 			}
 		}			

@@ -102,7 +102,6 @@ public class Options {
 			"0: Pessimistic: No assumptions, treat calls and returns as jumps. " + 
 			"1: Semi-optimistic: Abstract unknown calls according to ABI contract. " + 
 			"2: Optimistic: Abstract all calls to ABI contract (fastest).");
-	public static String[] traceFiles;
 
 	/**
 	 * Handle command line options.
