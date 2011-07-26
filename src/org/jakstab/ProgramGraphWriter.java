@@ -36,7 +36,6 @@ import org.jakstab.rtl.statements.RTLStatement;
 import org.jakstab.util.*;
 
 import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Multimap;
 import com.google.common.collect.SetMultimap;
 
 /**
@@ -178,12 +177,14 @@ public class ProgramGraphWriter {
 				AbsoluteAddress nodeAddr = ((RTLLabel)node).getAddress();
 				Instruction instr = program.getInstruction(nodeAddr);
 				String nodeName = nodeAddr.toString();
+				String nodeLabel = program.getSymbolFor(nodeAddr);
+				
 				if (instr != null) {
 					String instrString = instr.toString(nodeAddr.getValue(), program.getModule(nodeAddr).getSymbolFinder());
 					instrString = instrString.replace("\t", " ");
-					gwriter.writeNode(nodeName, nodeAddr + "\\n" + instrString, getNodeProperties(node));
+					gwriter.writeNode(nodeName, nodeLabel + "\\n" + instrString, getNodeProperties(node));
 				} else {
-					gwriter.writeNode(nodeName, nodeName, getNodeProperties(node));
+					gwriter.writeNode(nodeName, nodeLabel, getNodeProperties(node));
 				}
 			}
 
