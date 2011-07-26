@@ -27,19 +27,17 @@ public interface GraphWriter {
 
 	public void writeNode(String id, String body) throws IOException;
 
-	public void writeNode(String id, String body, Map<String, String> properties)
-			throws IOException;
+	public void writeNode(String id, String body, Map<String, String> properties) throws IOException;
 
 	public void writeEdge(String id1, String id2) throws IOException;
 
-	public void writeEdge(String id1, String id2, Map<String, String> properties)
-			throws IOException;
+	public void writeEdge(String id1, String id2, Color color) throws IOException;
 
-	public void writeLabeledEdge(String id1, String id2, String label)
-			throws IOException;
+	public void writeEdge(String id1, String id2, Map<String, String> properties) throws IOException;
+
+	public void writeLabeledEdge(String id1, String id2, String label) throws IOException;
 	
-	public void writeLabeledEdge(String id1, String id2, String label, Color color)
-			throws IOException;
+	public void writeLabeledEdge(String id1, String id2, String label, Color color) throws IOException;
 
 	public String getFilename();
 

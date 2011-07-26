@@ -18,10 +18,16 @@
 package org.jakstab;
 
 import java.awt.Color;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.*;
 
 import org.jakstab.analysis.*;
+import org.jakstab.asm.AbsoluteAddress;
+import org.jakstab.asm.BranchInstruction;
+import org.jakstab.asm.Instruction;
+import org.jakstab.asm.ReturnInstruction;
+import org.jakstab.asm.SymbolFinder;
 import org.jakstab.cfa.CFAEdge;
 import org.jakstab.cfa.Location;
 import org.jakstab.rtl.*;
@@ -29,10 +35,12 @@ import org.jakstab.rtl.statements.RTLHalt;
 import org.jakstab.rtl.statements.RTLStatement;
 import org.jakstab.util.*;
 
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Multimap;
 import com.google.common.collect.SetMultimap;
 
 /**
- * Writes various Graphviz-graphs from a program structure.
+ * Writes various graphs from a program structure.
  * 
  * @author Johannes Kinder
  */
@@ -85,6 +93,132 @@ public class ProgramGraphWriter {
 		}
 
 		return properties;
+	}
+
+	// Does not write a real graph, but still fits best into this class  
+	public void writeDisassembly(Program program, String filename) {
+		logger.info("Writing assembly file to " + filename);
+
+		SetMultimap<AbsoluteAddress, CFAEdge> branchEdges = HashMultimap.create(); 
+		if (!Options.noGraphs.getValue()) {
+			for (CFAEdge e : program.getCFA()) {
+				AbsoluteAddress sourceAddr = ((RTLLabel)e.getSource()).getAddress(); 
+				AbsoluteAddress targetAddr = ((RTLLabel)e.getTarget()).getAddress();
+				if (program.getInstruction(sourceAddr) instanceof BranchInstruction && !sourceAddr.equals(targetAddr)) {
+					branchEdges.put(sourceAddr, e);
+				}
+			}
+		}
+		
+		try {
+			FileWriter out = new FileWriter(filename);
+			for (Map.Entry<AbsoluteAddress,Instruction> entry : program.getAssemblyMap().entrySet()) {
+				AbsoluteAddress pc = entry.getKey();
+				Instruction instr = entry.getValue();
+				StringBuilder sb = new StringBuilder();
+				SymbolFinder symFinder = program.getModule(pc).getSymbolFinder();
+				if (symFinder.hasSymbolFor(pc)) {
+					sb.append(Characters.NEWLINE);
+					sb.append(symFinder.getSymbolFor(pc));
+					sb.append(":").append(Characters.NEWLINE);
+				}
+				sb.append(pc).append(":\t");
+				sb.append(instr.toString(pc.getValue(), symFinder));
+				
+				if (instr instanceof BranchInstruction) {
+					Set<CFAEdge> targets = branchEdges.get(pc);
+					sb.append("\t; targets: ");
+					if (targets.isEmpty()) {
+						sb.append("unresolved");
+					} else {
+						boolean first = true;
+						for (CFAEdge e : branchEdges.get(pc)) {
+							if (first) first = false;
+							else sb.append(", ");
+							sb.append(((RTLLabel)e.getTarget()).getAddress());
+							sb.append('(').append(e.getKind()).append(')');
+						}
+					}
+				}
+				
+				
+				sb.append(Characters.NEWLINE);
+				if (instr instanceof ReturnInstruction) sb.append(Characters.NEWLINE);
+				out.write(sb.toString());
+			}
+			out.close();
+
+		} catch (IOException e) {
+			logger.fatal(e);
+			return;
+		}
+	}
+
+	
+	public void writeAssemblyCFG(String filename) {
+		Set<CFAEdge> edges = new HashSet<CFAEdge>(); 
+		Set<Location> nodes = new HashSet<Location>();
+		for (CFAEdge e : program.getCFA()) {
+			AbsoluteAddress sourceAddr = ((RTLLabel)e.getSource()).getAddress(); 
+			AbsoluteAddress targetAddr = ((RTLLabel)e.getTarget()).getAddress();
+			if (!sourceAddr.equals(targetAddr)) {
+				edges.add(e);
+				nodes.add(e.getSource());
+				nodes.add(e.getTarget());
+			}
+		}
+		
+		// Create dot file
+		GraphWriter gwriter = createGraphWriter(filename);
+		if (gwriter == null) return;
+
+		logger.info("Writing assembly CFG to " + gwriter.getFilename());
+		try {
+			for (Location node : nodes) {
+				AbsoluteAddress nodeAddr = ((RTLLabel)node).getAddress();
+				Instruction instr = program.getInstruction(nodeAddr);
+				String nodeName = nodeAddr.toString();
+				if (instr != null) {
+					String instrString = instr.toString(nodeAddr.getValue(), program.getModule(nodeAddr).getSymbolFinder());
+					instrString = instrString.replace("\t", " ");
+					gwriter.writeNode(nodeName, nodeAddr + "\\n" + instrString, getNodeProperties(node));
+				} else {
+					gwriter.writeNode(nodeName, nodeName, getNodeProperties(node));
+				}
+			}
+
+			for (CFAEdge e : edges) {
+				if (e.getKind() == null) logger.error("Null kind? " + e);
+				AbsoluteAddress sourceAddr = ((RTLLabel)e.getSource()).getAddress(); 
+				AbsoluteAddress targetAddr = ((RTLLabel)e.getTarget()).getAddress();
+				
+				String label = "";
+				Instruction instr = program.getInstruction(sourceAddr);
+				
+				if (instr instanceof BranchInstruction) {
+					BranchInstruction bi = (BranchInstruction)instr;
+					if (bi.isConditional()) {
+						// Get the original goto from the program (not the converted assume) 
+						RTLStatement rtlGoto = program.getStatement((RTLLabel)e.getSource());
+						
+						// If this is the fall-through edge, output F, otherwise T
+						label = targetAddr.equals(rtlGoto.getNextLabel().getAddress()) ? "F" : "T";
+					}
+				}
+				
+				gwriter.writeLabeledEdge(sourceAddr.toString(), 
+						targetAddr.toString(), 
+						label,
+						e.getKind().equals(CFAEdge.Kind.MAY) ? Color.BLACK : Color.GREEN);
+			}
+
+			gwriter.close();
+		} catch (IOException e) {
+			logger.error("Cannot write to output file", e);
+			return;
+		}
+
+		
 	}
 
 	public void writeControlFlowAutomaton(String filename) {

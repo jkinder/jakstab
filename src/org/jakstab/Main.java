@@ -243,7 +243,6 @@ public class Main {
 				}
 			}
 
-			writeDisassembly(program, baseFileName + "_jak.asm");
 			int indirectBranches = program.countIndirectBranches();
 
 			logger.error(Characters.DOUBLE_LINE_FULL_WIDTH);
@@ -276,9 +275,17 @@ public class Main {
 					(Options.basicBlocks.getValue() ? "y" : "n" )+ "\t" + (Options.summarizeRep.getValue() ? "y" : "n" ));
 
 			ProgramGraphWriter graphWriter = new ProgramGraphWriter(program);
+			
+			graphWriter.writeDisassembly(program, baseFileName + "_jak.asm");
 
-			// If control flow reconstruction finished normally, start other analyses now 
-			if (cfr.isCompleted() && Options.secondaryCPAs.getValue().length() > 0) {
+			if (!(cfr.isCompleted() && Options.secondaryCPAs.getValue().length() > 0)) {
+				if (!Options.noGraphs.getValue()) {
+					graphWriter.writeControlFlowAutomaton(baseFileName + "_cfa");
+					graphWriter.writeAssemblyCFG(baseFileName + "_asmcfg");
+				}
+				//if (Options.errorTrace) graphWriter.writeART(baseFileName + "_art", cfr.getART());
+			} else {
+				// If control flow reconstruction finished normally and other analyses are configured, start them now 
 
 				// Simplify CFA
 				logger.info("=== Simplifying CFA ===");
@@ -329,10 +336,6 @@ public class Main {
 				logger.error(Characters.DOUBLE_LINE_FULL_WIDTH);
 
 
-			} else {
-				if (!Options.noGraphs.getValue())
-					graphWriter.writeControlFlowAutomaton(baseFileName + "_cfa");
-				//if (Options.errorTrace) graphWriter.writeART(baseFileName + "_art", cfr.getART());
 			}
 
 			// If procedure abstraction is active, detect procedures now
@@ -397,50 +400,6 @@ public class Main {
 			statsFile.close();
 		} catch (Exception e) {
 			logger.error("Cannot write to outputfile!", e);
-		}
-	}
-	
-	@SuppressWarnings("unused")
-	private static final void printDisassembly(Program program) {
-		logger.info();
-		logger.info("=== Disassembly dump ===");
-		for (Map.Entry<AbsoluteAddress,Instruction> entry : program.getAssemblyMap().entrySet()) {
-			AbsoluteAddress pc = entry.getKey();
-			Instruction instr = entry.getValue();
-			StringBuilder sb = new StringBuilder();
-			sb.append(pc);
-			sb.append("  ");
-			SymbolFinder symFinder = program.getModule(pc).getSymbolFinder();
-			sb.append(instr.toString(pc.getValue(), symFinder));
-
-			logger.fatal(sb);
-		}
-		logger.info();
-	}
-
-	@SuppressWarnings("unused")
-	private static final void writeDisassembly(Program program, String filename) {
-		logger.info("Writing assembly file to " + filename);
-		try {
-			FileWriter out = new FileWriter(filename);
-			for (Map.Entry<AbsoluteAddress,Instruction> entry : program.getAssemblyMap().entrySet()) {
-				AbsoluteAddress pc = entry.getKey();
-				Instruction instr = entry.getValue();
-				StringBuilder sb = new StringBuilder();
-				SymbolFinder symFinder = program.getModule(pc).getSymbolFinder();
-				if (symFinder.hasSymbolFor(pc)) sb.append(Characters.NEWLINE);
-				sb.append(symFinder.getSymbolFor(pc));
-				sb.append(":\t");
-				sb.append(instr.toString(pc.getValue(), symFinder));
-				sb.append(Characters.NEWLINE);
-				if (instr instanceof ReturnInstruction) sb.append(Characters.NEWLINE);
-				out.write(sb.toString());
-			}
-			out.close();
-
-		} catch (IOException e) {
-			logger.fatal(e);
-			return;
 		}
 	}
 	

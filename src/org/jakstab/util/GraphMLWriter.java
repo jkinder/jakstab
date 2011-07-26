@@ -85,7 +85,7 @@ public class GraphMLWriter implements GraphWriter {
 
 	@Override
 	public final void writeEdge(String id1, String id2) throws IOException {
-		writeEdge(id1, id2, null);
+		writeEdge(id1, id2, (Map<String, String>)null);
 	}
 
 	@Override
@@ -108,6 +108,16 @@ public class GraphMLWriter implements GraphWriter {
 	}
 
 	@Override
+	public void writeEdge(String id1, String id2, Color color)
+			throws IOException {
+		Map<String,String> map = new HashMap<String, String>();
+		if (color != null) {
+			map.put("y:LineStyle", colorConvert(color));
+		}
+		writeEdge(id1, id2, map);
+	}
+
+	@Override
 	public final void writeLabeledEdge(String id1, String id2, String label) throws IOException {
 		writeLabeledEdge(id1, id2, label, null);
 	}
@@ -117,7 +127,7 @@ public class GraphMLWriter implements GraphWriter {
 		Map<String,String> map = new HashMap<String, String>();
 		map.put("y:EdgeLabel", label);
 		if (color != null) {
-			map.put("y:LineStyle", String.format("color=\"#%02x%02x%02x\"", color.getRed(), color.getGreen(), color.getBlue()));
+			map.put("y:LineStyle", colorConvert(color));
 		}
 		writeEdge(id1, id2, map);
 	}
@@ -141,6 +151,10 @@ public class GraphMLWriter implements GraphWriter {
 	@Override
 	public String getFilename() {
 		return filename;
+	}
+	
+	private static String colorConvert(Color color) {
+		return String.format("color=\"#%02x%02x%02x\"", color.getRed(), color.getGreen(), color.getBlue());
 	}
 
 }
