@@ -38,7 +38,6 @@ import org.jakstab.util.FastSet;
  */
 public class RTLGoto extends AbstractRTLStatement implements RTLStatement {
 
-	private static final long serialVersionUID = -5151293555635026198L;
 	@SuppressWarnings("unused")
 	private final static Logger logger = Logger.getLogger(RTLGoto.class);
 	

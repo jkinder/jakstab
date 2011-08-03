@@ -112,7 +112,6 @@ public class SignState implements AbstractState {
 				boolean allNegativeOrZero = true;
 				boolean allZero = true;
 				boolean oneZero = false;
-				int positiveOperands = 0;
 				int negativeOperands = 0;
 
 				for (int i=0; i<e.getOperandCount(); i++) {
@@ -121,7 +120,6 @@ public class SignState implements AbstractState {
 					case POSITIVE:
 						allZero = false;
 						allNegativeOrZero = false;
-						positiveOperands++;
 						break;
 					case NEGATIVE:
 						allZero = false;

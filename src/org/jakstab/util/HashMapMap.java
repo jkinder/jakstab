@@ -23,8 +23,6 @@ import org.jakstab.util.Logger;
 
 public class HashMapMap<K, L, V> implements MapMap<K, L, V> {
 
-	private static final long serialVersionUID = 4065627881445035660L;
-
 	@SuppressWarnings("unused")
 	private static final Logger logger = Logger.getLogger(HashMapMap.class);
 	

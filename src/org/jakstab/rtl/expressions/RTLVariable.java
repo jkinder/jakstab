@@ -37,7 +37,6 @@ public class RTLVariable extends AbstractRTLExpression implements RTLExpression,
 	@SuppressWarnings("unused")
 	private static final Logger logger = Logger.getLogger(RTLVariable.class);
 
-	private static final long serialVersionUID = -2945157017788310403L;
 	public static final int UNKNOWN_BITWIDTH = Integer.MIN_VALUE;
 	
 	private final String name;

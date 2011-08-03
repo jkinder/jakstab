@@ -40,8 +40,6 @@ public class RTLSpecialExpression extends AbstractRTLExpression implements RTLEx
 	
 	@SuppressWarnings("unused")
 	private static final Logger logger = Logger.getLogger(RTLSpecialExpression.class);
-	private static final long serialVersionUID = -1049496094075262659L;
-	
 	protected Set<RTLMemoryLocation> usedMemoryLocations = null;
 
 	private final String operation;

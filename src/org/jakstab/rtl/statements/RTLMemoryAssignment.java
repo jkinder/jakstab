@@ -36,8 +36,6 @@ public class RTLMemoryAssignment extends AbstractRTLStatement implements RTLStat
 
 	private static final Logger logger = Logger.getLogger(RTLMemoryAssignment.class);
 
-	private static final long serialVersionUID = 77230387535470541L;
-
 	private RTLMemoryLocation leftHandSide;
 	private RTLExpression rightHandSide;
 

@@ -32,8 +32,6 @@ import org.jakstab.util.Logger;
  */
 public class RTLOperation extends AbstractRTLExpression implements RTLExpression {
 
-	private static final long serialVersionUID = 8190680402173352823L;
-
 	private final static Logger logger = Logger.getLogger(RTLOperation.class);
 
 	protected Set<RTLMemoryLocation> usedMemoryLocations = null;

@@ -34,8 +34,6 @@ public class RTLNondet extends AbstractRTLExpression implements RTLExpression {
 
 	@SuppressWarnings("unused")
 	private final static Logger logger = Logger.getLogger(RTLNondet.class);
-	private static final long serialVersionUID = 431313892317661509L;
-	
 	private final int bitWidth;
 	private final String name;
 	
