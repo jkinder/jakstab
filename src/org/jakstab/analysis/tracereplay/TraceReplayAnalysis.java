@@ -26,6 +26,7 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import java.util.StringTokenizer;
 
 import org.jakstab.AnalysisProperties;
 import org.jakstab.Option;
@@ -87,12 +88,12 @@ public class TraceReplayAnalysis implements ConfigurableProgramAnalysis {
 			if (line != null) {
 
 				// Dima's "parsed" format
-				//StringTokenizer st = new StringTokenizer(line, "\t ");
-				//st.nextToken();
-				//AbsoluteAddress curPC = new AbsoluteAddress(Long.parseLong(st.nextToken(), 16));
+				StringTokenizer st = new StringTokenizer(line, "\t ");
+				st.nextToken();
+				AbsoluteAddress curPC = new AbsoluteAddress(Long.parseLong(st.nextToken(), 16));
 				
 				// Pure format produced by temu's text conversion
-				AbsoluteAddress curPC = new AbsoluteAddress(Long.parseLong(line.substring(0, line.indexOf(':')), 16));
+				//AbsoluteAddress curPC = new AbsoluteAddress(Long.parseLong(line.substring(0, line.indexOf(':')), 16));
 				
 				traceList.add(curPC);
 			}

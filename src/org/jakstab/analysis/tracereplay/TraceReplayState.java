@@ -20,7 +20,6 @@ package org.jakstab.analysis.tracereplay;
 import java.util.Collections;
 import java.util.Set;
 
-import org.jakstab.Program;
 import org.jakstab.analysis.AbstractState;
 import org.jakstab.analysis.LatticeElement;
 import org.jakstab.analysis.UnderApproximateState;
@@ -28,9 +27,7 @@ import org.jakstab.asm.AbsoluteAddress;
 import org.jakstab.cfa.Location;
 import org.jakstab.rtl.expressions.ExpressionFactory;
 import org.jakstab.rtl.expressions.RTLExpression;
-import org.jakstab.rtl.expressions.RTLMemoryLocation;
 import org.jakstab.rtl.expressions.RTLNumber;
-import org.jakstab.rtl.expressions.RTLVariable;
 import org.jakstab.util.Logger;
 import org.jakstab.util.Tuple;
 
@@ -106,10 +103,6 @@ public class TraceReplayState implements UnderApproximateState {
 		throw new UnsupportedOperationException();
 	}
 	
-	private static boolean isProgramAddress(RTLNumber n) {
-		return Program.getProgram().getModule(new AbsoluteAddress(n.longValue())) != null;
-	}
-
 	@Override
 	public Set<Tuple<RTLNumber>> projectionFromConcretization(RTLExpression... expressions) {
 		ExpressionFactory factory = ExpressionFactory.getInstance();
@@ -150,33 +143,7 @@ public class TraceReplayState implements UnderApproximateState {
 
 			assert (condition instanceof RTLNumber) : "There should be no conditional indirect jumps in x86!";
 			cCondition = (RTLNumber)condition;
-
-			if (target instanceof RTLMemoryLocation) {
-				// Target address is read from memory
-				if (isProgramAddress(nextPC)) {
-					// Points to program, e.g., jump table
-					cTarget = nextPC;
-				} else {
-					// Points outside, i.e., to an imported function
-					// Set target to null, so that static analysis can provide correct stub address
-					cTarget = null;
-				}
-			} else if (target instanceof RTLVariable) {
-				// Target address is a variable, i.e., a register or the special retval variable
-				if (isProgramAddress(nextPC)) {
-					// Points to program
-					cTarget = nextPC;
-				} else {
-					// Points out of program, make this also null. This could point to the epilogue, 
-					// but also to library functions (because of storing import addresses in a register
-					// or because of a return into a library function from a callback) 
-					cTarget = null;
-					//cTarget = factory.createNumber(DefaultHarness.EPILOGUE_BASE, 32);
-				}
-			} else {
-				logger.error("Unhandled target type for indirect jump to " + nextPC.toHexString() + ": " + target.getClass().getSimpleName());
-				cTarget = null;
-			}
+			cTarget = nextPC;
 		}
 		return Collections.singleton(Tuple.create(cCondition, cTarget));
 	}

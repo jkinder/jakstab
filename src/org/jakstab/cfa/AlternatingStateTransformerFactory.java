@@ -18,6 +18,8 @@
 package org.jakstab.cfa;
 
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 
 import org.jakstab.Program;
@@ -53,6 +55,10 @@ public class AlternatingStateTransformerFactory extends ResolvingTransformerFact
 
 	private ExpressionFactory factory = ExpressionFactory.getInstance();
 	
+	private Map<RTLNumber, RTLNumber> realToStub = new HashMap<RTLNumber, RTLNumber>();
+	private Map<RTLNumber, RTLNumber> stubToReal = new HashMap<RTLNumber, RTLNumber>();
+	private Program program = Program.getProgram();
+	
 	@Override
 	public Set<CFAEdge> getTransformers(final AbstractState a) {
 		RTLStatement stmt = Program.getProgram().getStatement((RTLLabel)a.getLocation());
@@ -84,13 +90,125 @@ public class AlternatingStateTransformerFactory extends ResolvingTransformerFact
 				assert stmt.getCondition() != null;
 				Set<CFAEdge> results = new FastSet<CFAEdge>();
 				
-				// Add all edges from under-approximation
-				addEdges(results, stmt, ((DualCompositeState)a).projection(
-						stmt.getCondition(), stmt.getTargetExpression()), CFAEdge.Kind.MUST);
-
+				DualCompositeState dcs = (DualCompositeState)a;
+				
 				// Add all edges from over-approximation
-				addEdges(results, stmt, a.projectionFromConcretization(
-						stmt.getCondition(), stmt.getTargetExpression()), CFAEdge.Kind.MAY);
+				for (Tuple<RTLNumber> pair : dcs.projectionFromConcretization(stmt.getCondition(), stmt.getTargetExpression())) {
+					RTLNumber conditionValue = pair.get(0);
+					RTLNumber targetValue = pair.get(1);
+					RTLLabel nextLabel;
+					// Start building the assume expression: assume correct condition case 
+					assert conditionValue != null;
+					RTLExpression assumption = 
+						factory.createEqual(stmt.getCondition(), conditionValue);
+					if (conditionValue.equals(factory.FALSE)) {
+						// assume (condition = false), and set next statement to fallthrough
+						nextLabel = stmt.getNextLabel();
+					} else {
+						if (targetValue == null) {
+							logger.debug("No value from MAY-analysis at " + stmt.getLabel());
+								sound = false;
+								unresolvedBranches.add(stmt.getLabel());
+								continue;
+						}
+						// assume (condition = true AND targetExpression = targetValue)
+						assumption = factory.createAnd(
+								assumption,
+								factory.createEqual(
+										stmt.getTargetExpression(),
+										targetValue)
+						);
+						// set next label to jump target
+						nextLabel = new RTLLabel(new AbsoluteAddress(targetValue));
+					}
+					assumption = assumption.evaluate(new Context());
+					RTLAssume assume = new RTLAssume(assumption, stmt);
+					assume.setLabel(stmt.getLabel());
+					assume.setNextLabel(nextLabel);
+					// Target address sanity check
+					if (nextLabel.getAddress().getValue() < 10L) {
+						logger.warn("Control flow from " + stmt.getLabel() + " reaches address " + nextLabel.getAddress() + "!");
+					}
+
+					results.add(new CFAEdge(assume.getLabel(), assume.getNextLabel(), assume, Kind.MAY));
+				}
+
+				// Add all edges from under-approximation
+				
+				for (Tuple<RTLNumber> pair : dcs.projection(stmt.getCondition(), stmt.getTargetExpression())) {
+					RTLNumber conditionValue = pair.get(0);
+					RTLNumber targetValue = pair.get(1);
+					RTLLabel nextLabel;
+					// Start building the assume expression: assume correct condition case 
+					assert conditionValue != null;
+					RTLExpression assumption = 
+						factory.createEqual(stmt.getCondition(), conditionValue);
+					if (conditionValue.equals(factory.FALSE)) {
+						// assume (condition = false), and set next statement to fallthrough
+						nextLabel = stmt.getNextLabel();
+					} else {
+						assert targetValue != null;
+
+						// Translate real library addresses into stub addresses. Necessary because the static analysis component 
+						// does not know about concrete import addresses, so it uses a stub system.
+						if (!isProgramAddress(targetValue)) {
+							logger.debug(dcs.getLocation() + ": Jumping out of module to " + targetValue.toHexString());
+							
+							// Attempt to map this out-of-module location to a stub
+							if (realToStub.containsKey(targetValue)) {
+								// If we saw this concrete address before, replace it by the known stub
+								logger.debug("Replacing concrete target " + targetValue.toHexString() + " with stub to " + program.getSymbolFor(new AbsoluteAddress(realToStub.get(targetValue))));
+								targetValue = realToStub.get(targetValue);
+							} else {
+
+								// Check the statically produced edges for one that is not yet mapped to a concrete address.
+								// If the over-approximation resolved an import to a stub, it's going to be contained.
+								boolean foundStub = false;
+								for (CFAEdge e : results) {
+									RTLNumber staticTarget = ((RTLLabel)e.getTarget()).getAddress().toNumericConstant();
+									if (!isProgramAddress(staticTarget) && !stubToReal.containsKey(staticTarget)) {
+										// Take the first one that's neither taken nor in the program
+										// TODO: This could map the wrong addresses in some (hopefully) rare cases depending on analysis order
+										stubToReal.put(staticTarget, targetValue);
+										realToStub.put(targetValue, staticTarget);
+										targetValue = staticTarget;
+										foundStub = true;
+										break;
+									}
+								}
+								
+								if (!foundStub) {
+									// If we have not found anything suitable, we need to create a new stub
+									// FIXME: The new stub will likely have incorrect stack height adjustment.
+									//        We should extract that information from the trace.
+									
+									logger.info(dcs.getLocation() + ": Creating new stub for unknown function at " + targetValue.toHexString());
+									RTLNumber stubTarget = Program.getProgram().getProcAddress("JAK_UNKNOWN", "proc" + targetValue.toHexString()).toNumericConstant();
+									stubToReal.put(stubTarget, targetValue);
+									realToStub.put(targetValue, stubTarget);
+									targetValue = stubTarget;
+								}
+							}
+							
+						}
+						
+						// assume (condition = true AND targetExpression = targetValue)
+						assumption = factory.createAnd(
+								assumption,
+								factory.createEqual(
+										stmt.getTargetExpression(),
+										targetValue)
+						);
+						// set next label to jump target
+						nextLabel = new RTLLabel(new AbsoluteAddress(targetValue));
+					}
+					assumption = assumption.evaluate(new Context());
+					RTLAssume assume = new RTLAssume(assumption, stmt);
+					assume.setLabel(stmt.getLabel());
+					assume.setNextLabel(nextLabel);
+
+					results.add(new CFAEdge(assume.getLabel(), assume.getNextLabel(), assume, Kind.MUST));
+				}
 
 				return results;
 			}
@@ -107,65 +225,6 @@ public class AlternatingStateTransformerFactory extends ResolvingTransformerFact
 		return transformers;
 	}
 
-	private void addEdges(Set<CFAEdge> results, final RTLGoto stmt, Set<Tuple<RTLNumber>> valuePairs, CFAEdge.Kind kind) {
-		
-		for (Tuple<RTLNumber> pair : valuePairs) {
-			RTLNumber conditionValue = pair.get(0);
-			RTLNumber targetValue = pair.get(1);
-			RTLLabel nextLabel;
-			// Start building the assume expression: assume correct condition case 
-			assert conditionValue != null;
-			RTLExpression assumption = 
-				factory.createEqual(stmt.getCondition(), conditionValue);
-			if (conditionValue.equals(factory.FALSE)) {
-				// assume (condition = false), and set next statement to fallthrough
-				nextLabel = stmt.getNextLabel();
-			} else {
-				if (targetValue == null) {
-					logger.debug("No value from " + kind + "-analysis at " + stmt.getLabel());
-					if (kind.equals(CFAEdge.Kind.MAY)) { 
-						sound = false;
-						unresolvedBranches.add(stmt.getLabel());
-					}
-					continue;
-				} else {
-					// assume (condition = true AND targetExpression = targetValue)
-					assumption = factory.createAnd(
-							assumption,
-							factory.createEqual(
-									stmt.getTargetExpression(),
-									targetValue)
-					);
-					// set next label to jump target
-					nextLabel = new RTLLabel(new AbsoluteAddress(targetValue));
-				}
-			}
-			assumption = assumption.evaluate(new Context());
-			RTLAssume assume = new RTLAssume(assumption, stmt);
-			assume.setLabel(stmt.getLabel());
-			assume.setNextLabel(nextLabel);
-			// Target address sanity check
-			if (nextLabel.getAddress().getValue() < 10L) {
-				logger.warn("Control flow from " + stmt.getLabel() + " reaches address " + nextLabel.getAddress() + "!");
-			}
-
-			// Check for duplicate edges (possibly of different kind) in the transformers set
-			boolean found = false;
-			for (CFAEdge edge : results) {
-				if (edge.getTarget().equals(assume.getNextLabel())) {
-					found = true;
-					if (edge.getKind().lessOrEqual(kind)) {
-						// Old edge kind was less than new one, so upgrade
-						edge.setKind(kind);
-					}
-				}
-			}
-			if (!found)
-				results.add(new CFAEdge(assume.getLabel(), assume.getNextLabel(), assume, kind));
-		}
-
-	}
-	
 	@Override
 	protected void saveNewEdges(Set<CFAEdge> transformers, Location l) {
 		// Make sure we only add new edges. Edges are mutable so we cannot just implement
@@ -204,7 +263,7 @@ public class AlternatingStateTransformerFactory extends ResolvingTransformerFact
 					}
 				}
 			}
-			if (!found) outEdges.put(l,  edge); //newEdges.add(edge);
+			if (!found) outEdges.put(l,  edge);
 		}
 
 	}
@@ -213,4 +272,9 @@ public class AlternatingStateTransformerFactory extends ResolvingTransformerFact
 	protected Set<CFAEdge> resolveGoto(AbstractState a, RTLGoto stmt) {
 		throw new UnsupportedOperationException("Not used");
 	}
+	
+	private boolean isProgramAddress(RTLNumber n) {
+		return program.getModule(new AbsoluteAddress(n.longValue())) != null;
+	}
+
 }
