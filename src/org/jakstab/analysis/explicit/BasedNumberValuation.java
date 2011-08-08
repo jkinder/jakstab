@@ -489,7 +489,7 @@ public final class BasedNumberValuation implements AbstractState {
 				AbstractValue truthValue = abstractEval(stmt.getAssumption());
 
 				if (truthValue.equals(BasedNumberElement.FALSE)) {
-					logger.info(getIdentifier() + ": Transformer " + stmt + " is infeasible.");
+					logger.info(stmt.getLabel() + ", state ID " + getIdentifier() + ": Transformer " + stmt + " is infeasible.");
 					return Collections.emptySet();
 				} else if (truthValue.equals(BasedNumberElement.TRUE)){
 					return thisState();

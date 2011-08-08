@@ -225,7 +225,7 @@ public class CPAAlgorithm implements Algorithm {
 					Set<AbstractState> successors = cpa.post(a, cfaEdge, targetPrecision);
 
 					if (successors.isEmpty()) {
-						logger.debug("No abstract successor, reached halt.");
+						logger.debug("No successors along edge " + cfaEdge + ", reached halt?");
 						continue;
 					}
 					

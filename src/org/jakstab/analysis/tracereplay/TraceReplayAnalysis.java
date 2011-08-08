@@ -26,10 +26,10 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
-import java.util.StringTokenizer;
 
 import org.jakstab.AnalysisProperties;
 import org.jakstab.Option;
+import org.jakstab.Options;
 import org.jakstab.Program;
 import org.jakstab.analysis.AbstractState;
 import org.jakstab.analysis.CPAOperators;
@@ -88,12 +88,12 @@ public class TraceReplayAnalysis implements ConfigurableProgramAnalysis {
 			if (line != null) {
 
 				// Dima's "parsed" format
-				StringTokenizer st = new StringTokenizer(line, "\t ");
-				st.nextToken();
-				AbsoluteAddress curPC = new AbsoluteAddress(Long.parseLong(st.nextToken(), 16));
+				//StringTokenizer st = new StringTokenizer(line, "\t ");
+				//st.nextToken();
+				//AbsoluteAddress curPC = new AbsoluteAddress(Long.parseLong(st.nextToken(), 16));
 				
 				// Pure format produced by temu's text conversion
-				//AbsoluteAddress curPC = new AbsoluteAddress(Long.parseLong(line.substring(0, line.indexOf(':')), 16));
+				AbsoluteAddress curPC = new AbsoluteAddress(Long.parseLong(line.substring(0, line.indexOf(':')), 16));
 				
 				traceList.add(curPC);
 			}
@@ -109,14 +109,20 @@ public class TraceReplayAnalysis implements ConfigurableProgramAnalysis {
 
 	public AbstractState initStartState(Location label) {
 
-		// Set initial state to the first line pointing into the program
 		int lineNumber = 0;
-		while (lineNumber < trace.length && !isProgramAddress(trace[lineNumber])) {
+		
+		// Set initial state to the first line that points to a program address
+		// or the manually specified start address, if there is one
+		while (lineNumber < trace.length && (
+				!isProgramAddress(trace[lineNumber]) || 
+				(Options.startAddress.getValue() >= 0L && trace[lineNumber].getValue() != Options.startAddress.getValue()
+						))
+				) {
 			lineNumber++;
 		}
-		
+
 		if (lineNumber >= trace.length) {
-			throw new RuntimeException("Did not find any program locations in trace!");
+			throw new RuntimeException("Did not find program locations in trace!");
 		}
 
 		AbsoluteAddress cur = trace[lineNumber-1];

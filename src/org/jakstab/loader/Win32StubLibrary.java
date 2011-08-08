@@ -371,6 +371,8 @@ public class Win32StubLibrary implements StubProvider {
 				logger.debug("Resolving non-import symbol " + symbol);
 				library = jakstab_internal;
 			}
+		} else {
+			library = library.toLowerCase();
 		}
 		
 		if (activeStubs.containsKey(library) && activeStubs.get(library).containsKey(symbol))

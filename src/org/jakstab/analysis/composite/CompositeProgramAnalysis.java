@@ -146,7 +146,7 @@ public class CompositeProgramAnalysis implements ConfigurableProgramAnalysis {
 		} else throw new UnsupportedOperationException("Transformers of class " + cfaEdge.getTransformer().getClass().getName() + " not supported!");
 	}
 	
-	public Set<AbstractState> postSingleStatement(AbstractState state, CFAEdge cfaEdge, Precision precision) {
+	protected Set<AbstractState> postSingleStatement(AbstractState state, CFAEdge cfaEdge, Precision precision) {
 		CompositeState c = (CompositeState)state;
 		
 		// If expression substitution is active, substitute expression in CFA edge passed to post methods
