@@ -23,12 +23,14 @@ import java.io.IOException;
 import java.util.*;
 
 import org.jakstab.analysis.*;
+import org.jakstab.analysis.tracereplay.TraceReplayState;
 import org.jakstab.asm.AbsoluteAddress;
 import org.jakstab.asm.BranchInstruction;
 import org.jakstab.asm.Instruction;
 import org.jakstab.asm.ReturnInstruction;
 import org.jakstab.asm.SymbolFinder;
 import org.jakstab.cfa.CFAEdge;
+import org.jakstab.cfa.CFAEdge.Kind;
 import org.jakstab.cfa.Location;
 import org.jakstab.rtl.*;
 import org.jakstab.rtl.statements.RTLHalt;
@@ -48,9 +50,57 @@ public class ProgramGraphWriter {
 	@SuppressWarnings("unused")
 	private static final Logger logger = Logger.getLogger(ProgramGraphWriter.class);
 	private Program program;
+	
+	private Set<RTLLabel> mustLeaves;
+	private Set<RTLLabel> locations;
+	private SetMultimap<RTLLabel, CFAEdge> inEdges;
+	private SetMultimap<RTLLabel, CFAEdge> outEdges;
 
 	public ProgramGraphWriter(Program program) {
 		this.program = program;
+
+		// TODO: Make functions in this class use these pre-initialized data structures 
+		
+		locations = new HashSet<RTLLabel>();
+		mustLeaves = new HashSet<RTLLabel>();
+		inEdges = HashMultimap.create();
+		outEdges = HashMultimap.create();
+		
+		for (CFAEdge e : program.getCFA()) {
+			inEdges.put((RTLLabel)e.getTarget(), e);
+			outEdges.put((RTLLabel)e.getSource(), e);
+			locations.add((RTLLabel)e.getSource());
+			locations.add((RTLLabel)e.getTarget());
+		}
+		
+		// Find locations which have an incoming MUST edge, but no outgoing one
+		for (RTLLabel l : locations) {
+			boolean foundMust = false;
+			for (CFAEdge e : inEdges.get(l)) {
+				foundMust |= e.getKind() == Kind.MUST;
+			}
+			
+			if (!foundMust) 
+				continue;
+			
+			foundMust = false;
+			for (CFAEdge e : outEdges.get(l)) {
+				foundMust |= e.getKind() == Kind.MUST;
+			}
+			
+			if (!foundMust) {
+				mustLeaves.add(l);
+			}
+			
+		}
+		
+		// If the trace ends in a cycle, there is no leaf. So we use the latest address as well.
+		if (TraceReplayState.latestAddress != null)
+			mustLeaves.add(new RTLLabel(TraceReplayState.latestAddress));
+		
+		if (!mustLeaves.isEmpty())
+			logger.debug("Leaves of MUST-analysis: " + mustLeaves);
+		
 	}
 	
 	private GraphWriter createGraphWriter(String filename) {
@@ -78,6 +128,10 @@ public class ProgramGraphWriter {
 
 			if (program.getUnresolvedBranches().contains(curStmt.getLabel())) {
 				properties.put("fillcolor", "red");
+			}
+			
+			if (mustLeaves.contains(loc)) {
+				properties.put("fillcolor", "green");
 			}
 
 			if (curStmt.getLabel().equals(program.getStart())) {

@@ -41,6 +41,9 @@ import org.jakstab.cfa.CFAEdge;
 import org.jakstab.cfa.Location;
 import org.jakstab.cfa.StateTransformer;
 import org.jakstab.rtl.RTLLabel;
+import org.jakstab.rtl.statements.RTLAssume;
+import org.jakstab.rtl.statements.RTLGoto;
+import org.jakstab.rtl.statements.RTLStatement;
 import org.jakstab.util.Logger;
 import org.jakstab.util.Pair;
 
@@ -56,7 +59,7 @@ public class TraceReplayAnalysis implements ConfigurableProgramAnalysis {
 	}
 	
 	public static Option<String> traceFiles = Option.create("trace-file", "f", "", "Comma separated list of trace files to use for tracereplay (default is <mainFile>.parsed)");
-
+	
 	@SuppressWarnings("unused")
 	private static final Logger logger = Logger.getLogger(TraceReplayAnalysis.class);
 
@@ -75,10 +78,11 @@ public class TraceReplayAnalysis implements ConfigurableProgramAnalysis {
 
 		// Read entire trace
 		
-		String line;
+		String line = null;
 		List<AbsoluteAddress> traceList = new LinkedList<AbsoluteAddress>();
 		
 		do {
+			String lastLine = line; 
 			try {
 				line = in.readLine();
 			} catch (IOException e) {
@@ -86,7 +90,7 @@ public class TraceReplayAnalysis implements ConfigurableProgramAnalysis {
 				throw new RuntimeException(e);
 			}
 			if (line != null) {
-
+				
 				AbsoluteAddress curPC;
 				
 				if (line.charAt(0) == 'A') {
@@ -97,7 +101,11 @@ public class TraceReplayAnalysis implements ConfigurableProgramAnalysis {
 					curPC = new AbsoluteAddress(Long.parseLong(line.substring(0, line.indexOf(':')), 16));
 				}
 				
-				traceList.add(curPC);
+				if (line.equals(lastLine)) {
+					logger.warn("Warning: Skipping duplicate line in trace for address " + curPC);
+				} else {
+					traceList.add(curPC);
+				}
 			}
 		} while (line != null);
 		
@@ -174,11 +182,14 @@ public class TraceReplayAnalysis implements ConfigurableProgramAnalysis {
 		TraceReplayState tState = (TraceReplayState)state;
 		int lineNumber = tState.getLineNumber();
 		
-		if (edgeTarget.getAddress().equals(tState.getCurrentPC())) {
-			// Next statement has same address, so do not move forward in trace 
+		RTLStatement stmt = (RTLStatement)cfaEdge.getTransformer();
+		
+		if (edgeTarget.getAddress().equals(tState.getCurrentPC()) &&  
+				!(stmt instanceof RTLAssume && ((RTLAssume)stmt).getSource().getType() == RTLGoto.Type.REPEAT)) {
+			// Next statement has same address (and is no back jump from REP), so do not move forward in trace 
 			return tState;
 		} else {
-			// Next statement has a different address
+			// Next statement has a different address (or is the re-execution of a REP prefixed instruction)
 			
 			if (tState.getNextPC().equals(edgeTarget.getAddress())) {
 				// Edge goes along the trace

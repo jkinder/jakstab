@@ -40,6 +40,9 @@ public class TraceReplayState implements UnderApproximateState {
 	@SuppressWarnings("unused")
 	private static final Logger logger = Logger.getLogger(TraceReplayState.class);
 
+	public static int maxLineNumber = -1;
+	public static AbsoluteAddress latestAddress = null;
+
 	public static TraceReplayState BOT = new TraceReplayState();
 	
 	private final int lineNumber;
@@ -54,6 +57,11 @@ public class TraceReplayState implements UnderApproximateState {
 	public TraceReplayState(AbsoluteAddress[] trace, int lineNumber) {
 		this.trace = trace;
 		this.lineNumber = lineNumber;
+		
+		if (lineNumber > maxLineNumber) {
+			maxLineNumber = lineNumber;
+			latestAddress = getCurrentPC();
+		}
 	}
 	
 	@Override
