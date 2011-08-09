@@ -23,7 +23,6 @@ import java.io.IOException;
 import java.util.*;
 
 import org.jakstab.analysis.*;
-import org.jakstab.analysis.tracereplay.TraceReplayState;
 import org.jakstab.asm.AbsoluteAddress;
 import org.jakstab.asm.BranchInstruction;
 import org.jakstab.asm.Instruction;
@@ -93,10 +92,6 @@ public class ProgramGraphWriter {
 			}
 			
 		}
-		
-		// If the trace ends in a cycle, there is no leaf. So we use the latest address as well.
-		if (TraceReplayState.latestAddress != null)
-			mustLeaves.add(new RTLLabel(TraceReplayState.latestAddress));
 		
 		if (!mustLeaves.isEmpty())
 			logger.debug("Leaves of MUST-analysis: " + mustLeaves);

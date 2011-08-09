@@ -23,13 +23,10 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Set;
 
 import org.jakstab.AnalysisProperties;
 import org.jakstab.Option;
-import org.jakstab.Options;
 import org.jakstab.Program;
 import org.jakstab.analysis.AbstractState;
 import org.jakstab.analysis.CPAOperators;
@@ -47,6 +44,9 @@ import org.jakstab.rtl.statements.RTLStatement;
 import org.jakstab.util.Logger;
 import org.jakstab.util.Pair;
 
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.SetMultimap;
+
 /**
  * Analysis for replaying the program counter values of a single recorded trace.
  */
@@ -63,9 +63,11 @@ public class TraceReplayAnalysis implements ConfigurableProgramAnalysis {
 	@SuppressWarnings("unused")
 	private static final Logger logger = Logger.getLogger(TraceReplayAnalysis.class);
 
-	private final AbsoluteAddress[] trace;
+	private final SetMultimap<AbsoluteAddress, AbsoluteAddress> succ;
 
 	public TraceReplayAnalysis(String filename) {
+		
+		succ = HashMultimap.create();
 
 		BufferedReader in;
 		
@@ -79,7 +81,8 @@ public class TraceReplayAnalysis implements ConfigurableProgramAnalysis {
 		// Read entire trace
 		
 		String line = null;
-		List<AbsoluteAddress> traceList = new LinkedList<AbsoluteAddress>();
+		AbsoluteAddress curPC = null;
+		AbsoluteAddress lastPC = null;
 		
 		do {
 			String lastLine = line; 
@@ -91,8 +94,6 @@ public class TraceReplayAnalysis implements ConfigurableProgramAnalysis {
 			}
 			if (line != null) {
 				
-				AbsoluteAddress curPC;
-				
 				if (line.charAt(0) == 'A') {
 					// Dima's "parsed" format
 					curPC = new AbsoluteAddress(Long.parseLong(line.substring(9, line.indexOf('\t', 9)), 16));
@@ -102,14 +103,21 @@ public class TraceReplayAnalysis implements ConfigurableProgramAnalysis {
 				}
 				
 				if (line.equals(lastLine)) {
-					logger.warn("Warning: Skipping duplicate line in trace for address " + curPC);
+					//logger.warn("Warning: Skipping duplicate line in trace for address " + curPC);
 				} else {
-					traceList.add(curPC);
+					
+					// Only add the edge if either source or target are in the program. This collapses library functions. 
+					if (lastPC != null && (isProgramAddress(lastPC) || isProgramAddress(curPC))) {
+						succ.put(lastPC, curPC);
+						lastPC = curPC;
+					}
+					// Find the first program address
+					if (lastPC == null && isProgramAddress(curPC)) {
+						lastPC = curPC;
+					}
 				}
 			}
 		} while (line != null);
-		
-		trace = traceList.toArray(new AbsoluteAddress[traceList.size()]);
 	}
 
 	@Override
@@ -118,34 +126,18 @@ public class TraceReplayAnalysis implements ConfigurableProgramAnalysis {
 	}
 
 	public AbstractState initStartState(Location label) {
-
-		int lineNumber = 0;
-		
-		// Set initial state to the first line that points to a program address
-		// or the manually specified start address, if there is one
-		while (lineNumber < trace.length && (
-				!isProgramAddress(trace[lineNumber]) || 
-				(Options.startAddress.getValue() >= 0L && trace[lineNumber].getValue() != Options.startAddress.getValue()
-						))
-				) {
-			lineNumber++;
-		}
-
-		if (lineNumber >= trace.length) {
-			throw new RuntimeException("Did not find program locations in trace!");
-		}
-
-		AbsoluteAddress cur = trace[lineNumber-1];
-		AbsoluteAddress next = trace[lineNumber];
-		logger.debug("Starting with trace replay from " + cur + " -> " + next);
-
-		return new TraceReplayState(trace, lineNumber); 
+		//return new TraceReplayState(succ, ((RTLLabel)label).getAddress());
+		return TraceReplayState.BOT;
 	}
 
 	@Override
 	public AbstractState merge(AbstractState s1, AbstractState s2, Precision precision) {
+		
+		assert s1.equals(s2) : "Merging " + s1 + " and " + s2;
 
-		if (s2.isBot() && !s1.isBot()) return s1;
+		if (s2.isBot() && !s1.isBot()) {
+			return s1;
+		}
 		if (s2.equals(s1)) return s1;
 		return s2;
 	}
@@ -166,13 +158,12 @@ public class TraceReplayAnalysis implements ConfigurableProgramAnalysis {
 
 	private AbstractState singlePost(AbstractState state, CFAEdge cfaEdge, Precision precision) {
 
-		if (state.isBot()) 
-			return state;
 		
 		RTLLabel edgeTarget = (RTLLabel)cfaEdge.getTarget();
+		RTLLabel edgeSource = (RTLLabel)cfaEdge.getSource();
 		
 		// If the entire edge is outside the module, just wait and do nothing 
-		if (!isProgramAddress(cfaEdge.getSource()) && !isProgramAddress(edgeTarget)) {
+		if (!isProgramAddress(edgeSource) && !isProgramAddress(edgeTarget)) {
 			//logger.debug("Outside of module at edge " + cfaEdge);
 			return state;
 		}
@@ -180,7 +171,6 @@ public class TraceReplayAnalysis implements ConfigurableProgramAnalysis {
 		//logger.debug("Inside module " + cfaEdge);
 		
 		TraceReplayState tState = (TraceReplayState)state;
-		int lineNumber = tState.getLineNumber();
 		
 		RTLStatement stmt = (RTLStatement)cfaEdge.getTransformer();
 		
@@ -191,30 +181,28 @@ public class TraceReplayAnalysis implements ConfigurableProgramAnalysis {
 		} else {
 			// Next statement has a different address (or is the re-execution of a REP prefixed instruction)
 			
-			if (tState.getNextPC().equals(edgeTarget.getAddress())) {
-				// Edge goes along the trace
-				return new TraceReplayState(trace, lineNumber + 1);
+			if (succ.containsKey(edgeTarget.getAddress())) {
+				// Edge goes along a recorded edge
+				return new TraceReplayState(succ, edgeTarget.getAddress());
 			} else {
 				// Edge diverges from trace - either other path or into library
+
+				if (tState.isBot()) 
+					return tState;
 				
 				if (isProgramAddress(edgeTarget)) {
 					// Target is in program, but on a different path not taken by this trace
 					logger.debug("Visiting edge " + cfaEdge + ", trace expected " + tState.getNextPC() + " next.");
 					return TraceReplayState.BOT;
 				} else {
-					// Target is not in program, so we went into another module (library)
+					// Target is not in program, so we went into another module (library) that the over-approximation models by a stub
 					logger.debug("Calling out of module to " + edgeTarget + ", fast forwarding from " + cfaEdge.getSource());
-					do {
-						lineNumber++;
-					} while (lineNumber < trace.length && !isProgramAddress(trace[lineNumber]));
+					// Go to the address of the final return statement
 					
-					if (lineNumber >= trace.length) {
-						logger.verbose("Reached end of trace.");
-						return TraceReplayState.BOT;
-					} else {
-						logger.debug("Arrived at " + trace[lineNumber - 1] + " -> " + trace[lineNumber]);
-						return new TraceReplayState(trace, lineNumber - 1);
-					}
+					// This only works if only a single library function can be called from each instruction 
+					assert succ.get(edgeSource.getAddress()).size() == 1;
+					// Since state is not BOT, we know edgeSource is contained in succ.
+					return new TraceReplayState(succ, succ.get(edgeSource.getAddress()).iterator().next());
 				}
 			}
 		}
