@@ -87,13 +87,15 @@ public class TraceReplayAnalysis implements ConfigurableProgramAnalysis {
 			}
 			if (line != null) {
 
-				// Dima's "parsed" format
-				//StringTokenizer st = new StringTokenizer(line, "\t ");
-				//st.nextToken();
-				//AbsoluteAddress curPC = new AbsoluteAddress(Long.parseLong(st.nextToken(), 16));
+				AbsoluteAddress curPC;
 				
-				// Pure format produced by temu's text conversion
-				AbsoluteAddress curPC = new AbsoluteAddress(Long.parseLong(line.substring(0, line.indexOf(':')), 16));
+				if (line.charAt(0) == 'A') {
+					// Dima's "parsed" format
+					curPC = new AbsoluteAddress(Long.parseLong(line.substring(9, line.indexOf('\t', 9)), 16));
+				} else {
+					// Pure format produced by temu's text conversion
+					curPC = new AbsoluteAddress(Long.parseLong(line.substring(0, line.indexOf(':')), 16));
+				}
 				
 				traceList.add(curPC);
 			}
@@ -186,7 +188,7 @@ public class TraceReplayAnalysis implements ConfigurableProgramAnalysis {
 				
 				if (isProgramAddress(edgeTarget)) {
 					// Target is in program, but on a different path not taken by this trace
-					logger.debug("Trace expected " + tState.getNextPC());
+					logger.debug("Visiting edge " + cfaEdge + ", trace expected " + tState.getNextPC() + " next.");
 					return TraceReplayState.BOT;
 				} else {
 					// Target is not in program, so we went into another module (library)

@@ -311,8 +311,11 @@ public class Win32StubLibrary implements StubProvider {
 				} else if (Options.getProcAddress.getValue() == 2) {
 					seq.addLast(new RTLVariableAssignment(32, factory.createVariable("%eax"), factory.nondet(32)));
 				}
-			} else if (library.toUpperCase().startsWith("KERNEL32") && function.startsWith("GetModuleHandle")) { 
-				seq.addLast(new RTLVariableAssignment(32, factory.createVariable("%eax"), arg0));
+			} else if (library.toUpperCase().startsWith("KERNEL32") && function.startsWith("GetModuleHandle")) {
+				// This function returns either 0 or a valid handle to the given module
+				// This hack here uses the string as the handle value, not very nice
+				//seq.addLast(new RTLVariableAssignment(32, factory.createVariable("%eax"), arg0));
+				seq.addLast(new RTLVariableAssignment(32, factory.createVariable("%eax"), factory.nondet(32)));
 			} else {
 				// overwrite registers according to ABI
 				seq.addLast(new RTLVariableAssignment(32, factory.createVariable("%eax"), factory.nondet(32)));

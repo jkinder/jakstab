@@ -99,12 +99,14 @@ public class ProgramGraphWriter {
 		logger.info("Writing assembly file to " + filename);
 
 		SetMultimap<AbsoluteAddress, CFAEdge> branchEdges = HashMultimap.create(); 
+		SetMultimap<AbsoluteAddress, CFAEdge> branchEdgesRev = HashMultimap.create(); 
 		if (!Options.noGraphs.getValue()) {
 			for (CFAEdge e : program.getCFA()) {
 				AbsoluteAddress sourceAddr = ((RTLLabel)e.getSource()).getAddress(); 
 				AbsoluteAddress targetAddr = ((RTLLabel)e.getTarget()).getAddress();
 				if (program.getInstruction(sourceAddr) instanceof BranchInstruction && !sourceAddr.equals(targetAddr)) {
 					branchEdges.put(sourceAddr, e);
+					branchEdgesRev.put(targetAddr, e);
 				}
 			}
 		}
@@ -131,12 +133,24 @@ public class ProgramGraphWriter {
 						sb.append("unresolved");
 					} else {
 						boolean first = true;
-						for (CFAEdge e : branchEdges.get(pc)) {
+						for (CFAEdge e : targets) {
 							if (first) first = false;
 							else sb.append(", ");
 							sb.append(((RTLLabel)e.getTarget()).getAddress());
 							sb.append('(').append(e.getKind()).append(')');
 						}
+					}
+				}
+
+				if (branchEdgesRev.containsKey(pc)) {
+					Set<CFAEdge> referers = branchEdgesRev.get(pc);
+					sb.append("\t; from: ");
+					boolean first = true;
+					for (CFAEdge e : referers) {
+						if (first) first = false;
+						else sb.append(", ");
+						sb.append(((RTLLabel)e.getSource()).getAddress());
+						sb.append('(').append(e.getKind()).append(')');
 					}
 				}
 				

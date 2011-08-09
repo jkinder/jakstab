@@ -102,7 +102,7 @@ public class Options {
 			"0: Pessimistic: No assumptions, treat calls and returns as jumps (default). " + 
 			"1: Semi-optimistic: Abstract unknown calls according to ABI contract. " + 
 			"2: Optimistic: Abstract all calls to ABI contract (fastest).");
-	public static Option<Integer> getProcAddress = Option.create("getprocaddress", "n", 0, "How to resolve GetProcAddress: 0: Always succeed (default), 1: Split success/fail, 2: Merge success/fail");
+	public static Option<Integer> getProcAddress = Option.create("getprocaddress", "n", 2, "How to resolve GetProcAddress: 0: Always succeed, 1: Split success/fail, 2: Merge success/fail (default)");
 
 	/**
 	 * Handle command line options.

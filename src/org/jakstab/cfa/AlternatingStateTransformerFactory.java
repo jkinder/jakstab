@@ -245,13 +245,11 @@ public class AlternatingStateTransformerFactory extends ResolvingTransformerFact
 
 							if (existingEdge.getKind().lessOrEqual(edge.getKind())) {
 								// If the new kind is greater than the existing, upgrade to new kind
-								logger.debug("Upgrading existing edge " + existingEdge + " from " + 
-										existingEdge.getKind() + " to " + edge.getKind());
+								//logger.debug("Upgrading existing edge " + existingEdge + " from " + existingEdge.getKind() + " to " + edge.getKind());
 								existingEdge.setKind(edge.getKind());
 							} else if (edge.getKind().lessOrEqual(existingEdge.getKind())) {
 								// If the existing kind is greater than the new one, upgrade new one
-								logger.debug("Upgrading new edge " + edge + " from " + 
-										edge.getKind() + " to " + existingEdge.getKind());
+								//logger.debug("Upgrading new edge " + edge + " from " + edge.getKind() + " to " + existingEdge.getKind());
 								edge.setKind(existingEdge.getKind());
 							} else {
 								// Incomparable edge kinds cannot happen with current logic
