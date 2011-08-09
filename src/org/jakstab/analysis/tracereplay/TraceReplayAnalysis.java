@@ -136,7 +136,8 @@ public class TraceReplayAnalysis implements ConfigurableProgramAnalysis {
 	public AbstractState merge(AbstractState s1, AbstractState s2, Precision precision) {
 
 		if (s2.isBot() && !s1.isBot()) return s1;
-		else return s2;
+		if (s2.equals(s1)) return s1;
+		return s2;
 	}
 
 	private static boolean isProgramAddress(AbsoluteAddress a) {

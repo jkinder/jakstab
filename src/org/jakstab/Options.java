@@ -99,9 +99,10 @@ public class Options {
 	public static Option<Integer> verbosity = Option.create("v", "level", 3, "Set verbosity to value. Default is 3.");
 	public static Option<Integer> timeout = Option.create("timeout", "t", -1, "Set timeout in seconds for the analysis.");
 	public static Option<Integer> procedureAbstraction = Option.create("procedures", "n", 0, "Level of procedure assumptions: " +
-			"0: Pessimistic: No assumptions, treat calls and returns as jumps. " + 
+			"0: Pessimistic: No assumptions, treat calls and returns as jumps (default). " + 
 			"1: Semi-optimistic: Abstract unknown calls according to ABI contract. " + 
 			"2: Optimistic: Abstract all calls to ABI contract (fastest).");
+	public static Option<Integer> getProcAddress = Option.create("getprocaddress", "n", 0, "How to resolve GetProcAddress: 0: Always succeed (default), 1: Split success/fail, 2: Merge success/fail");
 
 	/**
 	 * Handle command line options.
