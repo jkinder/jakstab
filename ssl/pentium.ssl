@@ -2357,10 +2357,10 @@ CVTSS2SD	reg128, modrm
 CVTSD2SS	reg128, modrm
 			*32* reg128@[0:31] := fsize(64,32,modrm{128}@[0:63]);
 			
-MOVD		reg128, modrm
+MOVD.RM		reg128, modrm
 			*128* reg128 := zfill(32,127,modrm{32});
 			
-MOVD		modrm, reg128
+MOVD.MR		modrm, reg128
 			*32* modrm := reg128@[0:31];
 
 # Simplification. According to Intel spec, for memory source operands,
