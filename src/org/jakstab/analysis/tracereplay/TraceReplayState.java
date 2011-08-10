@@ -17,7 +17,6 @@
  */
 package org.jakstab.analysis.tracereplay;
 
-import java.util.Collections;
 import java.util.Set;
 
 import org.jakstab.analysis.AbstractState;
@@ -28,8 +27,11 @@ import org.jakstab.cfa.Location;
 import org.jakstab.rtl.expressions.ExpressionFactory;
 import org.jakstab.rtl.expressions.RTLExpression;
 import org.jakstab.rtl.expressions.RTLNumber;
+import org.jakstab.util.FastSet;
 import org.jakstab.util.Logger;
 import org.jakstab.util.Tuple;
+
+import com.google.common.collect.SetMultimap;
 
 /**
  * States corresponding to a line number within a pre-recorded trace. Each state
@@ -40,33 +42,25 @@ public class TraceReplayState implements UnderApproximateState {
 	@SuppressWarnings("unused")
 	private static final Logger logger = Logger.getLogger(TraceReplayState.class);
 
-	public static int maxLineNumber = -1;
-	public static AbsoluteAddress latestAddress = null;
-
 	public static TraceReplayState BOT = new TraceReplayState();
 	
-	private final int lineNumber;
-	private final AbsoluteAddress[] trace;
+	private final AbsoluteAddress cur;
+	private final SetMultimap<AbsoluteAddress,AbsoluteAddress> succ;
 	
-	public TraceReplayState() {
+	private TraceReplayState() {
 		super();
-		lineNumber = -1;
-		trace = null;
+		cur = new AbsoluteAddress(0xF0000B07L);
+		succ = null;
 	}
 	
-	public TraceReplayState(AbsoluteAddress[] trace, int lineNumber) {
-		this.trace = trace;
-		this.lineNumber = lineNumber;
-		
-		if (lineNumber > maxLineNumber) {
-			maxLineNumber = lineNumber;
-			latestAddress = getCurrentPC();
-		}
+	public TraceReplayState(SetMultimap<AbsoluteAddress,AbsoluteAddress> succ, AbsoluteAddress cur) {
+		this.succ = succ;
+		this.cur = cur;
 	}
 	
 	@Override
 	public String getIdentifier() {
-		return Integer.toString(lineNumber);
+		return cur.toString();
 	}
 
 	@Override
@@ -80,12 +74,7 @@ public class TraceReplayState implements UnderApproximateState {
 	 * @return an AbsoluteAddress corresponding to the PC value for the analyzed module. 
 	 */
 	public AbsoluteAddress getCurrentPC() {
-		if (lineNumber < 0) {
-			// BOT
-			return new AbsoluteAddress(0xF0000B07L);
-		} else {
-			return trace[lineNumber];
-		}
+		return cur;
 	}
 
 	/**
@@ -93,19 +82,10 @@ public class TraceReplayState implements UnderApproximateState {
 	 * 
 	 * @return an AbsoluteAddress corresponding to the next PC value for the analyzed module. 
 	 */
-	public AbsoluteAddress getNextPC() {
-		if (lineNumber < 0) {
-			// BOT
-			return new AbsoluteAddress(0xF0100B07L);
-		} else {
-			return trace[lineNumber+1];
-		}
+	public Set<AbsoluteAddress> getNextPC() {
+		return succ.get(cur);
 	}
 	
-	int getLineNumber() {
-		return lineNumber;
-	}
-
 	@Override
 	public AbstractState join(LatticeElement l) {
 		throw new UnsupportedOperationException();
@@ -128,32 +108,38 @@ public class TraceReplayState implements UnderApproximateState {
 		RTLNumber cCondition;
 		RTLNumber cTarget;
 		
-		RTLNumber nextPC = getNextPC().toNumericConstant();
+		Set<Tuple<RTLNumber>> res = new FastSet<Tuple<RTLNumber>>();
+		
+		for (AbsoluteAddress successor : getNextPC()) {
+			RTLNumber nextPC = successor.toNumericConstant();
 
-		if (target instanceof RTLNumber) {
-			// If target is a number, this is a direct jump, and maybe conditional
+			if (target instanceof RTLNumber) {
+				// If target is a number, this is a direct jump, and maybe conditional
 
-			cTarget = (RTLNumber)target;
+				cTarget = (RTLNumber)target;
 
-			if (condition instanceof RTLNumber) {
-				// Direct, unconditional jump
+				if (condition instanceof RTLNumber) {
+					// Direct, unconditional jump
+					cCondition = (RTLNumber)condition;
+				} else if (target.equals(nextPC)) {
+					// Conditional jump that is taken according to the trace
+					cCondition = factory.TRUE;
+				} else { 
+					// Conditional jump that is not taken
+					cCondition = factory.FALSE;
+				}
+
+			} else {
+				// Target is not a number, so this is an indirect jump
+
+				assert (condition instanceof RTLNumber) : "There should be no conditional indirect jumps in x86!";
 				cCondition = (RTLNumber)condition;
-			} else if (target.equals(nextPC)) {
-				// Conditional jump that is taken according to the trace
-				cCondition = factory.TRUE;
-			} else { 
-				// Conditional jump that is not taken
-				cCondition = factory.FALSE;
+				cTarget = nextPC;
 			}
-
-		} else {
-			// Target is not a number, so this is an indirect jump
-
-			assert (condition instanceof RTLNumber) : "There should be no conditional indirect jumps in x86!";
-			cCondition = (RTLNumber)condition;
-			cTarget = nextPC;
+			res.add(Tuple.create(cCondition, cTarget));
 		}
-		return Collections.singleton(Tuple.create(cCondition, cTarget));
+		
+		return res;
 	}
 
 	@Override
@@ -168,7 +154,7 @@ public class TraceReplayState implements UnderApproximateState {
 
 	@Override
 	public int hashCode() {
-		return lineNumber;
+		return cur.hashCode();
 	}
 
 	@Override
@@ -178,7 +164,7 @@ public class TraceReplayState implements UnderApproximateState {
 		if (obj == null)
 			return false;
 		
-		return lineNumber == ((TraceReplayState)obj).lineNumber;
+		return cur.equals(((TraceReplayState)obj).cur);
 	}
 
 	@Override
@@ -189,7 +175,8 @@ public class TraceReplayState implements UnderApproximateState {
 	}
 	
 	public String toString() {
-		return "Trace@" + getCurrentPC() + ": Next: " + getNextPC() + " Line: " + lineNumber;
+		if (isBot()) return "Trace@BOT";
+		return "Trace@" + getCurrentPC() + ": Next: " + getNextPC();
 	}
 }
 	

@@ -21,7 +21,6 @@ import java.util.*;
 
 import net.sf.javabdd.BDD;
 
-import org.jakstab.Program;
 import org.jakstab.rtl.expressions.ExpressionFactory;
 import org.jakstab.rtl.expressions.RTLExpression;
 import org.jakstab.util.Logger;
@@ -64,10 +63,10 @@ public class PredicateMap {
 				factory.createVariable("eax", 32),
 				factory.createVariable("ebx", 32)
 				));
-		addPredicate(factory.createEqual(
-				factory.createMemoryLocation(Program.getProgram().getArchitecture().stackPointer(), 32),
-				Program.getProgram().getArchitecture().returnAddressVariable()
-				));
+		//addPredicate(factory.createEqual(
+		//		factory.createMemoryLocation(Program.getProgram().getArchitecture().stackPointer(), 32),
+		//		Program.getProgram().getArchitecture().returnAddressVariable()
+		//		));
 	}
 	
 	public static void addPredicate(RTLExpression p) {
