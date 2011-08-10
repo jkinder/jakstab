@@ -44,7 +44,7 @@ import antlr.ANTLRException;
 
 public class Main {
 
-	private static Logger logger;
+	private static Logger logger = Logger.getLogger(Main.class);;
 
 	private final static String version = "0.8.2u";
 
@@ -57,9 +57,6 @@ public class Main {
 
 		// Parse command line
 		Options.parseOptions(args);
-		// Initialize logger with given verbosity  
-		if (Options.verbosity.getValue() >= 0) Logger.setVerbosity(Options.verbosity.getValue());
-		logger = Logger.getLogger(Main.class);
 
 		logger.error(Characters.DOUBLE_LINE_FULL_WIDTH);
 		logger.error("   Jakstab " + version);
@@ -259,8 +256,8 @@ public class Main {
 			//				logger.error( "   Sound:                               " + String.format("%8b", cfr.isSound()));
 			logger.error( "   Indirect Branches (no import calls): " + String.format("%8d", indirectBranches));
 			logger.error( "   Unresolved Branches:                 " + String.format("%8d", program.getUnresolvedBranches().size()));
-			logger.debug("   FastSet conversions:                 " + String.format("%8d",FastSet.getConversionCount()));
-			logger.debug("   Variable count:                      " + String.format("%8d",ExpressionFactory.getInstance().getVariableCount()));
+			logger.debug("   FastSet conversions:                 " + String.format("%8d", FastSet.getConversionCount()));
+			logger.debug("   Variable count:                      " + String.format("%8d", ExpressionFactory.getInstance().getVariableCount()));
 			logger.error(Characters.DOUBLE_LINE_FULL_WIDTH);
 
 			int slashIdx = baseFileName.lastIndexOf('\\');

@@ -192,7 +192,7 @@ public class TraceReplayAnalysis implements ConfigurableProgramAnalysis {
 				} else {
 					// Target is not in program, so we went into another module (library) that the over-approximation models by a stub
 					// In the trace, the TraceReplayAnalysis constructor collapsed the function to a single address
-					logger.debug("Jumping out of module to " + edgeTarget + Program.getProgram().getSymbolFor(edgeTarget) + ", fast forwarding from " + cfaEdge.getSource());
+					logger.debug("Jumping out of module to " + edgeTarget + " (" + Program.getProgram().getSymbolFor(edgeTarget) + "), fast forwarding from " + cfaEdge.getSource());
 					
 					// If we are in a BOT state, we cannot figure out what the native address of the library function is
 					if (tState.isBot())

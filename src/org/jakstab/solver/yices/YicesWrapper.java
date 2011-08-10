@@ -22,7 +22,6 @@ import java.io.*;
 
 import org.jakstab.Options;
 import org.jakstab.util.Logger;
-import org.jakstab.util.Logger.Level;
 
 /**
  * @author Johannes Kinder
@@ -74,7 +73,7 @@ public class YicesWrapper {
 		
 		initYicesOutputReader();
 
-		if (logger.getLevel() == Level.DEBUG) {
+		if (logger.isDebugEnabled()) {
 			enableTypeChecker((short)1);
 		} else {
 			enableTypeChecker((short)0);

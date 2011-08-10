@@ -20,95 +20,67 @@ package org.jakstab.util;
 
 import java.io.PrintStream;
 
+import org.jakstab.Options;
+
 /**
  * @author Johannes Kinder
  */
 public class Logger {
 
-	public enum Level { DEBUG, VERBOSE, INFO, WARN, ERROR, FATAL }
+	public enum Level { FATAL, ERROR, WARN, INFO, VERBOSE, DEBUG }
+
 	private static String globalPrefix = "";
-
 	private static boolean showClass = false;
-	private static String[] infoPrefixes = new String[]{
-		/*"org.jakstab.ssl",
-		"org.jakstab.disasm",
-		"org.jakstab.asm",
-		"org.jakstab.loader"*/
-	};
-
-	public static Level defaultLevel = Level.DEBUG;
 
 	public static Logger getLogger(Class<? extends Object> c) {
-		String className = c.getCanonicalName();
-		Level level = defaultLevel;
-		
-		if (level.ordinal() < Level.INFO.ordinal()) {
-			for (String infoPrefix : infoPrefixes) {
-				if (className.startsWith(infoPrefix)) { 
-					level = Level.INFO;
-					break;
-				}
-			}
-		}
-		return new Logger(level, c, System.out);
+		return new Logger(c, System.out);
 	}
 
-	public static void setVerbosity(int verbosity) {
-		int level = Level.values().length - 1;
-		if (verbosity < 0) verbosity = 0;
-		else if (verbosity > level) verbosity = level;
-		level = level - verbosity;
-		
-		defaultLevel = Level.values()[level];
-	}
-	
 	public static void setGlobalPrefix(String prefix) {
 		globalPrefix = prefix + "\t";
 	}
 
-	private Logger(Level level, Class<? extends Object> clazz, PrintStream outStream) {
-		this.activeLevel = level;
+	private PrintStream out;
+	private String prefix;
+	
+	private Logger(Class<? extends Object> clazz, PrintStream outStream) {
 		this.out = outStream;
 		this.prefix = (showClass ? (clazz.getSimpleName() + ":\t") : "");
 	}
 
-	private Level activeLevel;
-	private PrintStream out;
-	private String prefix;
-
-	public Level getLevel() {
-		return activeLevel;
+	private int getDebugLevel() {
+		return Options.verbosity.getValue();
 	}
-
+	
 	public boolean isDebugEnabled() {
-		return Level.DEBUG.ordinal() >= activeLevel.ordinal();
+		return Level.DEBUG.ordinal() <= getDebugLevel();
 	}
 
 	public boolean isVerboseEnabled() {
-		return Level.VERBOSE.ordinal() >= activeLevel.ordinal();
+		return Level.VERBOSE.ordinal() <= getDebugLevel();
 	}
 
 	public boolean isInfoEnabled() {
-		return Level.INFO.ordinal() >= activeLevel.ordinal();
+		return Level.INFO.ordinal() <= getDebugLevel();
 	}
 
 	public void log(Level level) {
-		if (level.ordinal() >= activeLevel.ordinal())
+		if (level.ordinal() >= getDebugLevel())
 			out.println();
 	}
 
 	public void log(Level level, Object message) {
-		if (level.ordinal() >= activeLevel.ordinal())
+		if (level.ordinal() <= getDebugLevel())
 			out.println(globalPrefix + prefix + message);
 	}
 
 	public void log(Level level, Object message, Throwable t) {
-		if (level.ordinal() >= activeLevel.ordinal())
+		if (level.ordinal() <= getDebugLevel())
 			out.println(globalPrefix + prefix + message + " " + t.getMessage());
 	}
 
 	public void logString(Level level, String string) {
-		if (level.ordinal() >= activeLevel.ordinal())
+		if (level.ordinal() <= getDebugLevel())
 			out.print(globalPrefix + prefix + string);
 	}
 
