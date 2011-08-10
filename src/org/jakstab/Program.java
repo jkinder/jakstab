@@ -405,7 +405,7 @@ public final class Program {
 	 */
 	public String getInstructionString(AbsoluteAddress addr) {
 		Instruction instr = getInstruction(addr);
-		if (instr == null) return "NON_EXISTANT";
+		if (instr == null) return "NON_EXISTENT";
 		return instr.toString(addr.getValue(), symbolFinder(addr));
 	}
 	

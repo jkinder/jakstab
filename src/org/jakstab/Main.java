@@ -233,7 +233,7 @@ public class Main {
 				logger.error(Characters.starredBox("WARNING: Analysis was unsound!"));
 			}
 
-			logger.verbose("Unresolved locations: " + program.getUnresolvedBranches());
+			/*logger.verbose("Unresolved locations: " + program.getUnresolvedBranches());
 			for (Location l : program.getUnresolvedBranches()) {
 				AbsoluteAddress a = ((RTLLabel)l).getAddress();
 				if (program.getInstruction(a) == null) {
@@ -241,7 +241,7 @@ public class Main {
 				} else {
 					logger.verbose(a + "\t" + program.getInstructionString(a));
 				}
-			}
+			}*/
 
 			int indirectBranches = program.countIndirectBranches();
 

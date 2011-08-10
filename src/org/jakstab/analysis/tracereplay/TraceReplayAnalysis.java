@@ -133,12 +133,9 @@ public class TraceReplayAnalysis implements ConfigurableProgramAnalysis {
 	@Override
 	public AbstractState merge(AbstractState s1, AbstractState s2, Precision precision) {
 		
-		assert s1.equals(s2) : "Merging " + s1 + " and " + s2;
-
-		if (s2.isBot() && !s1.isBot()) {
+		if (s2.isBot()) {
 			return s1;
 		}
-		if (s2.equals(s1)) return s1;
 		return s2;
 	}
 
@@ -187,20 +184,28 @@ public class TraceReplayAnalysis implements ConfigurableProgramAnalysis {
 			} else {
 				// Edge diverges from trace - either other path or into library
 
-				if (tState.isBot()) 
-					return tState;
-				
 				if (isProgramAddress(edgeTarget)) {
 					// Target is in program, but on a different path not taken by this trace
-					logger.debug("Visiting edge " + cfaEdge + ", trace expected " + tState.getNextPC() + " next.");
+					if (!tState.isBot())
+						logger.debug("Visiting edge " + cfaEdge + ", trace expected " + tState.getNextPC() + " next.");
 					return TraceReplayState.BOT;
 				} else {
 					// Target is not in program, so we went into another module (library) that the over-approximation models by a stub
-					logger.debug("Calling out of module to " + edgeTarget + ", fast forwarding from " + cfaEdge.getSource());
-					// Go to the address of the final return statement
+					// In the trace, the TraceReplayAnalysis constructor collapsed the function to a single address
+					logger.debug("Jumping out of module to " + edgeTarget + Program.getProgram().getSymbolFor(edgeTarget) + ", fast forwarding from " + cfaEdge.getSource());
+					
+					// If we are in a BOT state, we cannot figure out what the native address of the library function is
+					if (tState.isBot())
+						return TraceReplayState.BOT;
 					
 					// This only works if only a single library function can be called from each instruction 
-					assert succ.get(edgeSource.getAddress()).size() == 1;
+					//assert succ.get(edgeSource.getAddress()).size() == 1 : "Successors from " + edgeSource.getAddress() + ": " + succ.get(edgeSource.getAddress());
+					
+					if (succ.get(edgeSource.getAddress()).size() != 1) {
+						logger.error("Cannot map virtual edge " + cfaEdge + " to trace, possible trace successors: " + succ.get(edgeSource.getAddress()));
+						return TraceReplayState.BOT;
+					}
+					
 					// Since state is not BOT, we know edgeSource is contained in succ.
 					return new TraceReplayState(succ, succ.get(edgeSource.getAddress()).iterator().next());
 				}
