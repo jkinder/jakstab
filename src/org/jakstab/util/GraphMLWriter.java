@@ -69,7 +69,7 @@ public class GraphMLWriter implements GraphWriter {
 	public final void writeNode(String id, String body, Map<String,String> properties) throws IOException {
 		out.write("<node id=\""+toIdentifier(id)+"\">\n");
 		out.write("  <data key=\"d0\"><y:ShapeNode><y:NodeLabel>\n");
-		out.write(body);
+		out.write(sanitizeXML(body));
 		/* properties ignored
 		if (properties != null && properties.size() > 0) {
 			for (Map.Entry<String, String> property : properties.entrySet()) {
