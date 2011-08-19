@@ -256,7 +256,7 @@ public class ProgramGraphWriter {
 				AbsoluteAddress sourceAddr = ((RTLLabel)e.getSource()).getAddress(); 
 				AbsoluteAddress targetAddr = ((RTLLabel)e.getTarget()).getAddress();
 				
-				String label = "";
+				String label = null;
 				Instruction instr = program.getInstruction(sourceAddr);
 				
 				if (instr instanceof BranchInstruction) {
@@ -270,10 +270,15 @@ public class ProgramGraphWriter {
 					}
 				}
 				
-				gwriter.writeLabeledEdge(sourceAddr.toString(), 
-						targetAddr.toString(), 
-						label,
-						e.getKind().equals(CFAEdge.Kind.MAY) ? Color.BLACK : Color.GREEN);
+				if (label != null)
+					gwriter.writeLabeledEdge(sourceAddr.toString(), 
+							targetAddr.toString(), 
+							label,
+							e.getKind().equals(CFAEdge.Kind.MAY) ? Color.BLACK : Color.GREEN);
+				else
+					gwriter.writeEdge(sourceAddr.toString(), 
+							targetAddr.toString(), 
+							e.getKind().equals(CFAEdge.Kind.MAY) ? Color.BLACK : Color.GREEN);
 			}
 
 			gwriter.close();
