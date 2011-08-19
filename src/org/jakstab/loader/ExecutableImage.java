@@ -19,6 +19,7 @@
 package org.jakstab.loader;
 
 import java.io.IOException;
+import java.util.Iterator;
 import java.util.Set;
 
 import org.jakstab.asm.AbsoluteAddress;
@@ -78,6 +79,14 @@ public interface ExecutableImage {
 	 * @return the minimal virtual address.
 	 */
 	public AbsoluteAddress getMinAddress();
+	
+	/**
+	 * Get an iterator that iterates over all bytes that can possibly be 
+	 * code in this module.
+	 * 
+	 * @return an iterator for all code bytes.
+	 */
+	public Iterator<AbsoluteAddress> codeBytesIterator();
 	
 	/**
 	 * Checks whether the specified virtual address is inside a code area of this executable.  

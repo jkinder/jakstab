@@ -81,6 +81,7 @@ public class Options {
 	public static Option<String> sslFilename = Option.create("ssl", "file", jakstabHome + "/ssl/pentium.ssl", "Use <file> instead of pentium.ssl.");
 	public static Option<Long> startAddress = Option.create("a", "address", -1L, "Start analysis at given virtual address.");
 	public static Option<Boolean> wdm = Option.create("wdm", "WDM mode, export main function as DriverMain.");
+	public static Option<Boolean> allEdges = Option.create("all-edges", "Generate a true over-approximation and add edges to all possible addresses when over-approximating a jump (very slow!).");
 	public static Option<Boolean> dumpStates = Option.create("s", "Output all reached states after analysis.");	
 	public static Option<Boolean> outputLocationsWithMostStates = Option.create("toplocs", "Output the 10 locations with the highest state count.");
 	public static Option<Boolean> failFast = Option.create("fail-fast", "Stop when unsound assumptions are necessary to continue.");

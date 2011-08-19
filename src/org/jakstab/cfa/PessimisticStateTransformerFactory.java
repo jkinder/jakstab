@@ -17,9 +17,11 @@
  */
 package org.jakstab.cfa;
 
+import java.util.Iterator;
 import java.util.Set;
 
 import org.jakstab.Options;
+import org.jakstab.Program;
 import org.jakstab.analysis.AbstractState;
 import org.jakstab.asm.AbsoluteAddress;
 import org.jakstab.rtl.Context;
@@ -66,15 +68,35 @@ public class PessimisticStateTransformerFactory extends ResolvingTransformerFact
 			} else {
 				if (targetValue == null) {
 					
-					// if target could not be resolved, just leave the edge out for now
-					logger.info(stmt.getLabel() + ": Cannot resolve target expression " + 
-							stmt.getTargetExpression() + ". Continuing with unsound underapproximation.");
-					logger.debug("State is: " + a);
-					sound = false;
-					unresolvedBranches.add(stmt.getLabel());
-					if (Options.debug.getValue())
-						throw new ControlFlowException(a, "Unresolvable control flow from " + stmt.getLabel());
-					continue;
+					if (!Options.allEdges.getValue()) {
+						// if target could not be resolved, just leave the edge out for now
+						logger.info(stmt.getLabel() + ": Cannot resolve target expression " + 
+								stmt.getTargetExpression() + ". Continuing with unsound underapproximation.");
+						logger.debug("State is: " + a);
+						sound = false;
+						unresolvedBranches.add(stmt.getLabel());
+						if (Options.debug.getValue())
+							throw new ControlFlowException(a, "Unresolvable control flow from " + stmt.getLabel());
+						continue;
+					} else {
+						// Over-approximate target and add edges to all possible program locations (!) 
+						logger.warn(stmt.getLabel() + ": Cannot resolve target expression " + 
+								stmt.getTargetExpression() + ". Adding over-approximate edges to all program locations!");
+
+						
+						for (Iterator<AbsoluteAddress> it = Program.getProgram().codeAddressIterator(); it.hasNext();) {
+							targetValue = it.next().toNumericConstant();
+							assumption = factory.createEqual(stmt.getTargetExpression(), targetValue);
+							// set next label to jump target
+							nextLabel = new RTLLabel(new AbsoluteAddress(targetValue));
+							RTLAssume assume = new RTLAssume(assumption, stmt);
+							assume.setLabel(stmt.getLabel());
+							assume.setNextLabel(nextLabel);
+							results.add(new CFAEdge(assume.getLabel(), assume.getNextLabel(), assume));
+						}
+						
+						continue;
+					}
 				} else {
 					// assume (condition = true AND targetExpression = targetValue)
 					assumption = factory.createAnd(
