@@ -23,11 +23,8 @@ import java.util.Set;
 import org.jakstab.analysis.AbstractState;
 import org.jakstab.analysis.LatticeElement;
 import org.jakstab.cfa.Location;
-import org.jakstab.rtl.expressions.ExpressionFactory;
 import org.jakstab.rtl.expressions.RTLExpression;
 import org.jakstab.rtl.expressions.RTLNumber;
-import org.jakstab.util.FastSet;
-import org.jakstab.util.Sets;
 import org.jakstab.util.Tuple;
 
 public class DummyState implements AbstractState {
@@ -54,6 +51,19 @@ public class DummyState implements AbstractState {
 	public Set<Tuple<RTLNumber>> projectionFromConcretization(
 			RTLExpression... expressions) {
 		
+		Tuple<RTLNumber> cVector = new Tuple<RTLNumber>(expressions.length);
+		for (int i=0; i<expressions.length; i++) {
+			if (expressions[i] instanceof RTLNumber) {
+				cVector.set(i, (RTLNumber)expressions[i]);
+			} else {
+				return null; 
+			} 
+		}
+		return Collections.singleton(cVector);
+		
+		/*
+		// This makes the dummy analysis resolve both branches of a conditional jump.
+
 		Tuple<Set<RTLNumber>> cValues = new Tuple<Set<RTLNumber>>(expressions.length);
 		for (int i=0; i<expressions.length; i++) {
 			if (expressions[i] instanceof RTLNumber) {
@@ -70,6 +80,7 @@ public class DummyState implements AbstractState {
 		}
 
 		return Sets.crossProduct(cValues);
+		*/
 	}
 
 	@Override

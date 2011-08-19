@@ -17,6 +17,7 @@
  */
 package org.jakstab.analysis.composite;
 
+import java.util.Collections;
 import java.util.Set;
 
 import org.jakstab.analysis.AbstractState;
@@ -119,7 +120,10 @@ public class DualCompositeState extends CompositeState {
 			
 		}
 		//logger.info("Project " + Arrays.toString(expressions) + " to " + result);
-		assert result != null;
+		//assert result != null;
+		
+		// result can be null when using DummyAnalysis.
+		if (result == null) result = Collections.emptySet();
 		return result;
 	}
 
