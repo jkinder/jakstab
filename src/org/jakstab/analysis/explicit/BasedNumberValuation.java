@@ -99,7 +99,9 @@ public final class BasedNumberValuation implements AbstractState {
 		
 		public AllocationCounter join(AllocationCounter other) {
 			// TODO: Implement some kind of joining
-			throw new UnsupportedOperationException("Missing join implementation!");
+			//throw new UnsupportedOperationException("Missing join implementation!");
+			// This is invoked only for based constant propagation... don't know if this quick fix is correct?
+			return this;
 		}
 		
 	}

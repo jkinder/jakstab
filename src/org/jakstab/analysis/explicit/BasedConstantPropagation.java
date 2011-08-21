@@ -81,7 +81,7 @@ public class BasedConstantPropagation implements ConfigurableProgramAnalysis {
 
 	@Override
 	public Precision initPrecision(Location location, StateTransformer transformer) {
-		return null;
+		return new ExplicitPrecision(1);
 	}
 
 }
