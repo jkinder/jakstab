@@ -22,6 +22,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+import org.jakstab.Options;
 import org.jakstab.Program;
 import org.jakstab.analysis.AbstractState;
 import org.jakstab.analysis.UnderApproximateState;
@@ -89,6 +90,31 @@ public class AlternatingStateTransformerFactory extends ResolvingTransformerFact
 			public Set<CFAEdge> visit(RTLGoto stmt) {
 				assert stmt.getCondition() != null;
 				Set<CFAEdge> results = new FastSet<CFAEdge>();
+				
+				
+				if (Options.procedureAbstraction.getValue() == 2) {
+					// Calls always get a fallthrough edge in optimistic mode
+					if (stmt.getType() == RTLGoto.Type.CALL) {
+						RTLLabel nextLabel = stmt.getNextLabel();
+
+						if (Program.getProgram().getHarness().contains(stmt.getAddress())) {
+							nextLabel = new RTLLabel(Program.getProgram().getHarness().getFallthroughAddress(stmt.getAddress()));
+						}
+
+						if (nextLabel != null) {
+							RTLUnknownProcedureCall unknownCallEdge = new RTLUnknownProcedureCall(stmt);
+							unknownCallEdge.setLabel(stmt.getLabel());
+							unknownCallEdge.setNextLabel(nextLabel);
+							results.add(new CFAEdge(stmt.getLabel(), nextLabel, unknownCallEdge));
+							sound = false;
+						}
+					} 
+					// Replace return with halt, since control flow passes over calls anyway
+					else if (stmt.getType() == RTLGoto.Type.RETURN) {
+						sound = false;
+						return Collections.emptySet();
+					}
+				}
 				
 				DualCompositeState dcs = (DualCompositeState)a;
 				
