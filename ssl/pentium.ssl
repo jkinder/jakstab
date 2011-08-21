@@ -981,7 +981,7 @@ OUTL
 			_;
 
 INT3
-			_ ;			# Not expected to be seen in correct code, but decode anyway
+			halt;			# Not expected to be seen in correct code, but decode anyway
 
 # Condition codes for conditional jumps
 #CONDJ := { "~%CF & ~%ZF"        , "~%CF & ~%ZF"        , "~%CF"             , "~%CF"             , 
