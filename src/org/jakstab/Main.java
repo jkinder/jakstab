@@ -29,7 +29,6 @@ import org.jakstab.analysis.composite.CompositeState;
 import org.jakstab.analysis.explicit.BoundedAddressTracking;
 import org.jakstab.analysis.procedures.ProcedureAnalysis;
 import org.jakstab.analysis.procedures.ProcedureState;
-import org.jakstab.analysis.tracereplay.TraceReplayAnalysis;
 import org.jakstab.asm.*;
 import org.jakstab.cfa.Location;
 import org.jakstab.loader.*;
@@ -174,10 +173,6 @@ public class Main {
 			// org.jakstab.solver.yices.YicesWrapper.getVersion();
 			eclipseShutdownThread.start();
 		}
-		
-		// If we do trace replay and did not specify a trace file, use default name
-		if (Options.cpas.getValue().contains("t") && TraceReplayAnalysis.traceFiles.getValue().isEmpty())
-			TraceReplayAnalysis.traceFiles.setValue(baseFileName + ".parsed");
 		
 
 		// Necessary to stop shutdown thread on exceptions being thrown

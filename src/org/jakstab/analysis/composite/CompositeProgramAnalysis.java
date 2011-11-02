@@ -52,10 +52,10 @@ public class CompositeProgramAnalysis implements ConfigurableProgramAnalysis {
 	@SuppressWarnings("unused")
 	private static final Logger logger = Logger.getLogger(CompositeProgramAnalysis.class);
 	
-	private final ConfigurableProgramAnalysis[] cpas;
+	protected final ConfigurableProgramAnalysis[] cpas;
 	
-	private int expressionSubstitutionIndex;
-	private int callStackAnalysisIndex;
+	protected int expressionSubstitutionIndex;
+	protected int callStackAnalysisIndex;
 	
 	public CompositeProgramAnalysis(BackwardLocationAnalysis locationAnalysis) {
 		cpas = new ConfigurableProgramAnalysis[1];
