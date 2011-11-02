@@ -356,4 +356,8 @@ public class ELFModule implements ExecutableImage {
 		return null;
 	}
 
+	@Override
+	public Iterator<AbsoluteAddress> codeBytesIterator() {
+		throw new UnsupportedOperationException("Code iteration not yet implemented for " + this.getClass().getSimpleName() + "!");
+	}
 }

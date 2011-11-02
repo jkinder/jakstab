@@ -25,7 +25,9 @@ import org.jakstab.Options;
 import org.jakstab.Program;
 import org.jakstab.Algorithm;
 import org.jakstab.analysis.composite.CompositeProgramAnalysis;
+import org.jakstab.analysis.composite.DualCompositeAnalysis;
 import org.jakstab.analysis.location.LocationAnalysis;
+import org.jakstab.analysis.tracereplay.TraceReplayAnalysis;
 import org.jakstab.asm.*;
 import org.jakstab.asm.x86.X86Instruction;
 import org.jakstab.cfa.*;
@@ -132,18 +134,33 @@ public class ControlFlowReconstruction implements Algorithm {
 		// Init CPAs
 		List<ConfigurableProgramAnalysis> cpas = new LinkedList<ConfigurableProgramAnalysis>();
 		boolean addedExplicitAnalysis = false;
+		boolean addedUnderApproximation = false;
 		AnalysisManager mgr = AnalysisManager.getInstance();
-		
-		
-		for (int i=0; i<Options.cpas.getValue().length(); i++) {			
-			ConfigurableProgramAnalysis cpa = mgr.createAnalysis(Options.cpas.getValue().charAt(i));
+
+
+		for (int i=0; i<Options.cpas.getValue().length(); i++) {
+			
+			char shortHand = Options.cpas.getValue().charAt(i);
+			
+			// Special handling for trace replay analysis that really creates multiple CPAs
+			if (shortHand == 't') {
+				logger.info("--- Using trace replay analysis.");
+				for (String fileName : TraceReplayAnalysis.traceFiles.getValue().split(",")) {
+					cpas.add(new TraceReplayAnalysis(fileName));
+				}
+				addedExplicitAnalysis = true;
+				addedUnderApproximation = true;
+				continue;
+			}
+
+			ConfigurableProgramAnalysis cpa = mgr.createAnalysis(shortHand);
 			if (cpa != null) {
 				AnalysisProperties p = mgr.getProperties(cpa);
 				logger.info("--- Using " + p.getName());
 				addedExplicitAnalysis |= p.isExplicit();
 				cpas.add(cpa);
 			} else {
-				logger.fatal("No analysis corresponds to letter \"" + Options.cpas.getValue().charAt(i) + "\"!");
+				logger.fatal("No analysis corresponds to letter \"" + shortHand + "\"!");
 				System.exit(1);
 			}
 		}			
@@ -153,14 +170,26 @@ public class ControlFlowReconstruction implements Algorithm {
 			System.exit(1);
 		}
 		
-		ConfigurableProgramAnalysis cpa = new CompositeProgramAnalysis(
-				new LocationAnalysis(),
-				cpas.toArray(new ConfigurableProgramAnalysis[cpas.size()])
-		);
+		ConfigurableProgramAnalysis cpa;
+		if (!addedUnderApproximation) {
+			cpa = new CompositeProgramAnalysis(new LocationAnalysis(), cpas.toArray(new ConfigurableProgramAnalysis[cpas.size()]));
+		} else {
+			cpa = new DualCompositeAnalysis(new LocationAnalysis(), cpas.toArray(new ConfigurableProgramAnalysis[cpas.size()]));
+		}
 
 		// Init State transformer factory
 		if (Options.basicBlocks.getValue()) {
+			
+			if (addedUnderApproximation) {
+				logger.fatal("Currently, basic block summarization cannot be combined with under-approximations!");
+				System.exit(1);
+			}
 			transformerFactory = new PessimisticBasicBlockFactory();
+			
+		} else if (addedUnderApproximation) {
+			
+			transformerFactory = new AlternatingStateTransformerFactory();
+			
 		} else {
 			switch (Options.procedureAbstraction.getValue()) {
 			case 0: 

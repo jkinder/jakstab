@@ -150,7 +150,13 @@ public class CallStackState implements AbstractState {
 		ExpressionFactory factory = ExpressionFactory.getInstance();
 		if (!isBot() && !isTop() && expressions.length == 2 && 
  				expressions[0].equals(ExpressionFactory.getInstance().TRUE) && 
-				expressions[1].equals(Program.getProgram().getArchitecture().stackPointer())) {
+				expressions[1].equals(Program.getProgram().getArchitecture().returnAddressVariable())) {
+			
+			if (callStack.isEmpty()) {
+				logger.error("Trying to read return target from empty callstack!");
+				return null;
+			}
+			
 			logger.debug("Concretizing callstack element: " + callStack.peek());
 			return Collections.singleton(Tuple.create(
 					factory.TRUE,

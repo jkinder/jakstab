@@ -275,6 +275,10 @@ public final class Program {
 		return null;
 	}
 	
+	public Iterator<AbsoluteAddress> codeAddressIterator() {
+		return getMainModule().codeBytesIterator();
+	}
+	
 	/**
 	 * Get all statements in the Program.
 	 * 
@@ -371,8 +375,12 @@ public final class Program {
 				// Also check whether fp is out of the int range, since the X86Disassembler actually
 				// performs this cast in its implementation.
 				if (fp < 0 || (int)fp < 0) {
-					logger.error("Requested statement outside of file area: " + address);
+					logger.error("Requested instruction outside of file area: " + address);
 				} else {
+					if (!module.isCodeArea(address)) {
+						logger.error("Requested instruction outside code section: " + address);
+						return null;
+					}
 					instr = module.getDisassembler().decodeInstruction(fp);
 					if (instr == null) {
 						logger.error("Instruction could not be disassembled at: " + address);
@@ -405,7 +413,7 @@ public final class Program {
 	 */
 	public String getInstructionString(AbsoluteAddress addr) {
 		Instruction instr = getInstruction(addr);
-		if (instr == null) return "NON_EXISTANT";
+		if (instr == null) return "NON_EXISTENT";
 		return instr.toString(addr.getValue(), symbolFinder(addr));
 	}
 	

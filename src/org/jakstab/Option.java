@@ -9,6 +9,7 @@ public class Option<T> {
 	private T value;
 	
 	public static <T> Option<T> create(String name, String paramName, T defaultValue, String description) {
+		assert defaultValue != null;
 		return new Option<T>(name, paramName, defaultValue, description);
 	}
 	

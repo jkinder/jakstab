@@ -81,6 +81,7 @@ public class Options {
 	public static Option<String> sslFilename = Option.create("ssl", "file", jakstabHome + "/ssl/pentium.ssl", "Use <file> instead of pentium.ssl.");
 	public static Option<Long> startAddress = Option.create("a", "address", -1L, "Start analysis at given virtual address.");
 	public static Option<Boolean> wdm = Option.create("wdm", "WDM mode, export main function as DriverMain.");
+	public static Option<Boolean> allEdges = Option.create("all-edges", "Generate a true over-approximation and add edges to all possible addresses when over-approximating a jump (very slow!).");
 	public static Option<Boolean> dumpStates = Option.create("s", "Output all reached states after analysis.");	
 	public static Option<Boolean> outputLocationsWithMostStates = Option.create("toplocs", "Output the 10 locations with the highest state count.");
 	public static Option<Boolean> failFast = Option.create("fail-fast", "Stop when unsound assumptions are necessary to continue.");
@@ -99,10 +100,10 @@ public class Options {
 	public static Option<Integer> verbosity = Option.create("v", "level", 3, "Set verbosity to value. Default is 3.");
 	public static Option<Integer> timeout = Option.create("timeout", "t", -1, "Set timeout in seconds for the analysis.");
 	public static Option<Integer> procedureAbstraction = Option.create("procedures", "n", 0, "Level of procedure assumptions: " +
-			"0: Pessimistic: No assumptions, treat calls and returns as jumps. " + 
+			"0: Pessimistic: No assumptions, treat calls and returns as jumps (default). " + 
 			"1: Semi-optimistic: Abstract unknown calls according to ABI contract. " + 
 			"2: Optimistic: Abstract all calls to ABI contract (fastest).");
-	
+	public static Option<Integer> getProcAddress = Option.create("getprocaddress", "n", 2, "How to resolve GetProcAddress: 0: Always succeed, 1: Split success/fail, 2: Merge success/fail (default)");
 
 	/**
 	 * Handle command line options.
@@ -141,7 +142,7 @@ public class Options {
 				else if (i + 1 < args.length) {
 					if (arg.equals("-m")) {
 						mainFilename = args[++i];
-					}
+					} 
 				} else {
 					logger.fatal("Invalid command line argument: " + arg);
 					logger.fatal("");
@@ -160,6 +161,7 @@ public class Options {
 			Options.printOptions();
 			System.exit(1);
 		}
+		
 	}
 	
 	public static void printOptions() {

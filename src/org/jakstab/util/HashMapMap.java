@@ -218,10 +218,14 @@ public class HashMapMap<K, L, V> implements MapMap<K, L, V> {
 			// maps of the other, sizes will be different
 			for (K leftKey : leftKeySet()) {
 				Map<L,V> otherSubMap = other.getSubMap(leftKey);
-				if (otherSubMap == null && !getSubMap(leftKey).isEmpty())
-					return false;
-				if (!otherSubMap.equals(getSubMap(leftKey)))
-					return false;
+				if (otherSubMap == null) {
+					if (!getSubMap(leftKey).isEmpty())
+						return false;
+					// else getSubMap is empty and otherSubMap == null, so check next submap
+				} else {
+					if (!otherSubMap.equals(getSubMap(leftKey)))
+						return false;
+				}
 			}
 			return true;
 		}

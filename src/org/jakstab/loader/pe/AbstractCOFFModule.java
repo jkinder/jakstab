@@ -18,6 +18,7 @@
 package org.jakstab.loader.pe;
 
 import java.io.IOException;
+import java.util.Iterator;
 
 import org.jakstab.asm.AbsoluteAddress;
 import org.jakstab.disasm.Disassembler;
@@ -182,6 +183,64 @@ public abstract class AbstractCOFFModule implements ExecutableImage {
 	public byte[] getByteArray() {
 		return inBuf.getByteArray();
 	}
+	
+	@Override
+	public Iterator<AbsoluteAddress> codeBytesIterator() {
+		return new Iterator<AbsoluteAddress>() {
+			
+			long fp = 0;
+			int sec = -1;
+			
+			{
+				moveToNextCodeSection();
+			}
+			
+			private void moveToNextCodeSection() {
+				sec++;
+				while (sec < getNumberOfSections() && !isCodeSection(sec)) {
+					sec++;
+				}
+				if (sec >= getNumberOfSections()) {
+					fp = -1;
+					sec = -1;
+				} else {
+					fp = getSectionHeader(sec).PointerToRawData;
+				}
+			}
+			
+			private void moveToNextCodeByte() {
+				
+				fp++;
+				
+				if (fp >= getSectionHeader(sec).PointerToRawData + getSectionHeader(sec).SizeOfRawData) {
+					moveToNextCodeSection();
+					if (sec < 0) {
+						return;
+					}
+				}
+				
+			}
+
+			@Override
+			public boolean hasNext() {
+				return (fp >= 0);
+			}
+
+			@Override
+			public AbsoluteAddress next() {
+				if (!hasNext()) throw new IndexOutOfBoundsException();
+				AbsoluteAddress res =  getVirtualAddress(fp);
+				moveToNextCodeByte();
+				return res;
+			}
+
+			@Override
+			public void remove() {
+				throw new UnsupportedOperationException();
+			}
+		};
+	}
+
 
 	@Override
 	public Disassembler getDisassembler() {

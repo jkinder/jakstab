@@ -18,6 +18,7 @@
 
 package org.jakstab.util;
 
+import java.awt.Color;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
@@ -47,26 +48,17 @@ public class GraphvizWriter implements GraphWriter {
 		out.write("bgcolor=\"transparent\"\n");
 	}
 
-	/*
-	 * @see org.jakstab.util.GraphWriter#close()
-	 */
 	@Override
 	public void close() throws IOException {
 		out.write("}\n");
 		out.close();
 	}
 
-	/*
-	 * @see org.jakstab.util.GraphWriter#writeNode(java.lang.String, java.lang.String)
-	 */
 	@Override
 	public final void writeNode(String id, String body) throws IOException {
 		writeNode(id, body, null);
 	}
 	
-	/*
-	 * @see org.jakstab.util.GraphWriter#writeNode(java.lang.String, java.lang.String, java.util.Map)
-	 */
 	@Override
 	public final void writeNode(String id, String body, Map<String,String> properties) throws IOException { 
 		out.write(toIdentifier(id));
@@ -85,17 +77,20 @@ public class GraphvizWriter implements GraphWriter {
 		out.write("];\n");
 	}
 
-	/*
-	 * @see org.jakstab.util.GraphWriter#writeEdge(java.lang.String, java.lang.String)
-	 */
 	@Override
 	public final void writeEdge(String id1, String id2) throws IOException {
-		writeEdge(id1, id2, null);
+		writeEdge(id1, id2, (Map<String, String>)null);
 	}
 	
-	/*
-	 * @see org.jakstab.util.GraphWriter#writeEdge(java.lang.String, java.lang.String, java.util.Map)
-	 */
+	@Override
+	public void writeEdge(String id1, String id2, Color color) throws IOException {
+		Map<String,String> map = new HashMap<String, String>();
+		if (color != null) {
+			map.put("color", colorConvert(color));
+		}
+		writeEdge(id1, id2, map);
+	}
+
 	@Override
 	public final void writeEdge(String id1, String id2, Map<String,String> properties) throws IOException { 
 		out.write(toIdentifier(id1));
@@ -117,16 +112,21 @@ public class GraphvizWriter implements GraphWriter {
 		out.write(";\n");
 	}
 
-	/*
-	 * @see org.jakstab.util.GraphWriter#writeLabeledEdge(java.lang.String, java.lang.String, java.lang.String)
-	 */
 	@Override
 	public final void writeLabeledEdge(String id1, String id2, String label) throws IOException {
-		Map<String,String> map = new HashMap<String, String>();
-		map.put("label", label.replace("\n", "\\n"));
-		writeEdge(id1, id2, map);
+		writeLabeledEdge(id1, id2, label, null);
 	}
 	
+	@Override
+	public final void writeLabeledEdge(String id1, String id2, String label, Color color) throws IOException {
+		Map<String,String> map = new HashMap<String, String>();
+		map.put("label", label.replace("\n", "\\n"));
+		if (color != null) {
+			map.put("color", colorConvert(color));
+		}
+		writeEdge(id1, id2, map);
+	}
+
 	private static final String toIdentifier(String id) {
 		id = id.replace('@', '_');
 		id = id.replace('.', '_');
@@ -140,6 +140,10 @@ public class GraphvizWriter implements GraphWriter {
 	@Override
 	public String getFilename() {
 		return filename;
+	}
+	
+	private static String colorConvert(Color color) {
+		return String.format("#%02x%02x%02x", color.getRed(), color.getGreen(), color.getBlue());
 	}
 
 }

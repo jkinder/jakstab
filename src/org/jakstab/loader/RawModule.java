@@ -19,6 +19,7 @@ package org.jakstab.loader;
 
 import java.io.*;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.Set;
 
 import org.jakstab.asm.AbsoluteAddress;
@@ -114,6 +115,11 @@ public class RawModule implements ExecutableImage {
 	public RTLNumber readMemoryLocation(RTLMemoryLocation m) {
 		// TODO Auto-generated method stub
 		return null;
+	}
+
+	@Override
+	public Iterator<AbsoluteAddress> codeBytesIterator() {
+		throw new UnsupportedOperationException("Code iteration not yet implemented for " + this.getClass().getSimpleName() + "!");
 	}
 
 }

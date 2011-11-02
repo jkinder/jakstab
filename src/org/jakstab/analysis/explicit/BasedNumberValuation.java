@@ -99,7 +99,9 @@ public final class BasedNumberValuation implements AbstractState {
 		
 		public AllocationCounter join(AllocationCounter other) {
 			// TODO: Implement some kind of joining
-			throw new UnsupportedOperationException("Missing join implementation!");
+			//throw new UnsupportedOperationException("Missing join implementation!");
+			// This is invoked only for based constant propagation... don't know if this quick fix is correct?
+			return this;
 		}
 		
 	}
@@ -372,7 +374,11 @@ public final class BasedNumberValuation implements AbstractState {
 			
 		};
 		
-		return e.accept(visitor);
+		BasedNumberElement result = e.accept(visitor);
+		
+		assert result.getBitWidth() == e.getBitWidth() : "Bitwidth changed during evaluation of " + e + " to " + result;
+		
+		return result;
 	}
 
 	public Set<AbstractState> abstractPost(final RTLStatement statement, final Precision precision) {
@@ -440,6 +446,7 @@ public final class BasedNumberValuation implements AbstractState {
 
 				RTLMemoryLocation m = stmt.getLeftHandSide();
 				BasedNumberElement abstractAddress = abstractEvalAddress(m);
+				
 				// if the address cannot be determined, set all store memory to TOP
 				if (!post.setMemoryValue(abstractAddress, m.getBitWidth(), evaledRhs, eprec)) {
 					logger.verbose(stmt.getLabel() + ": Cannot resolve memory write to " + m + ".");
@@ -489,7 +496,7 @@ public final class BasedNumberValuation implements AbstractState {
 				AbstractValue truthValue = abstractEval(stmt.getAssumption());
 
 				if (truthValue.equals(BasedNumberElement.FALSE)) {
-					logger.info(getIdentifier() + ": Transformer " + stmt + " is infeasible.");
+					logger.info(stmt.getLabel() + ", state ID " + getIdentifier() + ": Transformer " + stmt + " is infeasible.");
 					return Collections.emptySet();
 				} else if (truthValue.equals(BasedNumberElement.TRUE)){
 					return thisState();
@@ -614,15 +621,18 @@ public final class BasedNumberValuation implements AbstractState {
 							"#" + post.allocCounters.countAllocation(stmt.getLabel()));
 				}
 				
+				// We also allow pointers of less than the actual address size, to emulate the 16 bit segment registers FS/GS
+				// FS gets a value of (FS, 0) in the prologue. 
+				
 				if (lhs instanceof RTLVariable) {
 					post.setValue((RTLVariable)lhs, new BasedNumberElement(newRegion, 
-							ExpressionFactory.getInstance().createNumber(0, 32)), eprec);
+							ExpressionFactory.getInstance().createNumber(0, lhs.getBitWidth())), eprec);
 				} else {
 					RTLMemoryLocation m = (RTLMemoryLocation)lhs;
 					BasedNumberElement abstractAddress = abstractEvalAddress(m);
 					if (!post.setMemoryValue(abstractAddress, m.getBitWidth(), 
 							new BasedNumberElement(newRegion, 
-									ExpressionFactory.getInstance().createNumber(0, 32)), eprec))
+									ExpressionFactory.getInstance().createNumber(0, lhs.getBitWidth())), eprec))
 						logger.verbose(stmt.getLabel() + ": Cannot resolve memory write from alloc to " + m + ".");
 				}
 

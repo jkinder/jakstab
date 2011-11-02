@@ -33,7 +33,7 @@ import antlr.ANTLRException;
 
 /**
  *  This class represents the physical architecture a program runs on. It is 
- *  initialized by loading the correspoinding SSL specification. It should 
+ *  initialized by loading the corresponding SSL specification. It should 
  *  encapsulate all architecture specific aspects of the analyses, and
  *  also supports the conversion of disassembled instructions to RTL statements.
  *  

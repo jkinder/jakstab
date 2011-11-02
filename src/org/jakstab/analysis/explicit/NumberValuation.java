@@ -45,8 +45,7 @@ public final class NumberValuation implements AbstractState {
 	private static final Logger logger = Logger.getLogger(NumberValuation.class);
 	private static long maxStateId = 0;
 	
-	static final NumberValuation TOP = new NumberValuation(null, null, true);
-	static final NumberValuation BOT = new NumberValuation(null, null, false);
+	static final NumberValuation TOP = new NumberValuation(new HashMap<RTLVariable, NumberElement>(), new HashMap<RTLMemoryLocation, NumberElement>(), true);
 
 	
 	public static NumberValuation createInitialState() {
@@ -205,7 +204,6 @@ public final class NumberValuation implements AbstractState {
 	
 	
 	public AbstractState abstractPost(StateTransformer transformer, Precision precision) {
-		if (isBot()) return BOT;
 		
 		final RTLStatement statement = (RTLStatement)transformer;
 
@@ -328,12 +326,12 @@ public final class NumberValuation implements AbstractState {
 
 	@Override
 	public boolean isTop() {
-		return this == TOP || (this != BOT && aVarVal.isEmpty() && aMemVal.isEmpty());
+		return this == TOP || (aVarVal.isEmpty() && aMemVal.isEmpty());
 	}
 
 	@Override
 	public boolean isBot() {
-		return this == BOT;
+		return false;
 	}
 	
 	private void setValue(RTLMemoryLocation m, NumberElement v) {
@@ -513,6 +511,9 @@ public final class NumberValuation implements AbstractState {
 		if (!(obj instanceof NumberValuation)) return false;
 		NumberValuation other = (NumberValuation)obj;
 		if (other == this) return true;
+
+		if (other.isTop()) return isTop();
+		if (isTop()) return false;
 		
 		return dataIsTop == other.dataIsTop && aVarVal.equals(other.aVarVal) && aMemVal.equals(other.aMemVal);
 	}

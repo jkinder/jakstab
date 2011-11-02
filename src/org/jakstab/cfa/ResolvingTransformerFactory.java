@@ -36,8 +36,7 @@ import com.google.common.collect.SetMultimap;
  * 
  * @author Johannes Kinder
  */
-public abstract class ResolvingTransformerFactory implements
-		StateTransformerFactory {
+public abstract class ResolvingTransformerFactory implements StateTransformerFactory {
 
 	@SuppressWarnings("unused")
 	private static final Logger logger = Logger.getLogger(ResolvingTransformerFactory.class);
@@ -45,10 +44,7 @@ public abstract class ResolvingTransformerFactory implements
 	protected final Set<Location> unresolvedBranches = new FastSet<Location>();
 	protected boolean sound = true;
 	protected SetMultimap<Location,CFAEdge> outEdges = HashMultimap.create();
-	
-	/*
-	 * @see org.jakstab.analysis.StateTransformerFactory#isSound()
-	 */
+
 	public boolean isSound() {
 		return sound;
 	}
@@ -56,13 +52,13 @@ public abstract class ResolvingTransformerFactory implements
 	public Set<Location> getUnresolvedBranches() {
 		return unresolvedBranches;
 	}
-	
+
 	@Override
 	public Set<CFAEdge> getTransformers(final AbstractState a) {
 		RTLStatement stmt = Program.getProgram().getStatement((RTLLabel)a.getLocation());
 
 		Set<CFAEdge> transformers = stmt.accept(new DefaultStatementVisitor<Set<CFAEdge>>() {
-			
+
 			@Override
 			protected Set<CFAEdge> visitDefault(RTLStatement stmt) {
 				return Collections.singleton(new CFAEdge(stmt.getLabel(), stmt.getNextLabel(), stmt));
@@ -80,12 +76,12 @@ public abstract class ResolvingTransformerFactory implements
 			}
 
 		});		
-		
+
 		saveNewEdges(transformers, a.getLocation());
-		
+
 		return transformers;
 	}
-	
+
 	protected void saveNewEdges(Set<CFAEdge> transformers, Location l) {
 		// Make sure we only add new edges. Edges are mutable so we cannot just implement
 		// hashCode and equals and add everything into a HashSet.
@@ -108,7 +104,7 @@ public abstract class ResolvingTransformerFactory implements
 		}
 		outEdges.putAll(l, newEdges);
 	}
-	
+
 	public Set<CFAEdge> getExistingOutEdges(Location l) {
 		return outEdges.get(l);
 	}
@@ -120,7 +116,7 @@ public abstract class ResolvingTransformerFactory implements
 		}
 		return cfa;
 	}
-	
+
 	protected abstract Set<CFAEdge> resolveGoto(final AbstractState a, final RTLGoto stmt);
 
 	@Override

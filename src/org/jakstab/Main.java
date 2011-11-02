@@ -43,9 +43,9 @@ import antlr.ANTLRException;
 
 public class Main {
 
-	private static Logger logger;
+	private static Logger logger = Logger.getLogger(Main.class);;
 
-	private final static String version = "0.8.2";
+	private final static String version = "0.8.2u";
 
 	private static volatile Algorithm activeAlgorithm;
 	private static volatile Thread mainThread;
@@ -56,9 +56,6 @@ public class Main {
 
 		// Parse command line
 		Options.parseOptions(args);
-		// Initialize logger with given verbosity  
-		if (Options.verbosity.getValue() >= 0) Logger.setVerbosity(Options.verbosity.getValue());
-		logger = Logger.getLogger(Main.class);
 
 		logger.error(Characters.DOUBLE_LINE_FULL_WIDTH);
 		logger.error("   Jakstab " + version);
@@ -176,6 +173,7 @@ public class Main {
 			// org.jakstab.solver.yices.YicesWrapper.getVersion();
 			eclipseShutdownThread.start();
 		}
+		
 
 		// Necessary to stop shutdown thread on exceptions being thrown
 		try {
@@ -227,7 +225,7 @@ public class Main {
 				logger.error(Characters.starredBox("WARNING: Analysis was unsound!"));
 			}
 
-			logger.verbose("Unresolved locations: " + program.getUnresolvedBranches());
+			/*logger.verbose("Unresolved locations: " + program.getUnresolvedBranches());
 			for (Location l : program.getUnresolvedBranches()) {
 				AbsoluteAddress a = ((RTLLabel)l).getAddress();
 				if (program.getInstruction(a) == null) {
@@ -235,9 +233,8 @@ public class Main {
 				} else {
 					logger.verbose(a + "\t" + program.getInstructionString(a));
 				}
-			}
+			}*/
 
-			writeDisassembly(program, baseFileName + "_jak.asm");
 			int indirectBranches = program.countIndirectBranches();
 
 			logger.error(Characters.DOUBLE_LINE_FULL_WIDTH);
@@ -254,8 +251,8 @@ public class Main {
 			//				logger.error( "   Sound:                               " + String.format("%8b", cfr.isSound()));
 			logger.error( "   Indirect Branches (no import calls): " + String.format("%8d", indirectBranches));
 			logger.error( "   Unresolved Branches:                 " + String.format("%8d", program.getUnresolvedBranches().size()));
-			logger.debug("   FastSet conversions:                 " + String.format("%8d",FastSet.getConversionCount()));
-			logger.debug("   Variable count:                      " + String.format("%8d",ExpressionFactory.getInstance().getVariableCount()));
+			logger.debug("   FastSet conversions:                 " + String.format("%8d", FastSet.getConversionCount()));
+			logger.debug("   Variable count:                      " + String.format("%8d", ExpressionFactory.getInstance().getVariableCount()));
 			logger.error(Characters.DOUBLE_LINE_FULL_WIDTH);
 
 			int slashIdx = baseFileName.lastIndexOf('\\');
@@ -270,9 +267,17 @@ public class Main {
 					(Options.basicBlocks.getValue() ? "y" : "n" )+ "\t" + (Options.summarizeRep.getValue() ? "y" : "n" ));
 
 			ProgramGraphWriter graphWriter = new ProgramGraphWriter(program);
+			
+			graphWriter.writeDisassembly(program, baseFileName + "_jak.asm");
 
-			// If control flow reconstruction finished normally, start other analyses now 
-			if (cfr.isCompleted() && Options.secondaryCPAs.getValue().length() > 0) {
+			if (!(cfr.isCompleted() && Options.secondaryCPAs.getValue().length() > 0)) {
+				if (!Options.noGraphs.getValue()) {
+					graphWriter.writeControlFlowAutomaton(baseFileName + "_cfa");
+					graphWriter.writeAssemblyCFG(baseFileName + "_asmcfg");
+				}
+				//if (Options.errorTrace) graphWriter.writeART(baseFileName + "_art", cfr.getART());
+			} else {
+				// If control flow reconstruction finished normally and other analyses are configured, start them now 
 
 				// Simplify CFA
 				logger.info("=== Simplifying CFA ===");
@@ -287,13 +292,13 @@ public class Main {
 				logger.info("=== Finished CFA simplification, removed " + totalRemoved + " edges. ===");
 
 				AnalysisManager mgr = AnalysisManager.getInstance();				
-				ConfigurableProgramAnalysis[] secondaryCPAs = new ConfigurableProgramAnalysis[Options.secondaryCPAs.getValue().length()];
+				List<ConfigurableProgramAnalysis> secondaryCPAs = new LinkedList<ConfigurableProgramAnalysis>();
 				for (int i=0; i<Options.secondaryCPAs.getValue().length(); i++) {			
 					ConfigurableProgramAnalysis cpa = mgr.createAnalysis(Options.secondaryCPAs.getValue().charAt(i));
 					if (cpa != null) {
 						AnalysisProperties p = mgr.getProperties(cpa);
 						logger.info("--- Using " + p.getName());
-						secondaryCPAs[i] = cpa;
+						secondaryCPAs.add(cpa);
 					} else {
 						logger.fatal("No analysis corresponds to letter \"" + Options.secondaryCPAs.getValue().charAt(i) + "\"!");
 						System.exit(1);
@@ -302,10 +307,11 @@ public class Main {
 				// Do custom analysis
 				long customAnalysisStartTime = System.currentTimeMillis();
 				CPAAlgorithm cpaAlg;
+				ConfigurableProgramAnalysis[] cpaArray = secondaryCPAs.toArray(new ConfigurableProgramAnalysis[secondaryCPAs.size()]);
 				if (Options.backward.getValue()) {
-					cpaAlg = CPAAlgorithm.createBackwardAlgorithm(program, secondaryCPAs);
+					cpaAlg = CPAAlgorithm.createBackwardAlgorithm(program, cpaArray);
 				} else {
-					cpaAlg = CPAAlgorithm.createForwardAlgorithm(program, secondaryCPAs);
+					cpaAlg = CPAAlgorithm.createForwardAlgorithm(program, cpaArray);
 				}
 				activeAlgorithm = cpaAlg;
 				cpaAlg.run();
@@ -322,10 +328,6 @@ public class Main {
 				logger.error(Characters.DOUBLE_LINE_FULL_WIDTH);
 
 
-			} else {
-				if (!Options.noGraphs.getValue())
-					graphWriter.writeControlFlowAutomaton(baseFileName + "_cfa");
-				//if (Options.errorTrace) graphWriter.writeART(baseFileName + "_art", cfr.getART());
 			}
 
 			// If procedure abstraction is active, detect procedures now
@@ -390,50 +392,6 @@ public class Main {
 			statsFile.close();
 		} catch (Exception e) {
 			logger.error("Cannot write to outputfile!", e);
-		}
-	}
-	
-	@SuppressWarnings("unused")
-	private static final void printDisassembly(Program program) {
-		logger.info();
-		logger.info("=== Disassembly dump ===");
-		for (Map.Entry<AbsoluteAddress,Instruction> entry : program.getAssemblyMap().entrySet()) {
-			AbsoluteAddress pc = entry.getKey();
-			Instruction instr = entry.getValue();
-			StringBuilder sb = new StringBuilder();
-			sb.append(pc);
-			sb.append("  ");
-			SymbolFinder symFinder = program.getModule(pc).getSymbolFinder();
-			sb.append(instr.toString(pc.getValue(), symFinder));
-
-			logger.fatal(sb);
-		}
-		logger.info();
-	}
-
-	@SuppressWarnings("unused")
-	private static final void writeDisassembly(Program program, String filename) {
-		logger.info("Writing assembly file to " + filename);
-		try {
-			FileWriter out = new FileWriter(filename);
-			for (Map.Entry<AbsoluteAddress,Instruction> entry : program.getAssemblyMap().entrySet()) {
-				AbsoluteAddress pc = entry.getKey();
-				Instruction instr = entry.getValue();
-				StringBuilder sb = new StringBuilder();
-				SymbolFinder symFinder = program.getModule(pc).getSymbolFinder();
-				if (symFinder.hasSymbolFor(pc)) sb.append(Characters.NEWLINE);
-				sb.append(symFinder.getSymbolFor(pc));
-				sb.append(":\t");
-				sb.append(instr.toString(pc.getValue(), symFinder));
-				sb.append(Characters.NEWLINE);
-				if (instr instanceof ReturnInstruction) sb.append(Characters.NEWLINE);
-				out.write(sb.toString());
-			}
-			out.close();
-
-		} catch (IOException e) {
-			logger.fatal(e);
-			return;
 		}
 	}
 	

@@ -19,6 +19,7 @@
 
 package org.jakstab.util;
 
+import java.awt.Color;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
@@ -28,7 +29,7 @@ import java.util.Map;
 import org.jakstab.util.Logger;
 
 /**
- * @author Daniel Reynaud
+ * @author Daniel Reynaud, Johannes Kinder
  */
 public class GraphMLWriter implements GraphWriter {
 
@@ -52,9 +53,6 @@ public class GraphMLWriter implements GraphWriter {
 		out.write("<graph edgedefault=\"directed\">\n");
 	}
 
-	/*
-	 * @see org.jakstab.util.GraphWriter#close()
-	 */
 	@Override
 	public void close() throws IOException {
 		out.write("</graph>\n");
@@ -62,22 +60,16 @@ public class GraphMLWriter implements GraphWriter {
 		out.close();
 	}
 
-	/*
-	 * @see org.jakstab.util.GraphWriter#writeNode(java.lang.String, java.lang.String)
-	 */
 	@Override
 	public final void writeNode(String id, String body) throws IOException {
 		writeNode(id, body, null);
 	}
 
-	/*
-	 * @see org.jakstab.util.GraphWriter#writeNode(java.lang.String, java.lang.String, java.util.Map)
-	 */
 	@Override
 	public final void writeNode(String id, String body, Map<String,String> properties) throws IOException {
 		out.write("<node id=\""+toIdentifier(id)+"\">\n");
 		out.write("  <data key=\"d0\"><y:ShapeNode><y:NodeLabel>\n");
-		out.write(body);
+		out.write(sanitizeXML(body));
 		/* properties ignored
 		if (properties != null && properties.size() > 0) {
 			for (Map.Entry<String, String> property : properties.entrySet()) {
@@ -91,17 +83,11 @@ public class GraphMLWriter implements GraphWriter {
 		out.write("</node>\n");
 	}
 
-	/*
-	 * @see org.jakstab.util.GraphWriter#writeEdge(java.lang.String, java.lang.String)
-	 */
 	@Override
 	public final void writeEdge(String id1, String id2) throws IOException {
-		writeEdge(id1, id2, null);
+		writeEdge(id1, id2, (Map<String, String>)null);
 	}
 
-	/*
-	 * @see org.jakstab.util.GraphWriter#writeEdge(java.lang.String, java.lang.String, java.util.Map)
-	 */
 	@Override
 	public final void writeEdge(String id1, String id2, Map<String,String> properties) throws IOException {
 		out.write("<edge source=\""+toIdentifier(id1)+"\" target=\""+toIdentifier(id2)+"\">\n");
@@ -121,13 +107,28 @@ public class GraphMLWriter implements GraphWriter {
 		out.write("</edge>\n");
 	}
 
-	/*
-	 * @see org.jakstab.util.GraphWriter#writeLabeledEdge(java.lang.String, java.lang.String, java.lang.String)
-	 */
+	@Override
+	public void writeEdge(String id1, String id2, Color color)
+			throws IOException {
+		Map<String,String> map = new HashMap<String, String>();
+		if (color != null) {
+			map.put("y:LineStyle", colorConvert(color));
+		}
+		writeEdge(id1, id2, map);
+	}
+
 	@Override
 	public final void writeLabeledEdge(String id1, String id2, String label) throws IOException {
+		writeLabeledEdge(id1, id2, label, null);
+	}
+
+	@Override
+	public final void writeLabeledEdge(String id1, String id2, String label, Color color) throws IOException {
 		Map<String,String> map = new HashMap<String, String>();
 		map.put("y:EdgeLabel", label);
+		if (color != null) {
+			map.put("y:LineStyle", colorConvert(color));
+		}
 		writeEdge(id1, id2, map);
 	}
 
@@ -150,6 +151,10 @@ public class GraphMLWriter implements GraphWriter {
 	@Override
 	public String getFilename() {
 		return filename;
+	}
+	
+	private static String colorConvert(Color color) {
+		return String.format("color=\"#%02x%02x%02x\"", color.getRed(), color.getGreen(), color.getBlue());
 	}
 
 }

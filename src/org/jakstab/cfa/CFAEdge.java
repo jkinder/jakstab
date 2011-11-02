@@ -17,6 +17,7 @@
  */
 package org.jakstab.cfa;
 
+import org.jakstab.analysis.LatticeElement;
 import org.jakstab.util.Logger;
 
 /**
@@ -25,22 +26,58 @@ import org.jakstab.util.Logger;
  * 
  * @author Johannes Kinder
  */
-public class CFAEdge implements Comparable<CFAEdge>{
+public class CFAEdge implements Comparable<CFAEdge> {
 
 	@SuppressWarnings("unused")
 	private static final Logger logger = Logger.getLogger(CFAEdge.class);
 
+	/**
+	 * The kind of a CFAEdge, i.e., it's value in a multi-valued logic.
+	 */
+	public enum Kind implements LatticeElement { 
+		
+		MAY, MUST;
+
+		@Override
+		public LatticeElement join(LatticeElement l) {
+			if (l.equals(MAY)) return this;
+			else return MUST;
+		}
+
+		@Override
+		public boolean lessOrEqual(LatticeElement l) {
+			return this.equals(MAY) || l.equals(MUST);
+		}
+
+		@Override
+		public boolean isTop() {
+			return equals(MUST);
+		}
+
+		@Override
+		public boolean isBot() {
+			return equals(MAY);
+		} 
+	}
+
 	private Location source;
 	private Location target;
 	private StateTransformer transformer;
+	private Kind kind;
 
-	public CFAEdge(Location source, Location target, StateTransformer transformer) {
+	public CFAEdge(Location source, Location target, StateTransformer transformer, Kind kind) {
 		super();
 		assert (source != null && target != null) : "Cannot create edge with dangling edges: " + source + " -> " + target;
 		assert transformer != null : "Need to specify transformer for edge " + source + " -> " + target;
+		assert kind != null : "Need to specify an edge kind";
 		this.source = source;
 		this.target = target;
 		this.transformer = transformer;
+		this.kind = kind;
+	}
+	
+	public CFAEdge(Location source, Location target, StateTransformer transformer) {
+		this(source, target, transformer, Kind.MAY);
 	}
 
 	/**
@@ -64,6 +101,14 @@ public class CFAEdge implements Comparable<CFAEdge>{
 		return transformer;
 	}
 	
+	public Kind getKind() {
+		return kind;
+	}
+
+	public void setKind(Kind kind) {
+		this.kind = kind;
+	}
+
 	public void setTransformer(StateTransformer t) {
 		transformer = t;
 		assert transformer != null : "Need to specify transformer for edge " + source + " -> " + target;
@@ -79,7 +124,7 @@ public class CFAEdge implements Comparable<CFAEdge>{
 
 	@Override
 	public String toString() {
-		return source + " -> " + target;
+		return source + " -" + kind + "-> " + target;
 	}
 	
 	@Override
@@ -88,7 +133,9 @@ public class CFAEdge implements Comparable<CFAEdge>{
 		if (c != 0) return c;
 		c = target.compareTo(o.target);
 		if (c != 0) return c;
-		// Source and target are the same, so compare transformers somehow 
+		if (kind.ordinal() < o.kind.ordinal()) return -1;
+		if (kind.ordinal() > o.kind.ordinal()) return 1;
+		// Source, target, and kind are the same, so compare transformers somehow 
 		if (this.transformer.hashCode() < o.transformer.hashCode()) return -1;
 		if (this.transformer.equals(o.transformer)) return 0;
 		return 1;

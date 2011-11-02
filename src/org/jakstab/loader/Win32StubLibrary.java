@@ -300,10 +300,22 @@ public class Win32StubLibrary implements StubProvider {
 
 			// GetProcAddress is special
 			if (library.toUpperCase().startsWith("KERNEL32") && function.equals("GetProcAddress")) {
-				RTLExpression loadExpression = factory.createSpecialExpression(RTLSpecialExpression.GETPROCADDRESS, arg0, arg1); 
-				seq.addLast(new RTLVariableAssignment(32, factory.createVariable("%eax"), loadExpression));
-			} else if (library.toUpperCase().startsWith("KERNEL32") && function.startsWith("GetModuleHandle")) { 
-				seq.addLast(new RTLVariableAssignment(32, factory.createVariable("%eax"), arg0));
+				
+				if (Options.getProcAddress.getValue() == 0) {
+					RTLExpression loadExpression = factory.createSpecialExpression(RTLSpecialExpression.GETPROCADDRESS, arg0, arg1); 
+					seq.addLast(new RTLVariableAssignment(32, factory.createVariable("%eax"), loadExpression));
+				} else if (Options.getProcAddress.getValue() == 1) {
+					logger.warn("Havocing GetProcAddress is not yet implemented!");
+					assert false;
+					seq.addLast(new RTLVariableAssignment(32, factory.createVariable("%eax"), factory.nondet(32)));
+				} else if (Options.getProcAddress.getValue() == 2) {
+					seq.addLast(new RTLVariableAssignment(32, factory.createVariable("%eax"), factory.nondet(32)));
+				}
+			} else if (library.toUpperCase().startsWith("KERNEL32") && function.startsWith("GetModuleHandle")) {
+				// This function returns either 0 or a valid handle to the given module
+				// This hack here uses the string as the handle value, not very nice
+				//seq.addLast(new RTLVariableAssignment(32, factory.createVariable("%eax"), arg0));
+				seq.addLast(new RTLVariableAssignment(32, factory.createVariable("%eax"), factory.nondet(32)));
 			} else {
 				// overwrite registers according to ABI
 				seq.addLast(new RTLVariableAssignment(32, factory.createVariable("%eax"), factory.nondet(32)));
@@ -371,6 +383,8 @@ public class Win32StubLibrary implements StubProvider {
 				logger.debug("Resolving non-import symbol " + symbol);
 				library = jakstab_internal;
 			}
+		} else {
+			library = library.toLowerCase();
 		}
 		
 		if (activeStubs.containsKey(library) && activeStubs.get(library).containsKey(symbol))
