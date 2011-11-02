@@ -29,7 +29,7 @@
 /* 
  * Original code for this class taken from the Java HotSpot VM. 
  * Modified for use with the Jakstab project. All modifications 
- * Copyright 2007-2011 Johannes Kinder <kinder@cs.tu-darmstadt.de>
+ * Copyright 2007-2011 Johannes Kinder <jk@jakstab.org>
  */
 
 package org.jakstab.disasm.x86;

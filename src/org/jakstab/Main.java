@@ -1,6 +1,6 @@
 /*
  * Main.java - This file is part of the Jakstab project.
- * Copyright 2007-2011 Johannes Kinder <kinder@cs.tu-darmstadt.de>
+ * Copyright 2007-2011 Johannes Kinder <jk@jakstab.org>
  *
  * This code is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 2 only, as
@@ -45,7 +45,7 @@ public class Main {
 
 	private static Logger logger = Logger.getLogger(Main.class);;
 
-	private final static String version = "0.8.2u";
+	private final static String version = "0.8.2";
 
 	private static volatile Algorithm activeAlgorithm;
 	private static volatile Thread mainThread;

@@ -3,7 +3,7 @@
  * 
  * Cross product method based on code taken from the MultiJava project.
  * Copyright 1998-2002, Iowa State University
- * Copyright 2009-2011 Johannes Kinder <kinder@cs.tu-darmstadt.de>
+ * Copyright 2009-2011 Johannes Kinder <jk@jakstab.org>
  *
  * This code is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 2 only, as
