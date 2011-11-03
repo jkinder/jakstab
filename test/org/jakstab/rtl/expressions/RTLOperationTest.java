@@ -126,6 +126,14 @@ public class RTLOperationTest {
 	}
 	
 	@Test
+	public void testShiftRight() {
+		Context emptyContext = new Context();
+		RTLNumber x = factory.createNumber(0xFF0000000L, 32);
+		RTLExpression result = factory.createShiftRight(x, factory.createNumber(30, 8)).evaluate(emptyContext);
+		assertEquals(factory.createNumber(3, 32), result);
+	}
+	
+	@Test
 	public void testMinus() throws TypeInferenceException {
 		Context emptyContext = new Context();
 		RTLExpression result = factory.createMinus(num1_32, num7_32).evaluate(emptyContext);

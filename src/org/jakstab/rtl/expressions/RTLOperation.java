@@ -438,7 +438,7 @@ public class RTLOperation extends AbstractRTLExpression implements RTLExpression
 					//logger.debug("Shift left result: " + op1 + " SHL " + op2 + " = " + result);
 					break;
 				case SHR:
-					result = op1 >>> op2;
+					result = (0xFFFFFFFFL & op1) >>> op2;
 					//logger.debug("Shift right result: " + op1 + " SHR " + op2 + " = " + result);
 					break;
 				case SAR:
