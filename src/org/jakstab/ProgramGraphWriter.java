@@ -291,7 +291,7 @@ public class ProgramGraphWriter {
 	}
 
 	public void writeControlFlowAutomaton(String filename) {
-		writeControlFlowAutomaton(filename, null);
+		writeControlFlowAutomaton(filename, (ReachedSet)null);
 	}
 
 	public void writeControlFlowAutomaton(String filename, ReachedSet reached) {
@@ -320,6 +320,49 @@ public class ProgramGraphWriter {
 						labelBuilder.append(a.toString());
 						labelBuilder.append("\n");
 					}
+				}
+				gwriter.writeNode(nodeName, labelBuilder.toString(), getNodeProperties(node));
+			}
+
+			for (CFAEdge e : program.getCFA()) {
+				if (e.getKind() == null) logger.error("Null kind? " + e);
+				gwriter.writeLabeledEdge(e.getSource().toString(), 
+						e.getTarget().toString(), 
+						e.getTransformer().toString(),
+						e.getKind().equals(CFAEdge.Kind.MAY) ? Color.BLACK : Color.GREEN);
+			}
+
+			gwriter.close();
+		} catch (IOException e) {
+			logger.error("Cannot write to output file", e);
+			return;
+		}
+	}
+	
+	public void writeControlFlowAutomaton(String filename, Map<Location, Object> reached) {
+		Set<Location> nodes = new HashSet<Location>();
+		for (CFAEdge e : program.getCFA()) {
+			nodes.add(e.getTarget());
+			nodes.add(e.getSource());
+		}
+
+		// Create dot file
+		GraphWriter gwriter = createGraphWriter(filename);
+		if (gwriter == null) return;
+
+		logger.info("Writing CFA to " + gwriter.getFilename());
+		try {
+			for (Location node : nodes) {
+				String nodeName = node.toString();
+				StringBuilder labelBuilder = new StringBuilder();
+				labelBuilder.append(nodeName);
+				if (reached != null) {
+					labelBuilder.append("\n");
+					Object info = reached.get(node);
+					if (info == null)
+						logger.warn("No information for location " + node);
+					else
+						labelBuilder.append(info.toString());
 				}
 				gwriter.writeNode(nodeName, labelBuilder.toString(), getNodeProperties(node));
 			}
