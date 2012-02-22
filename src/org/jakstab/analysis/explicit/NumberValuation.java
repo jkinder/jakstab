@@ -351,7 +351,7 @@ public final class NumberValuation implements AbstractState {
 			setValue((RTLMemoryLocation)w, v);
 	}
 	
-	public RTLLabel getProgramCounter() {
+	public Location getProgramCounter() {
 		return null;
 	}
 

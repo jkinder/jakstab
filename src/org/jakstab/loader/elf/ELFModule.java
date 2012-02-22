@@ -162,7 +162,7 @@ public class ELFModule implements ExecutableImage {
 			// r_offset is at 0, r_info at 4. r_info is an integer containing the symbol index
 			int ri = symbolTableOff + 4;
 			// little endian only
-			int r_info = (int)((pltRelocs[ri + 3] << 24) + (pltRelocs[ri + 2] << 16) + (pltRelocs[ri + 1] << 8) + pltRelocs[ri]);
+			int r_info = ((pltRelocs[ri + 3] << 24) + (pltRelocs[ri + 2] << 16) + (pltRelocs[ri + 1] << 8) + pltRelocs[ri]);
 			int type = (byte)r_info;
 			int symIdx = r_info >> 8;
 			// type must be R_386_JMP_SLOT

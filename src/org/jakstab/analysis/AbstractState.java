@@ -45,7 +45,7 @@ public interface AbstractState extends LatticeElement {
 	
 	/**
 	 * Get the abstracted program counter value in this state. Currently this is always an
-	 * RTLLabel, but theoretically could be a code sequence, block, or the entire program.
+	 * Location, but theoretically could be a code sequence, block, or the entire program.
 	 * Only needs to be implemented by location analyses and composite states, other states
 	 * can throw a runtime exception.
 	 *  

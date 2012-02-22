@@ -29,7 +29,6 @@ import org.jakstab.asm.x86.X86Instruction;
 import org.jakstab.cfa.CFAEdge;
 import org.jakstab.cfa.Location;
 import org.jakstab.cfa.StateTransformer;
-import org.jakstab.rtl.RTLLabel;
 import org.jakstab.rtl.expressions.ExpressionFactory;
 import org.jakstab.rtl.expressions.RTLVariable;
 import org.jakstab.rtl.statements.RTLStatement;
@@ -196,7 +195,7 @@ public class BoundedAddressTracking implements ConfigurableProgramAnalysis {
 		// Increase precision of ecx, esi, edi for REP prefixed instructions
 		Program program = Program.getProgram();
 		if (BoundedAddressTracking.repPrecBoost.getValue()) {
-			AbsoluteAddress addr = ((RTLLabel)location).getAddress();
+			AbsoluteAddress addr = location.getAddress();
 			X86Instruction instr = (X86Instruction)program.getInstruction(addr);
 			if (instr != null && (instr.hasPrefixREPZ() || instr.hasPrefixREPNZ())) {
 				logger.debug("boost-rep: REP instruction at " + location + ", increasing precision of loop registers.");

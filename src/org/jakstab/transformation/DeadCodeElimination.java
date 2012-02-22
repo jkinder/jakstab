@@ -24,7 +24,6 @@ import org.jakstab.Program;
 import org.jakstab.cfa.CFAEdge;
 import org.jakstab.cfa.Location;
 import org.jakstab.cfa.StateTransformer;
-import org.jakstab.rtl.RTLLabel;
 import org.jakstab.rtl.expressions.*;
 import org.jakstab.rtl.statements.*;
 import org.jakstab.util.Characters;
@@ -181,7 +180,7 @@ public class DeadCodeElimination implements CFATransformation {
 						
 					}
 					if (deadEdge.getSource().equals(program.getStart())) {
-						program.setStart((RTLLabel)deadEdge.getTarget());
+						program.setStart(deadEdge.getTarget());
 					}
 					removalCount++;
 				}

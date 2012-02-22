@@ -24,7 +24,6 @@ import org.jakstab.analysis.*;
 import org.jakstab.asm.*;
 import org.jakstab.cfa.Location;
 import org.jakstab.cfa.StateTransformer;
-import org.jakstab.rtl.RTLLabel;
 import org.jakstab.rtl.expressions.*;
 import org.jakstab.rtl.statements.*;
 import org.jakstab.util.Logger;
@@ -89,17 +88,17 @@ public class CallStackState implements AbstractState {
 				// Prologue Call
 				else if (Program.getProgram().getHarness().contains(stmt.getAddress())) {
 					postStack = new LinkedList<Location>(callStack);
-					postStack.push(new RTLLabel(Program.getProgram().getHarness().getFallthroughAddress(stmt.getAddress())));
+					postStack.push(new Location(Program.getProgram().getHarness().getFallthroughAddress(stmt.getAddress())));
 				}
 				// Call
 				else if (gotoStmt.getType() == RTLGoto.Type.CALL) {
-					RTLLabel returnLabel; 
+					Location returnLabel; 
 					if (instr == null) {
 						// Happens in import stubs containing a call
 						logger.info("No instruction at address " + stmt.getLabel());
 						returnLabel = gotoStmt.getNextLabel();
 					} else {
-						returnLabel = new RTLLabel(new AbsoluteAddress(addressValue + instr.getSize()));
+						returnLabel = new Location(new AbsoluteAddress(addressValue + instr.getSize()));
 					}
 
 					postStack = new LinkedList<Location>();
@@ -160,7 +159,7 @@ public class CallStackState implements AbstractState {
 			logger.debug("Concretizing callstack element: " + callStack.peek());
 			return Collections.singleton(Tuple.create(
 					factory.TRUE,
-					factory.createNumber(((RTLLabel)(callStack.peek())).getAddress().getValue(), 32))
+					factory.createNumber(callStack.peek().getAddress().getValue(), 32))
 					); 
 		} else {
 			Tuple<RTLNumber> result = new Tuple<RTLNumber>(expressions.length);

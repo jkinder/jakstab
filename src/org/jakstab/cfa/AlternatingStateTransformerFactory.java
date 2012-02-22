@@ -30,7 +30,7 @@ import org.jakstab.analysis.composite.DualCompositeState;
 import org.jakstab.asm.AbsoluteAddress;
 import org.jakstab.cfa.CFAEdge.Kind;
 import org.jakstab.rtl.Context;
-import org.jakstab.rtl.RTLLabel;
+import org.jakstab.cfa.Location;
 import org.jakstab.rtl.expressions.ExpressionFactory;
 import org.jakstab.rtl.expressions.RTLExpression;
 import org.jakstab.rtl.expressions.RTLNumber;
@@ -62,7 +62,7 @@ public class AlternatingStateTransformerFactory extends ResolvingTransformerFact
 	
 	@Override
 	public Set<CFAEdge> getTransformers(final AbstractState a) {
-		RTLStatement stmt = Program.getProgram().getStatement((RTLLabel)a.getLocation());
+		RTLStatement stmt = Program.getProgram().getStatement(a.getLocation());
 
 		Set<CFAEdge> transformers = stmt.accept(new DefaultStatementVisitor<Set<CFAEdge>>() {
 
@@ -95,10 +95,10 @@ public class AlternatingStateTransformerFactory extends ResolvingTransformerFact
 				if (Options.procedureAbstraction.getValue() == 2) {
 					// Calls always get a fallthrough edge in optimistic mode
 					if (stmt.getType() == RTLGoto.Type.CALL) {
-						RTLLabel nextLabel = stmt.getNextLabel();
+						Location nextLabel = stmt.getNextLabel();
 
 						if (Program.getProgram().getHarness().contains(stmt.getAddress())) {
-							nextLabel = new RTLLabel(Program.getProgram().getHarness().getFallthroughAddress(stmt.getAddress()));
+							nextLabel = new Location(Program.getProgram().getHarness().getFallthroughAddress(stmt.getAddress()));
 						}
 
 						if (nextLabel != null) {
@@ -122,7 +122,7 @@ public class AlternatingStateTransformerFactory extends ResolvingTransformerFact
 				for (Tuple<RTLNumber> pair : dcs.projectionFromConcretization(stmt.getCondition(), stmt.getTargetExpression())) {
 					RTLNumber conditionValue = pair.get(0);
 					RTLNumber targetValue = pair.get(1);
-					RTLLabel nextLabel;
+					Location nextLabel;
 					// Start building the assume expression: assume correct condition case 
 					assert conditionValue != null;
 					RTLExpression assumption = 
@@ -145,7 +145,7 @@ public class AlternatingStateTransformerFactory extends ResolvingTransformerFact
 										targetValue)
 						);
 						// set next label to jump target
-						nextLabel = new RTLLabel(new AbsoluteAddress(targetValue));
+						nextLabel = new Location(new AbsoluteAddress(targetValue));
 					}
 					assumption = assumption.evaluate(new Context());
 					RTLAssume assume = new RTLAssume(assumption, stmt);
@@ -164,7 +164,7 @@ public class AlternatingStateTransformerFactory extends ResolvingTransformerFact
 				for (Tuple<RTLNumber> pair : dcs.projection(stmt.getCondition(), stmt.getTargetExpression())) {
 					RTLNumber conditionValue = pair.get(0);
 					RTLNumber targetValue = pair.get(1);
-					RTLLabel nextLabel;
+					Location nextLabel;
 					// Start building the assume expression: assume correct condition case 
 					assert conditionValue != null;
 					RTLExpression assumption = 
@@ -191,7 +191,7 @@ public class AlternatingStateTransformerFactory extends ResolvingTransformerFact
 								// If the over-approximation resolved an import to a stub, it's going to be contained.
 								boolean foundStub = false;
 								for (CFAEdge e : results) {
-									RTLNumber staticTarget = ((RTLLabel)e.getTarget()).getAddress().toNumericConstant();
+									RTLNumber staticTarget = e.getTarget().getAddress().toNumericConstant();
 									if (!isProgramAddress(staticTarget) && !stubToReal.containsKey(staticTarget)) {
 										// Take the first one that's neither taken nor in the program
 										// TODO: This could map the wrong addresses in some (hopefully) rare cases depending on analysis order
@@ -226,7 +226,7 @@ public class AlternatingStateTransformerFactory extends ResolvingTransformerFact
 										targetValue)
 						);
 						// set next label to jump target
-						nextLabel = new RTLLabel(new AbsoluteAddress(targetValue));
+						nextLabel = new Location(new AbsoluteAddress(targetValue));
 					}
 					assumption = assumption.evaluate(new Context());
 					RTLAssume assume = new RTLAssume(assumption, stmt);

@@ -47,7 +47,7 @@ public class InstructionDecoder implements /* imports */ X86Opcodes {
 	static int readByte(BinaryInputBuffer bytesArray, int index) {
 		int ret = 0;
 		if (index < bytesArray.getSize()) {
-			ret = (int)bytesArray.getByteAt(index);
+			ret = bytesArray.getByteAt(index);
 			ret = ret & 0xff;
 		} else {
 			throw new ArrayIndexOutOfBoundsException("Disassembler requested byte outside of file area: 0x" + Long.toHexString(index));
@@ -538,7 +538,7 @@ public class InstructionDecoder implements /* imports */ X86Opcodes {
 			//op = new X86AbsoluteAddress((long)off);
 			// --JK: This is actually a memory operand with constant address used by MOV. 
 			// Absolute Addresses are now used only for far calls and far jumps.
-			op = new X86MemoryOperand(getDataType(operandType, operandSize), segReg, (long)off); // JK- Added segReg for mov fs:0, ecx
+			op = new X86MemoryOperand(getDataType(operandType, operandSize), segReg, off); // JK- Added segReg for mov fs:0, ecx
 			break;
 		case ADDR_J:
 			long disp = 0;

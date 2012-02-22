@@ -46,8 +46,8 @@ public class StaticCFICheck {
 //				safeProcedures.add(procedure);
 //
 //				reached = cfr.getReachedStates().select(1);
-//				BasedNumberValuation initialState = (BasedNumberValuation)Lattices.joinAll(reached.where(new RTLLabel(new AbsoluteAddress(DefaultHarness.PROLOGUE_BASE))));
-//				ReachedSet finalStates = reached.where(new RTLLabel(new AbsoluteAddress(DefaultHarness.EPILOGUE_BASE)));
+//				BasedNumberValuation initialState = (BasedNumberValuation)Lattices.joinAll(reached.where(new Location(new AbsoluteAddress(DefaultHarness.PROLOGUE_BASE))));
+//				ReachedSet finalStates = reached.where(new Location(new AbsoluteAddress(DefaultHarness.EPILOGUE_BASE)));
 //				if (finalStates.isEmpty()) {
 //					logger.warn("Non-returning procedure: " + procedure);
 //				} else {

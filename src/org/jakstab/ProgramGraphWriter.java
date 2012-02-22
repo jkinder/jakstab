@@ -31,7 +31,6 @@ import org.jakstab.asm.SymbolFinder;
 import org.jakstab.cfa.CFAEdge;
 import org.jakstab.cfa.CFAEdge.Kind;
 import org.jakstab.cfa.Location;
-import org.jakstab.rtl.*;
 import org.jakstab.rtl.statements.RTLHalt;
 import org.jakstab.rtl.statements.RTLStatement;
 import org.jakstab.util.*;
@@ -50,30 +49,30 @@ public class ProgramGraphWriter {
 	private static final Logger logger = Logger.getLogger(ProgramGraphWriter.class);
 	private Program program;
 	
-	private Set<RTLLabel> mustLeaves;
-	private Set<RTLLabel> locations;
-	private SetMultimap<RTLLabel, CFAEdge> inEdges;
-	private SetMultimap<RTLLabel, CFAEdge> outEdges;
+	private Set<Location> mustLeaves;
+	private Set<Location> locations;
+	private SetMultimap<Location, CFAEdge> inEdges;
+	private SetMultimap<Location, CFAEdge> outEdges;
 
 	public ProgramGraphWriter(Program program) {
 		this.program = program;
 
 		// TODO: Make functions in this class use these pre-initialized data structures 
 		
-		locations = new HashSet<RTLLabel>();
-		mustLeaves = new HashSet<RTLLabel>();
+		locations = new HashSet<Location>();
+		mustLeaves = new HashSet<Location>();
 		inEdges = HashMultimap.create();
 		outEdges = HashMultimap.create();
 		
 		for (CFAEdge e : program.getCFA()) {
-			inEdges.put((RTLLabel)e.getTarget(), e);
-			outEdges.put((RTLLabel)e.getSource(), e);
-			locations.add((RTLLabel)e.getSource());
-			locations.add((RTLLabel)e.getTarget());
+			inEdges.put(e.getTarget(), e);
+			outEdges.put(e.getSource(), e);
+			locations.add(e.getSource());
+			locations.add(e.getTarget());
 		}
 		
 		// Find locations which have an incoming MUST edge, but no outgoing one
-		for (RTLLabel l : locations) {
+		for (Location l : locations) {
 			boolean foundMust = false;
 			for (CFAEdge e : inEdges.get(l)) {
 				foundMust |= e.getKind() == Kind.MUST;
@@ -112,7 +111,7 @@ public class ProgramGraphWriter {
 	}
 
 	private Map<String,String> getNodeProperties(Location loc) {
-		RTLStatement curStmt = program.getStatement((RTLLabel)loc);
+		RTLStatement curStmt = program.getStatement(loc);
 		Map<String,String> properties = new HashMap<String, String>();
 
 		if (curStmt != null) {
@@ -151,8 +150,8 @@ public class ProgramGraphWriter {
 		SetMultimap<AbsoluteAddress, CFAEdge> branchEdgesRev = HashMultimap.create(); 
 		if (!Options.noGraphs.getValue()) {
 			for (CFAEdge e : program.getCFA()) {
-				AbsoluteAddress sourceAddr = ((RTLLabel)e.getSource()).getAddress(); 
-				AbsoluteAddress targetAddr = ((RTLLabel)e.getTarget()).getAddress();
+				AbsoluteAddress sourceAddr = e.getSource().getAddress(); 
+				AbsoluteAddress targetAddr = e.getTarget().getAddress();
 				if (program.getInstruction(sourceAddr) instanceof BranchInstruction && !sourceAddr.equals(targetAddr)) {
 					branchEdges.put(sourceAddr, e);
 					branchEdgesRev.put(targetAddr, e);
@@ -185,7 +184,7 @@ public class ProgramGraphWriter {
 						for (CFAEdge e : targets) {
 							if (first) first = false;
 							else sb.append(", ");
-							sb.append(((RTLLabel)e.getTarget()).getAddress());
+							sb.append(e.getTarget().getAddress());
 							sb.append('(').append(e.getKind()).append(')');
 						}
 					}
@@ -198,7 +197,7 @@ public class ProgramGraphWriter {
 					for (CFAEdge e : referers) {
 						if (first) first = false;
 						else sb.append(", ");
-						sb.append(((RTLLabel)e.getSource()).getAddress());
+						sb.append(e.getSource().getAddress());
 						sb.append('(').append(e.getKind()).append(')');
 					}
 				}
@@ -221,8 +220,8 @@ public class ProgramGraphWriter {
 		Set<CFAEdge> edges = new HashSet<CFAEdge>(); 
 		Set<Location> nodes = new HashSet<Location>();
 		for (CFAEdge e : program.getCFA()) {
-			AbsoluteAddress sourceAddr = ((RTLLabel)e.getSource()).getAddress(); 
-			AbsoluteAddress targetAddr = ((RTLLabel)e.getTarget()).getAddress();
+			AbsoluteAddress sourceAddr = e.getSource().getAddress(); 
+			AbsoluteAddress targetAddr = e.getTarget().getAddress();
 			if (!sourceAddr.equals(targetAddr)) {
 				edges.add(e);
 				nodes.add(e.getSource());
@@ -237,7 +236,7 @@ public class ProgramGraphWriter {
 		logger.info("Writing assembly CFG to " + gwriter.getFilename());
 		try {
 			for (Location node : nodes) {
-				AbsoluteAddress nodeAddr = ((RTLLabel)node).getAddress();
+				AbsoluteAddress nodeAddr = node.getAddress();
 				Instruction instr = program.getInstruction(nodeAddr);
 				String nodeName = nodeAddr.toString();
 				String nodeLabel = program.getSymbolFor(nodeAddr);
@@ -253,8 +252,8 @@ public class ProgramGraphWriter {
 
 			for (CFAEdge e : edges) {
 				if (e.getKind() == null) logger.error("Null kind? " + e);
-				AbsoluteAddress sourceAddr = ((RTLLabel)e.getSource()).getAddress(); 
-				AbsoluteAddress targetAddr = ((RTLLabel)e.getTarget()).getAddress();
+				AbsoluteAddress sourceAddr = e.getSource().getAddress(); 
+				AbsoluteAddress targetAddr = e.getTarget().getAddress();
 				
 				String label = null;
 				Instruction instr = program.getInstruction(sourceAddr);
@@ -263,7 +262,7 @@ public class ProgramGraphWriter {
 					BranchInstruction bi = (BranchInstruction)instr;
 					if (bi.isConditional()) {
 						// Get the original goto from the program (not the converted assume) 
-						RTLStatement rtlGoto = program.getStatement((RTLLabel)e.getSource());
+						RTLStatement rtlGoto = program.getStatement(e.getSource());
 						
 						// If this is the fall-through edge, output F, otherwise T
 						label = targetAddr.equals(rtlGoto.getNextLabel().getAddress()) ? "F" : "T";
@@ -382,23 +381,23 @@ public class ProgramGraphWriter {
 		}
 	}
 	
-	public void writeCallGraph(String filename, SetMultimap<RTLLabel, RTLLabel> callGraph) {
+	public void writeCallGraph(String filename, SetMultimap<Location, Location> callGraph) {
 		// Create dot file
 		GraphWriter gwriter = createGraphWriter(filename);
 		if (gwriter == null) return;
 		
-		Set<RTLLabel> nodes = new HashSet<RTLLabel>();
+		Set<Location> nodes = new HashSet<Location>();
 		
 		logger.info("Writing callgraph to " + gwriter.getFilename());
 		try {
-			for (Map.Entry<RTLLabel, RTLLabel> e : callGraph.entries()) {
+			for (Map.Entry<Location, Location> e : callGraph.entries()) {
 				nodes.add(e.getKey());
 				nodes.add(e.getValue());
 				gwriter.writeEdge(e.getKey().toString(), 
 						e.getValue().toString());
 			}
 			
-			for (RTLLabel node : nodes) {
+			for (Location node : nodes) {
 				gwriter.writeNode(node.toString(), node.toString(), getNodeProperties(node));
 			}
 
@@ -434,7 +433,7 @@ public class ProgramGraphWriter {
 				Map<String, String> properties = null;
 				if (curState == art.getRoot())
 					properties = startNode;
-				if (Program.getProgram().getStatement((RTLLabel)curState.getLocation()) instanceof RTLHalt)
+				if (Program.getProgram().getStatement(curState.getLocation()) instanceof RTLHalt)
 					properties = endNode;
 				StringBuilder nodeLabel = new StringBuilder();
 				nodeLabel.append(curState.getIdentifier());

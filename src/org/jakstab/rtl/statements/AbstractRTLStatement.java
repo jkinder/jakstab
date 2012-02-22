@@ -20,7 +20,7 @@ package org.jakstab.rtl.statements;
 
 import java.util.Set;
 
-import org.jakstab.rtl.RTLLabel;
+import org.jakstab.cfa.Location;
 import org.jakstab.rtl.TypeInferenceException;
 import org.jakstab.rtl.expressions.RTLMemoryLocation;
 import org.jakstab.rtl.expressions.SetOfVariables;
@@ -45,8 +45,8 @@ public abstract class AbstractRTLStatement implements RTLStatement, Cloneable {
 	protected SetOfVariables definedVariables = null;
 	protected Set<RTLMemoryLocation> usedMemoryLocations = null;
 
-	protected RTLLabel label;
-	protected RTLLabel nextLabel;
+	protected Location label;
+	protected Location nextLabel;
 
 	protected void invalidateCache() {
 		usedVariables = null;
@@ -97,7 +97,7 @@ public abstract class AbstractRTLStatement implements RTLStatement, Cloneable {
 	/*
 	 * @see org.jakstab.rtl.RTLStatement#getLabel()
 	 */
-	public RTLLabel getLabel() {
+	public Location getLabel() {
 		return label;
 	}
 
@@ -105,11 +105,11 @@ public abstract class AbstractRTLStatement implements RTLStatement, Cloneable {
 	 * @see org.jakstab.rtl.RTLStatement#setLabel(org.jakstab.asm.AbsoluteAddress, int)
 	 */
 	public void setLabel(AbsoluteAddress addr, int rtlId) {
-		this.label = new RTLLabel(addr, rtlId);
+		this.label = new Location(addr, rtlId);
 	}
 	
 	@Override
-	public void setLabel(RTLLabel label) {
+	public void setLabel(Location label) {
 		this.label = label;
 	}
 
@@ -172,12 +172,12 @@ public abstract class AbstractRTLStatement implements RTLStatement, Cloneable {
 	}
 
 	@Override
-	public RTLLabel getNextLabel() {
+	public Location getNextLabel() {
 		return nextLabel;
 	}
 
 	@Override
-	public void setNextLabel(RTLLabel nextLabel) {
+	public void setNextLabel(Location nextLabel) {
 		this.nextLabel = nextLabel;
 	}
 

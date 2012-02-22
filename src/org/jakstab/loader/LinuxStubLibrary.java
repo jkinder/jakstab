@@ -24,7 +24,7 @@ import org.jakstab.Program;
 import org.jakstab.asm.AbsoluteAddress;
 import org.jakstab.asm.DummySymbolFinder;
 import org.jakstab.asm.SymbolFinder;
-import org.jakstab.rtl.RTLLabel;
+import org.jakstab.cfa.Location;
 import org.jakstab.rtl.expressions.ExpressionFactory;
 import org.jakstab.rtl.expressions.RTLExpression;
 import org.jakstab.rtl.statements.*;
@@ -109,7 +109,7 @@ public class LinuxStubLibrary implements StubProvider {
 		int rtlId = 0;
 		for (RTLStatement stmt : seq) {
 			stmt.setLabel(address, rtlId++);
-			stmt.setNextLabel(new RTLLabel(address, rtlId));
+			stmt.setNextLabel(new Location(address, rtlId));
 		}
 		seq.getLast().setNextLabel(null);
 

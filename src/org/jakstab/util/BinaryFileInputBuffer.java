@@ -46,7 +46,7 @@ public class BinaryFileInputBuffer extends BinaryInputBuffer {
 	@Override
 	public int readBYTE() throws java.io.IOException {
 		// throws java.io.IOException if EOF
-		return ((int)(data[current++]&0xFF))&0xFF;
+		return (data[current++]&0xFF)&0xFF;
 	}
 	
 	@Override

@@ -30,7 +30,6 @@ import org.jakstab.disasm.DisassemblyException;
 import org.jakstab.loader.*;
 import org.jakstab.loader.elf.ELFModule;
 import org.jakstab.loader.pe.*;
-import org.jakstab.rtl.*;
 import org.jakstab.rtl.expressions.SetOfVariables;
 import org.jakstab.rtl.statements.RTLHalt;
 import org.jakstab.rtl.statements.RTLStatement;
@@ -74,8 +73,8 @@ public final class Program {
 	}
 
 	private final Architecture arch;
-	private RTLLabel start;
-	private Map<RTLLabel, RTLStatement> statementMap;
+	private Location start;
+	private Map<Location, RTLStatement> statementMap;
 	private Map<AbsoluteAddress, Instruction> assemblyMap;
 	private ExecutableImage mainModule;
 	private List<ExecutableImage> modules;
@@ -91,7 +90,7 @@ public final class Program {
 
 		modules = new LinkedList<ExecutableImage>();
 		assemblyMap = new TreeMap<AbsoluteAddress, Instruction>();
-		statementMap = new HashMap<RTLLabel, RTLStatement>(2000);
+		statementMap = new HashMap<Location, RTLStatement>(2000);
 		cfa = new FastSet<CFAEdge>();
 		exportedSymbols = new HashMap<String, ExportedSymbol>();
 		unresolvedSymbols = new FastSet<UnresolvedSymbol>();
@@ -242,7 +241,7 @@ public final class Program {
 	 * Set the program entry point to the given label.
 	 * @param label the new entry point
 	 */
-	public void setStart(RTLLabel label) {
+	public void setStart(Location label) {
 		this.start = label;
 	}
 
@@ -251,7 +250,7 @@ public final class Program {
 	 * @param entryAddress the new entry address
 	 */
 	public void setEntryAddress(AbsoluteAddress entryAddress) {
-		setStart(new RTLLabel(entryAddress));
+		setStart(new Location(entryAddress));
 	}
 	
 	/**
@@ -296,7 +295,7 @@ public final class Program {
 	 * @param label The label for which to get the statement
 	 * @return The statement object at label.
 	 */
-	public final RTLStatement getStatement(RTLLabel label) {
+	public final RTLStatement getStatement(Location label) {
 		if (!statementMap.containsKey(label)) {
 			AbsoluteAddress address = label.getAddress();
 			Instruction instr = getInstruction(address);
@@ -334,7 +333,7 @@ public final class Program {
 		statementMap.put(stmt.getLabel(), stmt);
 	}
 	
-	public boolean containsLabel(RTLLabel label) {
+	public boolean containsLabel(Location label) {
 		return statementMap.containsKey(label);
 	}
 
@@ -417,7 +416,7 @@ public final class Program {
 		return instr.toString(addr.getValue(), symbolFinder(addr));
 	}
 	
-	public String getSymbolFor(RTLLabel label) {
+	public String getSymbolFor(Location label) {
 		SymbolFinder symFinder = symbolFinder(label.getAddress());
 		if (symFinder.hasSymbolFor(label.getAddress())) {
 			return symFinder.getSymbolFor(label.getAddress());
@@ -483,7 +482,7 @@ public final class Program {
 		this.cfa = cfa;
 	}
 
-	public RTLLabel getStart() {
+	public Location getStart() {
 		return start;
 	}
 	

@@ -56,7 +56,7 @@ public class SignAnalysis implements ConfigurableProgramAnalysis {
 	}
 
 	/*
-	 * @see org.jakstab.analysis.ConfigurableProgramAnalysis#initStartState(org.jakstab.rtl.RTLLabel)
+	 * @see org.jakstab.analysis.ConfigurableProgramAnalysis#initStartState(org.jakstab.cfa.Location)
 	 */
 	@Override
 	public AbstractState initStartState(Location label) {

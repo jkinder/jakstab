@@ -22,7 +22,7 @@ import java.util.Set;
 
 import org.jakstab.analysis.AbstractState;
 import org.jakstab.asm.AbsoluteAddress;
-import org.jakstab.rtl.RTLLabel;
+import org.jakstab.cfa.Location;
 import org.jakstab.rtl.statements.RTLSkip;
 import org.jakstab.util.FastSet;
 import org.jakstab.util.Logger;
@@ -59,7 +59,7 @@ public class ReverseCFATransformerFactory implements StateTransformerFactory {
 			throw new RuntimeException("CFA has no sink!");
 		} else {
 			// Generate artificial exit node
-			sink = new RTLLabel(new AbsoluteAddress(0xFFFFFF01L));
+			sink = new Location(new AbsoluteAddress(0xFFFFFF01L));
 			for (Location l : sinks) {
 				reverseCFA.put(sink, new CFAEdge(l, sink, new RTLSkip()));
 			}

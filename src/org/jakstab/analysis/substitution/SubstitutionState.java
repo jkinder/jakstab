@@ -315,7 +315,7 @@ public final class SubstitutionState implements AbstractState {
 		}
 	}
 	
-	public RTLLabel getProgramCounter() {
+	public Location getProgramCounter() {
 		return null;
 	}
 
