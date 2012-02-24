@@ -26,7 +26,7 @@ import java.util.Collections;
 import java.util.Set;
 
 import org.jakstab.AnalysisProperties;
-import org.jakstab.Option;
+import org.jakstab.JOption;
 import org.jakstab.Program;
 import org.jakstab.analysis.AbstractState;
 import org.jakstab.analysis.CPAOperators;
@@ -57,7 +57,7 @@ public class TraceReplayAnalysis implements ConfigurableProgramAnalysis {
 		p.setDescription("Replays pre-recorded traces as an under-approximation of control flow.");
 	}
 	
-	public static Option<String> traceFiles = Option.create("trace-file", "f", "", "Comma separated list of trace files to use for tracereplay (default is <mainFile>.parsed)");
+	public static JOption<String> traceFiles = JOption.create("trace-file", "f", "", "Comma separated list of trace files to use for tracereplay (default is <mainFile>.parsed)");
 	
 	@SuppressWarnings("unused")
 	private static final Logger logger = Logger.getLogger(TraceReplayAnalysis.class);

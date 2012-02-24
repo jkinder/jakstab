@@ -1,5 +1,5 @@
 /*
- * Option.java - This file is part of the Jakstab project.
+ * JOption.java - This file is part of the Jakstab project.
  * Copyright 2007-2011 Johannes Kinder <jk@jakstab.org>
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -17,7 +17,7 @@
  */
 package org.jakstab;
 
-public class Option<T> {
+public class JOption<T> {
 
 	private final String name;
 	private final String paramName;
@@ -25,16 +25,16 @@ public class Option<T> {
 	private final String description;
 	private T value;
 	
-	public static <T> Option<T> create(String name, String paramName, T defaultValue, String description) {
+	public static <T> JOption<T> create(String name, String paramName, T defaultValue, String description) {
 		assert defaultValue != null;
-		return new Option<T>(name, paramName, defaultValue, description);
+		return new JOption<T>(name, paramName, defaultValue, description);
 	}
 	
-	public static Option<Boolean> create(String name, String description) {
-		return new Option<Boolean>(name, "", Boolean.FALSE, description);
+	public static JOption<Boolean> create(String name, String description) {
+		return new JOption<Boolean>(name, "", Boolean.FALSE, description);
 	}
 
-	private Option(String name, String paramName, T defaultValue, String description) {
+	private JOption(String name, String paramName, T defaultValue, String description) {
 		super();
 		assert (!name.startsWith("-")) : "Option names should be defined without dashes";
 		if (name.length() == 1) {

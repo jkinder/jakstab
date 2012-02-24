@@ -21,7 +21,7 @@ import java.util.Collections;
 import java.util.Set;
 
 import org.jakstab.AnalysisProperties;
-import org.jakstab.Option;
+import org.jakstab.JOption;
 import org.jakstab.analysis.*;
 import org.jakstab.analysis.callstack.CallStackAnalysis;
 import org.jakstab.analysis.location.BackwardLocationAnalysis;
@@ -47,7 +47,7 @@ public class CompositeProgramAnalysis implements ConfigurableProgramAnalysis {
 		p.setDescription("Default composition of multiple CPAs.");
 	}
 	
-	public static Option<Boolean> ignoreCallingContext = Option.create("ignore-context", "Allow merging of different calling contexts even with call stack analysis enabled.");
+	public static JOption<Boolean> ignoreCallingContext = JOption.create("ignore-context", "Allow merging of different calling contexts even with call stack analysis enabled.");
 	
 	@SuppressWarnings("unused")
 	private static final Logger logger = Logger.getLogger(CompositeProgramAnalysis.class);

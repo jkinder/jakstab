@@ -21,7 +21,7 @@ package org.jakstab.analysis.explicit;
 import java.util.*;
 
 import org.jakstab.AnalysisProperties;
-import org.jakstab.Option;
+import org.jakstab.JOption;
 import org.jakstab.Program;
 import org.jakstab.analysis.*;
 import org.jakstab.asm.AbsoluteAddress;
@@ -52,9 +52,9 @@ public class BoundedAddressTracking implements ConfigurableProgramAnalysis {
 		p.setExplicit(true);
 	}
 	
-	public static Option<Integer> varThreshold = Option.create("explicit-threshold", "k", 5, "Set the maximum number of values tracked per variable per location.");
-	public static Option<Integer> heapThreshold = Option.create("heap-threshold", "k", 5, "Explicit threshold for data stored on the heap.");
-	public static Option<Boolean> repPrecBoost = Option.create("rep-prec-boost", "Increase precision for rep-prefixed instructions.");
+	public static JOption<Integer> varThreshold = JOption.create("explicit-threshold", "k", 5, "Set the maximum number of values tracked per variable per location.");
+	public static JOption<Integer> heapThreshold = JOption.create("heap-threshold", "k", 5, "Explicit threshold for data stored on the heap.");
+	public static JOption<Boolean> repPrecBoost = JOption.create("rep-prec-boost", "Increase precision for rep-prefixed instructions.");
 	
 	public BoundedAddressTracking() {
 	}
