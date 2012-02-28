@@ -42,8 +42,8 @@ public final class SubstitutionState implements AbstractState {
 	private static final Logger logger = Logger.getLogger(SubstitutionState.class);
 	private static long maxStateId = 0;
 	
-	static final SubstitutionState TOP = new SubstitutionState();
-	static final SubstitutionState BOT = new SubstitutionState();
+	public static final SubstitutionState TOP = new SubstitutionState();
+	public static final SubstitutionState BOT = new SubstitutionState();
 
 	private Map<Writable,SubstitutionElement> aVarVal;
 	private final long stateId;
