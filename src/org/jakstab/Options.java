@@ -69,15 +69,11 @@ public class Options {
 		}
 	}
 	
-	private static AnalysisManager mgr = AnalysisManager.getInstance();
 
 	
 	public static String mainFilename = null;
 	public static List<String> moduleFilenames = new LinkedList<String>();
 
-	public static JOption<String> cpas = JOption.create("cpa", "{" + mgr.getShorthandsString() + "}", "x", "Configure which analyses to use for control flow reconstruction.");
-	public static JOption<String> secondaryCPAs = JOption.create("cpa2", "{" + mgr.getShorthandsString() + "}", "", "Secondary analyses to be performed after the initial CFG reconstruction and dead code elimination are completed.");
-	
 	public static JOption<String> sslFilename = JOption.create("ssl", "file", jakstabHome + "/ssl/pentium.ssl", "Use <file> instead of pentium.ssl.");
 	public static JOption<Long> startAddress = JOption.create("a", "address", -1L, "Start analysis at given virtual address.");
 	public static JOption<Boolean> wdm = JOption.create("wdm", "WDM mode, export main function as DriverMain.");
@@ -105,6 +101,10 @@ public class Options {
 			"2: Optimistic: Abstract all calls to ABI contract (fastest).");
 	public static JOption<Integer> getProcAddress = JOption.create("getprocaddress", "n", 2, "How to resolve GetProcAddress: 0: Always succeed, 1: Split success/fail, 2: Merge success/fail (default)");
 
+	private static AnalysisManager mgr = AnalysisManager.getInstance();
+	public static JOption<String> cpas = JOption.create("cpa", "{" + mgr.getShorthandsString() + "}", "x", "Configure which analyses to use for control flow reconstruction.");
+	public static JOption<String> secondaryCPAs = JOption.create("cpa2", "{" + mgr.getShorthandsString() + "}", "", "Secondary analyses to be performed after the initial CFG reconstruction and dead code elimination are completed.");
+	
 	/**
 	 * Handle command line options.
 	 * 
