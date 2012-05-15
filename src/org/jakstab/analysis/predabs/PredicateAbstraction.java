@@ -81,7 +81,6 @@ public class PredicateAbstraction implements ConfigurableProgramAnalysis {
 		final RTLStatement statement = (RTLStatement)edge.getTransformer();
 		final PredicateAbstractionState s = (PredicateAbstractionState)state;
 		final PredicatePrecision prec = (PredicatePrecision)precision;
-		final ExpressionFactory factory = ExpressionFactory.getInstance();
 		Set<AbstractState> post = statement.accept(new DefaultStatementVisitor<Set<AbstractState>>() {
 
 			private final Set<AbstractState> fallThroughState() {
@@ -95,7 +94,8 @@ public class PredicateAbstraction implements ConfigurableProgramAnalysis {
 
 			@Override
 			public Set<AbstractState> visit(RTLAssert stmt) {
-				if (Solver.isSatisfiable(factory.createAnd(s.getStateFormula(prec), factory.createNot(stmt.getAssertion())))) {
+				if (Solver.isSatisfiable(ExpressionFactory.createAnd(s.getStateFormula(prec), 
+						ExpressionFactory.createNot(stmt.getAssertion())))) {
 					logger.error("Found possible assertion violation at " + stmt.getLabel() + "! " + stmt + " evaluated to " + Characters.TOP + " in state:");
 					logger.error(s);
 				}
@@ -107,7 +107,7 @@ public class PredicateAbstraction implements ConfigurableProgramAnalysis {
 				BDD postPreds = s.predicates.id();
 				Writable lhs = stmt.getLeftHandSide();
 
-				RTLExpression xprime = factory.createVariable("xprime" + lhs.getBitWidth(), lhs.getBitWidth()); 
+				RTLExpression xprime = ExpressionFactory.createVariable("xprime" + lhs.getBitWidth(), lhs.getBitWidth()); 
 
 				Context subCtx = new Context();
 				subCtx.substitute(lhs, xprime);
@@ -115,7 +115,7 @@ public class PredicateAbstraction implements ConfigurableProgramAnalysis {
 				Solver solver = Solver.createSolver();
 				RTLExpression stateFormula = s.getStateFormula(prec);
 				solver.addAssertion(stateFormula);
-				solver.addAssertion(factory.createEqual(xprime, 
+				solver.addAssertion(ExpressionFactory.createEqual(xprime, 
 						stmt.getRightHandSide()));
 				
 				for (int predIdx = 0; predIdx <= PredicateMap.getMaxIndex(); predIdx++) { 
@@ -130,7 +130,7 @@ public class PredicateAbstraction implements ConfigurableProgramAnalysis {
 					
 					// check if the predicate holds or not
 					solver.push();
-					solver.addAssertion(factory.createNot(p));
+					solver.addAssertion(ExpressionFactory.createNot(p));
 
 					if (solver.isUnsatisfiable()) {
 						postPreds.andWith(bddFactory.ithVar(predIdx));
@@ -172,7 +172,7 @@ public class PredicateAbstraction implements ConfigurableProgramAnalysis {
 					RTLExpression p = PredicateMap.getPredicate(predIdx);
 					// check if the predicate holds or not
 					solver.push();
-					solver.addAssertion(factory.createNot(p));
+					solver.addAssertion(ExpressionFactory.createNot(p));
 					if (solver.isUnsatisfiable()) {
 						setVariableDontCare(postPreds, predIdx);
 						postPreds.andWith(bddFactory.ithVar(predIdx));

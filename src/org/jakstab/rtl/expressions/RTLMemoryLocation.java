@@ -116,7 +116,7 @@ public class RTLMemoryLocation extends AbstractRTLExpression implements RTLExpre
 			RTLMemoryLocation m = (RTLMemoryLocation)subst;
 			RTLExpression evaldAddress = m.address.evaluate(context);
 			RTLMemoryLocation evaldMemLoc = evaldAddress == m.address ? 
-					m : ExpressionFactory.getInstance().createMemoryLocation(m.segmentRegister, evaldAddress, m.bitWidth);
+					m : ExpressionFactory.createMemoryLocation(m.segmentRegister, evaldAddress, m.bitWidth);
 
 			RTLExpression value = context.getAssignment(evaldMemLoc);
 			if (value != null)
@@ -216,10 +216,9 @@ public class RTLMemoryLocation extends AbstractRTLExpression implements RTLExpre
 		// Inferring address bitwidth currently does not work b/c of multiplication.
 		// For MUL instructions, bitwidth gets doubled, in index-scale addressing, there is an implicit truncation
 
-		ExpressionFactory factory = ExpressionFactory.getInstance();
 		RTLExpression typedAddress = address.inferBitWidth(arch, arch.getAddressBitWidth());
 		if (typedAddress != address)
-			return factory.createMemoryLocation(
+			return ExpressionFactory.createMemoryLocation(
 					this.segmentRegister, typedAddress, bitWidth);
 		else return this;
 	}

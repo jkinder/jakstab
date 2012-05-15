@@ -30,12 +30,8 @@ public class RTLMemoryLocationTest {
 	@SuppressWarnings("unused")
 	private static final Logger logger = Logger.getLogger(RTLMemoryLocationTest.class);
 	
-	private static ExpressionFactory factory;
-
-
 	@Before
 	public void setUp() throws Exception {
-		factory = ExpressionFactory.getInstance();
 	}
 
 	@After
@@ -44,8 +40,11 @@ public class RTLMemoryLocationTest {
 
 	@Test
 	public void testEvaluate() {
-		RTLExpression addrExp = factory.createPlus(factory.createNumber(4), factory.createVariable("x", 32), factory.createNumber(8));
-		RTLMemoryLocation memLoc32 = factory.createMemoryLocation(addrExp, 32);
+		RTLExpression addrExp = ExpressionFactory.createPlus(
+				ExpressionFactory.createNumber(4), 
+				ExpressionFactory.createVariable("x", 32), 
+				ExpressionFactory.createNumber(8));
+		RTLMemoryLocation memLoc32 = ExpressionFactory.createMemoryLocation(addrExp, 32);
 		RTLMemoryLocation evaldMemLoc32 = (RTLMemoryLocation)memLoc32.evaluate(new Context());
 		assertTrue(evaldMemLoc32.getAddress() instanceof RTLOperation);
 		RTLOperation newAddrExp = (RTLOperation)evaldMemLoc32.getAddress();

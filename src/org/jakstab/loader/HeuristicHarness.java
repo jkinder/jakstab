@@ -52,7 +52,6 @@ public class HeuristicHarness implements Harness {
 	private AbsoluteAddress lastAddress;
 
 
-	private ExpressionFactory factory = ExpressionFactory.getInstance();
 	private RTLVariable esp = Program.getProgram().getArchitecture().stackPointer();
 	
 	private List<AbsoluteAddress> entryPoints;
@@ -85,14 +84,14 @@ public class HeuristicHarness implements Harness {
 	public void install(Program program) {
 
 		StatementSequence seq = new StatementSequence();
-		seq.addLast(new RTLVariableAssignment(1, factory.createVariable("%DF", 1), factory.FALSE));
+		seq.addLast(new RTLVariableAssignment(1, ExpressionFactory.createVariable("%DF", 1), ExpressionFactory.FALSE));
 
 		AbsoluteAddress currentAddress = prologueAddress;
 		AbsoluteAddress fallthroughAddress = new AbsoluteAddress(currentAddress.getValue() + CALL_INSTR_DISTANCE);
 		
 		// Call the entry point of the executable
-		push32(seq, factory.createNumber(fallthroughAddress.getValue(), 32));
-		seq.addLast(new RTLGoto(factory.createNumber(program.getStart().getAddress().getValue(), 32), RTLGoto.Type.CALL));
+		push32(seq, ExpressionFactory.createNumber(fallthroughAddress.getValue(), 32));
+		seq.addLast(new RTLGoto(ExpressionFactory.createNumber(program.getStart().getAddress().getValue(), 32), RTLGoto.Type.CALL));
 		putSequence(program, seq, currentAddress);
 		program.setEntryAddress(currentAddress);
 		
@@ -108,8 +107,8 @@ public class HeuristicHarness implements Harness {
 				if (!v.equals(esp))
 					clearReg(seq, v);
 			}
-			push32(seq, factory.createNumber(fallthroughAddress.getValue(), 32));
-			seq.addLast(new RTLGoto(factory.createNumber(entryPoint.getValue(), 32), RTLGoto.Type.CALL));
+			push32(seq, ExpressionFactory.createNumber(fallthroughAddress.getValue(), 32));
+			seq.addLast(new RTLGoto(ExpressionFactory.createNumber(entryPoint.getValue(), 32), RTLGoto.Type.CALL));
 			putSequence(program, seq, currentAddress);
 		}
 		
@@ -124,15 +123,15 @@ public class HeuristicHarness implements Harness {
 	
 	private void push32(StatementSequence seq, RTLExpression value) {
 		seq.addLast(new RTLVariableAssignment(esp.getBitWidth(), esp, 
-				factory.createPlus(esp, factory.createNumber(-4, esp.getBitWidth()))
+				ExpressionFactory.createPlus(esp, ExpressionFactory.createNumber(-4, esp.getBitWidth()))
 		));
 		if (value != null) {
-			seq.addLast(new RTLMemoryAssignment(factory.createMemoryLocation(esp, 32), value));
+			seq.addLast(new RTLMemoryAssignment(ExpressionFactory.createMemoryLocation(esp, 32), value));
 		}
 	}
 	
 	private void clearReg(StatementSequence seq, RTLVariable v) {
-		seq.addLast(new RTLVariableAssignment(v.getBitWidth(), v, factory.nondet(v.getBitWidth())));
+		seq.addLast(new RTLVariableAssignment(v.getBitWidth(), v, ExpressionFactory.nondet(v.getBitWidth())));
 	}
 	
 	private void putSequence(Program program, StatementSequence seq, AbsoluteAddress address) {

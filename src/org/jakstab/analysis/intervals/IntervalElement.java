@@ -52,8 +52,8 @@ public class IntervalElement implements AbstractDomainElement, BitVectorType, It
 	
 	private static final int MAX_CONCRETIZATION_SIZE = 100;
 	
-	public static IntervalElement TRUE = new IntervalElement(ExpressionFactory.getInstance().TRUE);
-	public static IntervalElement FALSE = new IntervalElement(ExpressionFactory.getInstance().FALSE);
+	public static IntervalElement TRUE = new IntervalElement(ExpressionFactory.TRUE);
+	public static IntervalElement FALSE = new IntervalElement(ExpressionFactory.FALSE);
 	
 	public static IntervalElement getTop(int bitWidth) {
 		switch (bitWidth) {
@@ -181,14 +181,13 @@ public class IntervalElement implements AbstractDomainElement, BitVectorType, It
 		if (getRegion() != MemoryRegion.GLOBAL || size() > MAX_CONCRETIZATION_SIZE) {
 			return RTLNumber.ALL_NUMBERS;
 		}
-		ExpressionFactory factory = ExpressionFactory.getInstance();
 		Set<RTLNumber> result = new FastSet<RTLNumber>();
 		
 		if (stride == 0) {
-			result.add(factory.createNumber(left, bitWidth));
+			result.add(ExpressionFactory.createNumber(left, bitWidth));
 		} else {
 			for (long v = left; v <= right; v+=stride) {
-				result.add(factory.createNumber(v, bitWidth));
+				result.add(ExpressionFactory.createNumber(v, bitWidth));
 			}
 		}
 		return result;

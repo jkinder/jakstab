@@ -44,7 +44,7 @@ public class AbsoluteAddress extends Address implements Comparable<AbsoluteAddre
 	}
 	
 	public RTLNumber toNumericConstant() {
-		return ExpressionFactory.getInstance().createNumber(value, getBitWidth());
+		return ExpressionFactory.createNumber(value, getBitWidth());
 	}
 
 	@Override

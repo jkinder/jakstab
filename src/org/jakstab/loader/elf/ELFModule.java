@@ -348,7 +348,7 @@ public class ELFModule implements ExecutableImage {
 			// do not mask the MSB with 0xFF, so we get sign extension for free
 			val = val | (((long)inBuf.readINT8()) << (bytes - 1) * 8);
 			//logger.debug("Read constant value " + val + " from address " + m + " (file offset: " + Long.toHexString(fp) + ") in image.");
-			return ExpressionFactory.getInstance().createNumber(val, m.getBitWidth());
+			return ExpressionFactory.createNumber(val, m.getBitWidth());
 
 		} 
 

@@ -47,7 +47,7 @@ public class PessimisticBasicBlockFactory extends ResolvingTransformerFactory im
 		Program program = Program.getProgram();
 		// First statement
 		RTLStatement firstStmt = program.getStatement(a.getLocation());
-		
+
 		Set<RTLStatement> blockHeads = new FastSet<RTLStatement>();
 		if (firstStmt instanceof RTLGoto) {
 			// Multiple blocks
@@ -59,9 +59,9 @@ public class PessimisticBasicBlockFactory extends ResolvingTransformerFactory im
 			// Single Block
 			blockHeads = new FastSet<RTLStatement>(firstStmt);
 		}
-		
+
 		Set<CFAEdge> transformers = new FastSet<CFAEdge>();
-		
+
 		for (RTLStatement head : blockHeads) {
 
 			BasicBlock block = new BasicBlock();
@@ -77,15 +77,15 @@ public class PessimisticBasicBlockFactory extends ResolvingTransformerFactory im
 			}
 			transformers.add(new CFAEdge(head.getLabel(), stmt.getLabel(), block));
 		}
-		
+
 		saveNewEdges(transformers, a.getLocation());
-		
+
 		return transformers;
 	}
-	
+
 	public Set<RTLStatement> gotoToAssumes(final AbstractState a, final RTLGoto stmt) {
 		assert stmt.getCondition() != null;
-		ExpressionFactory factory = ExpressionFactory.getInstance();
+
 		Set<RTLStatement> results = new FastSet<RTLStatement>();
 
 		Set<Tuple<RTLNumber>> valuePairs = a.projectionFromConcretization(
@@ -97,8 +97,8 @@ public class PessimisticBasicBlockFactory extends ResolvingTransformerFactory im
 			// assume correct condition case 
 			assert conditionValue != null;
 			RTLExpression assumption = 
-				factory.createEqual(stmt.getCondition(), conditionValue);
-			if (conditionValue.equals(factory.FALSE)) {
+					ExpressionFactory.createEqual(stmt.getCondition(), conditionValue);
+			if (conditionValue.equals(ExpressionFactory.FALSE)) {
 				// assume (condition = false), and set next statement to fallthrough
 				nextLabel = stmt.getNextLabel();
 			} else {
@@ -114,12 +114,12 @@ public class PessimisticBasicBlockFactory extends ResolvingTransformerFactory im
 					continue;
 				} else {
 					// assume (condition = true AND targetExpression = targetValue)
-					assumption = factory.createAnd(
+					assumption = ExpressionFactory.createAnd(
 							assumption,
-							factory.createEqual(
+							ExpressionFactory.createEqual(
 									stmt.getTargetExpression(),
 									targetValue)
-					);
+							);
 					// set next label to jump target
 					nextLabel = new Location(new AbsoluteAddress(targetValue));
 				}

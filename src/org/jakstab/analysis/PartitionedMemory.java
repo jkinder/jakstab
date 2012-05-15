@@ -247,9 +247,8 @@ public final class PartitionedMemory<A extends AbstractValue> implements Lattice
 				} else if (cell.offset == offset && cell.size < size) {
 					// Combine smaller cells to bigger one
 					
-					ExpressionFactory factory = ExpressionFactory.getInstance();
 					Collection<RTLNumber> lastValues = new LinkedList<RTLNumber>();
-					lastValues.add(factory.createNumber(0, 8));
+					lastValues.add(ExpressionFactory.createNumber(0, 8));
 					
 					Collection<RTLNumber> cValues = null;
 
@@ -270,7 +269,7 @@ public final class PartitionedMemory<A extends AbstractValue> implements Lattice
 									// do not mask the MSB with 0xFF, so we get sign extension for free
 									val = val | (cVal.longValue() << i * 8);
 								}
-								cValues.add(factory.createNumber(val, (i+1)*8));
+								cValues.add(ExpressionFactory.createNumber(val, (i+1)*8));
 							}
 						}
 						lastValues = cValues;
@@ -291,7 +290,6 @@ public final class PartitionedMemory<A extends AbstractValue> implements Lattice
 
 		} else if (region == MemoryRegion.GLOBAL) {
 
-			ExpressionFactory factory = ExpressionFactory.getInstance();
 			// Check if the memory location references the program's data area or imports
 			AbsoluteAddress a = new AbsoluteAddress(offset);
 			ExecutableImage module = Program.getProgram().getModule(a);
@@ -299,7 +297,9 @@ public final class PartitionedMemory<A extends AbstractValue> implements Lattice
 			if (module != null && (!dataIsTop || module.isReadOnly(a))) {
 				RTLNumber mValue;
 				try {
-					mValue = module.readMemoryLocation(factory.createMemoryLocation(factory.createNumber(offset), bitWidth));
+					mValue = module.readMemoryLocation(
+							ExpressionFactory.createMemoryLocation(
+									ExpressionFactory.createNumber(offset), bitWidth));
 					// Memory outside the program area is implicitly initialized to top 
 					if (mValue != null) 
 						return valueFactory.createAbstractValue(mValue);

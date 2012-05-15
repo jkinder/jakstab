@@ -40,17 +40,15 @@ public class PartitionedMemoryTest {
 	private static NumberElement n16;
 	private static MemoryRegion alloc1;
 	private static MemoryRegion alloc2;
-	private ExpressionFactory factory;
 	private NumberElementFactory valueFactory;
 	
 	
 	@Before
 	public void setUp() throws Exception {
-		factory = ExpressionFactory.getInstance();
-		n32 = new NumberElement(factory.createNumber(52, 32));
-		n32b = new NumberElement(factory.createNumber(13, 32));
-		n32c = new NumberElement(factory.createNumber(13, 32));
-		n16 = new NumberElement(factory.createNumber(-123, 16));
+		n32 = new NumberElement(ExpressionFactory.createNumber(52, 32));
+		n32b = new NumberElement(ExpressionFactory.createNumber(13, 32));
+		n32c = new NumberElement(ExpressionFactory.createNumber(13, 32));
+		n16 = new NumberElement(ExpressionFactory.createNumber(-123, 16));
 		alloc1 = MemoryRegion.create("PartA");
 		alloc2 = MemoryRegion.create("PartB");
 		valueFactory = new NumberElementFactory();
@@ -182,9 +180,9 @@ public class PartitionedMemoryTest {
 	public void testExtractBytesFromStore() {
 		PartitionedMemory<NumberElement> store = new PartitionedMemory<NumberElement>(
 				valueFactory);
-		NumberElement b2 = new NumberElement(factory.createNumber(2, 8));
-		NumberElement b7 = new NumberElement(factory.createNumber(7, 8));
-		NumberElement dComb = new NumberElement(factory.createNumber(0x02070202, 32));
+		NumberElement b2 = new NumberElement(ExpressionFactory.createNumber(2, 8));
+		NumberElement b7 = new NumberElement(ExpressionFactory.createNumber(7, 8));
+		NumberElement dComb = new NumberElement(ExpressionFactory.createNumber(0x02070202, 32));
 		
 		store.set(MemoryRegion.STACK, 16, 32, dComb);
 		
@@ -198,10 +196,10 @@ public class PartitionedMemoryTest {
 	public void testCombineBytesFromStore() {
 		PartitionedMemory<NumberElement> store = new PartitionedMemory<NumberElement>(
 				valueFactory);
-		NumberElement b2 = new NumberElement(factory.createNumber(2, 8));
-		NumberElement b7 = new NumberElement(factory.createNumber(7, 8));
-		NumberElement wComb = new NumberElement(factory.createNumber(0x0207, 16));
-		NumberElement dComb = new NumberElement(factory.createNumber(0x02070202, 32));
+		NumberElement b2 = new NumberElement(ExpressionFactory.createNumber(2, 8));
+		NumberElement b7 = new NumberElement(ExpressionFactory.createNumber(7, 8));
+		NumberElement wComb = new NumberElement(ExpressionFactory.createNumber(0x0207, 16));
+		NumberElement dComb = new NumberElement(ExpressionFactory.createNumber(0x02070202, 32));
 		
 		store.set(MemoryRegion.STACK, 16, 8, b2);
 		store.set(MemoryRegion.STACK, 17, 8, b2);

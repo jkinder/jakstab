@@ -44,12 +44,12 @@ public class PessimisticStateTransformerFactory extends ResolvingTransformerFact
 
 	@SuppressWarnings("unused")
 	private static final Logger logger = Logger.getLogger(PessimisticStateTransformerFactory.class);
-	
+
 	@Override
 	public Set<CFAEdge> resolveGoto(final AbstractState a, final RTLGoto stmt) {
 
 		assert stmt.getCondition() != null;
-		ExpressionFactory factory = ExpressionFactory.getInstance();
+
 		Set<CFAEdge> results = new FastSet<CFAEdge>();
 
 		Set<Tuple<RTLNumber>> valuePairs = a.projectionFromConcretization(
@@ -61,13 +61,13 @@ public class PessimisticStateTransformerFactory extends ResolvingTransformerFact
 			// assume correct condition case 
 			assert conditionValue != null;
 			RTLExpression assumption = 
-				factory.createEqual(stmt.getCondition(), conditionValue);
-			if (conditionValue.equals(factory.FALSE)) {
+					ExpressionFactory.createEqual(stmt.getCondition(), conditionValue);
+			if (conditionValue.equals(ExpressionFactory.FALSE)) {
 				// assume (condition = false), and set next statement to fallthrough
 				nextLabel = stmt.getNextLabel();
 			} else {
 				if (targetValue == null) {
-					
+
 					if (!Options.allEdges.getValue()) {
 						// if target could not be resolved, just leave the edge out for now
 						logger.info(stmt.getLabel() + ": Cannot resolve target expression " + 
@@ -83,10 +83,10 @@ public class PessimisticStateTransformerFactory extends ResolvingTransformerFact
 						logger.warn(stmt.getLabel() + ": Cannot resolve target expression " + 
 								stmt.getTargetExpression() + ". Adding over-approximate edges to all program locations!");
 
-						
+
 						for (Iterator<AbsoluteAddress> it = Program.getProgram().codeAddressIterator(); it.hasNext();) {
 							targetValue = it.next().toNumericConstant();
-							assumption = factory.createEqual(stmt.getTargetExpression(), targetValue);
+							assumption = ExpressionFactory.createEqual(stmt.getTargetExpression(), targetValue);
 							// set next label to jump target
 							nextLabel = new Location(new AbsoluteAddress(targetValue));
 							RTLAssume assume = new RTLAssume(assumption, stmt);
@@ -94,17 +94,17 @@ public class PessimisticStateTransformerFactory extends ResolvingTransformerFact
 							assume.setNextLabel(nextLabel);
 							results.add(new CFAEdge(assume.getLabel(), assume.getNextLabel(), assume));
 						}
-						
+
 						continue;
 					}
 				} else {
 					// assume (condition = true AND targetExpression = targetValue)
-					assumption = factory.createAnd(
+					assumption = ExpressionFactory.createAnd(
 							assumption,
-							factory.createEqual(
+							ExpressionFactory.createEqual(
 									stmt.getTargetExpression(),
 									targetValue)
-					);
+							);
 					// set next label to jump target
 					nextLabel = new Location(new AbsoluteAddress(targetValue));
 				}

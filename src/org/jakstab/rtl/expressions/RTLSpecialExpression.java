@@ -135,7 +135,7 @@ public class RTLSpecialExpression extends AbstractRTLExpression implements RTLEx
 		for(int i=0; i<operandCount; i++)
 			evaledOperands[i] = operands[i].evaluate(context);
 
-		return ExpressionFactory.getInstance().createSpecialExpression(operation, evaledOperands);
+		return ExpressionFactory.createSpecialExpression(operation, evaledOperands);
 	}
 	
 	@Override

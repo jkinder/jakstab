@@ -139,7 +139,7 @@ public class SetOfVariables extends AbstractSet<RTLVariable> implements Set<RTLV
 			public RTLVariable next() {
 				int nextSet = bitSet.nextSetBit(index);
 				index = nextSet + 1;
-				return ExpressionFactory.getInstance().getVariable(nextSet);
+				return ExpressionFactory.getVariable(nextSet);
 			}
 			@Override
 			public void remove() {

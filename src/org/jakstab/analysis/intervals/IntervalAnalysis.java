@@ -205,7 +205,7 @@ public class IntervalAnalysis implements ConfigurableProgramAnalysis {
 				}
 				
 				IntervalElement basePointer = new IntervalElement(newRegion, 
-						ExpressionFactory.getInstance().createNumber(0, 32));
+						ExpressionFactory.createNumber(0, 32));
 				
 				if (lhs instanceof RTLVariable) {
 					post.setVariableValue((RTLVariable)lhs, basePointer);
@@ -297,14 +297,13 @@ public class IntervalAnalysis implements ConfigurableProgramAnalysis {
 	
 	private RTLExpression addClause(RTLExpression formula, RTLExpression clause) {
 		if (formula != null) {
-			return ExpressionFactory.getInstance().createAnd(formula, clause);
+			return ExpressionFactory.createAnd(formula, clause);
 		} else {
 			return clause;
 		}
 	}
 	
 	public RTLExpression getStateFormula(ValuationState state) {
-		ExpressionFactory factory = ExpressionFactory.getInstance();
 		RTLExpression result = null;
 		
 		for (Iterator<Map.Entry<RTLVariable,AbstractDomainElement>> entryIt = state.variableIterator(); entryIt.hasNext();) {
@@ -313,20 +312,23 @@ public class IntervalAnalysis implements ConfigurableProgramAnalysis {
 			IntervalElement interval = (IntervalElement)entry.getValue();
 			
 			if (interval.size() == 1) {
-				result = addClause(result, factory.createEqual(var, factory.createNumber(interval.getLeft(), var.getBitWidth())));
+				result = addClause(result, ExpressionFactory.createEqual(
+						var, ExpressionFactory.createNumber(interval.getLeft(), var.getBitWidth())));
 			} else {
 				if (!interval.leftOpen()) {
-					result = addClause(result, factory.createLessOrEqual(factory.createNumber(interval.getLeft(), var.getBitWidth()), var));
+					result = addClause(result, ExpressionFactory.createLessOrEqual(
+							ExpressionFactory.createNumber(interval.getLeft(), var.getBitWidth()), var));
 				}
 
 				if (!interval.rightOpen()) {
-					result = addClause(result, factory.createLessOrEqual(var, factory.createNumber(interval.getRight(), var.getBitWidth())));
+					result = addClause(result, ExpressionFactory.createLessOrEqual(
+							var, ExpressionFactory.createNumber(interval.getRight(), var.getBitWidth())));
 				}
 			}
 		}
 		
 		if (result == null) {
-			result = factory.TRUE;
+			result = ExpressionFactory.TRUE;
 		}
 
 		return result;

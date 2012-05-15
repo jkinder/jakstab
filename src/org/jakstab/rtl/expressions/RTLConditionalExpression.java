@@ -85,11 +85,10 @@ public class RTLConditionalExpression extends AbstractRTLExpression implements R
 
 	@Override
 	public RTLExpression evaluate(Context context) {
-		ExpressionFactory factory = ExpressionFactory.getInstance();
 		RTLExpression evaldCondition = this.condition.evaluate(context);
 		
-		if (evaldCondition.equals(factory.FALSE)) return this.falseExpression.evaluate(context);
-		else if (evaldCondition.equals(factory.TRUE)) return this.trueExpression.evaluate(context);
+		if (evaldCondition.equals(ExpressionFactory.FALSE)) return this.falseExpression.evaluate(context);
+		else if (evaldCondition.equals(ExpressionFactory.TRUE)) return this.trueExpression.evaluate(context);
 		
 		assert !(evaldCondition instanceof RTLNumber) : "Numeric condition result is neither TRUE nor FALSE but " + evaldCondition;
 		
@@ -97,13 +96,13 @@ public class RTLConditionalExpression extends AbstractRTLExpression implements R
 		RTLExpression evaldFalse = falseExpression.evaluate(context);
 		
 		// Collapse "(x == y) ? 1<1> : 0<1>" to (x == y)
-		if (evaldTrue.equals(factory.TRUE) && evaldFalse.equals(factory.FALSE)) {
+		if (evaldTrue.equals(ExpressionFactory.TRUE) && evaldFalse.equals(ExpressionFactory.FALSE)) {
 			return evaldCondition;
-		} else if (evaldTrue.equals(factory.FALSE) && evaldFalse.equals(factory.TRUE)) {
-				return factory.createOperation(Operator.NOT, evaldCondition);
+		} else if (evaldTrue.equals(ExpressionFactory.FALSE) && evaldFalse.equals(ExpressionFactory.TRUE)) {
+				return ExpressionFactory.createOperation(Operator.NOT, evaldCondition);
 		}
 		
-		return factory.createConditionalExpression(evaldCondition, evaldTrue, evaldFalse);
+		return ExpressionFactory.createConditionalExpression(evaldCondition, evaldTrue, evaldFalse);
 	}
 
 	@Override
@@ -166,7 +165,7 @@ public class RTLConditionalExpression extends AbstractRTLExpression implements R
 		RTLExpression typedFalseExpression = falseExpression.inferBitWidth(arch, expectedBitWidth);
 		if (typedCondition != condition || typedTrueExpression != trueExpression 
 				|| typedFalseExpression != falseExpression)
-			return ExpressionFactory.getInstance().createConditionalExpression(
+			return ExpressionFactory.createConditionalExpression(
 					typedCondition, typedTrueExpression, typedFalseExpression);
 		else return this;
 	}

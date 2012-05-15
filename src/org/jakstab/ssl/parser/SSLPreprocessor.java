@@ -1,4 +1,4 @@
-// $ANTLR : "SSL.g" -> "SSLPreprocessor.java"$
+// $ANTLR 2.7.7 (20060930): "SSL.g" -> "SSLPreprocessor.java"$
 
 	package org.jakstab.ssl.parser;
 
@@ -31,7 +31,6 @@ public class SSLPreprocessor extends antlr.TreeParser       implements SSLParser
 	private Map<String,SSLFunction> instructions = new TreeMap<String,SSLFunction>();
 	private Stack<Map<String,AST>> locals = new Stack<Map<String,AST>>();
 	private SetOfVariables registers = new SetOfVariables(); 
-	private ExpressionFactory factory = ExpressionFactory.getInstance();
 
 	public SetOfVariables getRegisters() { return registers; }	
 	//public Map<String,SSLFunction> getFunctions() { return functions; }
@@ -65,19 +64,19 @@ public SSLPreprocessor() {
 		ASTPair currentAST = new ASTPair();
 		AST specification_AST = null;
 		
-		AST __t635 = _t;
+		AST __t256 = _t;
 		AST tmp1_AST = null;
 		AST tmp1_AST_in = null;
 		tmp1_AST = astFactory.create((AST)_t);
 		tmp1_AST_in = (AST)_t;
 		astFactory.addASTChild(currentAST, tmp1_AST);
-		ASTPair __currentAST635 = currentAST.copy();
+		ASTPair __currentAST256 = currentAST.copy();
 		currentAST.root = currentAST.child;
 		currentAST.child = null;
 		match(_t,SEMI);
 		_t = _t.getFirstChild();
 		{
-		_loop637:
+		_loop258:
 		do {
 			if (_t==null) _t=ASTNULL;
 			if ((_tokenSet_0.member(_t.getType()))) {
@@ -86,13 +85,13 @@ public SSLPreprocessor() {
 				astFactory.addASTChild(currentAST, returnAST);
 			}
 			else {
-				break _loop637;
+				break _loop258;
 			}
 			
 		} while (true);
 		}
-		currentAST = __currentAST635;
-		_t = __t635;
+		currentAST = __currentAST256;
+		_t = __t256;
 		_t = _t.getNextSibling();
 		specification_AST = (AST)currentAST.root;
 		returnAST = specification_AST;
@@ -126,12 +125,12 @@ public SSLPreprocessor() {
 		switch ( _t.getType()) {
 		case CONSTANT:
 		{
-			AST __t639 = _t;
+			AST __t260 = _t;
 			AST tmp2_AST = null;
 			AST tmp2_AST_in = null;
 			tmp2_AST = astFactory.create((AST)_t);
 			tmp2_AST_in = (AST)_t;
-			ASTPair __currentAST639 = currentAST.copy();
+			ASTPair __currentAST260 = currentAST.copy();
 			currentAST.root = currentAST.child;
 			currentAST.child = null;
 			match(_t,CONSTANT);
@@ -143,8 +142,8 @@ public SSLPreprocessor() {
 			_t = _t.getNextSibling();
 			lv=const_expr(_t);
 			_t = _retTree;
-			currentAST = __currentAST639;
-			_t = __t639;
+			currentAST = __currentAST260;
+			_t = __t260;
 			_t = _t.getNextSibling();
 			
 						constants.put(cn.getText(), Long.valueOf(lv));
@@ -153,12 +152,12 @@ public SSLPreprocessor() {
 		}
 		case REGDECL:
 		{
-			AST __t640 = _t;
+			AST __t261 = _t;
 			AST tmp3_AST = null;
 			AST tmp3_AST_in = null;
 			tmp3_AST = astFactory.create((AST)_t);
 			tmp3_AST_in = (AST)_t;
-			ASTPair __currentAST640 = currentAST.copy();
+			ASTPair __currentAST261 = currentAST.copy();
 			currentAST.root = currentAST.child;
 			currentAST.child = null;
 			match(_t,REGDECL);
@@ -187,7 +186,7 @@ public SSLPreprocessor() {
 			}
 			}
 			{
-			_loop643:
+			_loop264:
 			do {
 				if (_t==null) _t=ASTNULL;
 				if (((_t.getType() >= REG_ID && _t.getType() <= LSQUARE))) {
@@ -195,24 +194,24 @@ public SSLPreprocessor() {
 					_t = _retTree;
 				}
 				else {
-					break _loop643;
+					break _loop264;
 				}
 				
 			} while (true);
 			}
-			currentAST = __currentAST640;
-			_t = __t640;
+			currentAST = __currentAST261;
+			_t = __t261;
 			_t = _t.getNextSibling();
 			break;
 		}
 		case TABLE:
 		{
-			AST __t644 = _t;
+			AST __t265 = _t;
 			AST tmp6_AST = null;
 			AST tmp6_AST_in = null;
 			tmp6_AST = astFactory.create((AST)_t);
 			tmp6_AST_in = (AST)_t;
-			ASTPair __currentAST644 = currentAST.copy();
+			ASTPair __currentAST265 = currentAST.copy();
 			currentAST.root = currentAST.child;
 			currentAST.child = null;
 			match(_t,TABLE);
@@ -224,8 +223,8 @@ public SSLPreprocessor() {
 			_t = _t.getNextSibling();
 			tv=table_expr(_t);
 			_t = _retTree;
-			currentAST = __currentAST644;
-			_t = __t644;
+			currentAST = __currentAST265;
+			_t = __t265;
 			_t = _t.getNextSibling();
 			
 						tables.put(tn.getText(), tv); 
@@ -234,12 +233,12 @@ public SSLPreprocessor() {
 		}
 		case FUNCTION:
 		{
-			AST __t645 = _t;
+			AST __t266 = _t;
 			AST tmp7_AST = null;
 			AST tmp7_AST_in = null;
 			tmp7_AST = astFactory.create((AST)_t);
 			tmp7_AST_in = (AST)_t;
-			ASTPair __currentAST645 = currentAST.copy();
+			ASTPair __currentAST266 = currentAST.copy();
 			currentAST.root = currentAST.child;
 			currentAST.child = null;
 			match(_t,FUNCTION);
@@ -256,20 +255,20 @@ public SSLPreprocessor() {
 			fb_AST = astFactory.create(fb);
 			match(_t,RTL);
 			_t = _t.getNextSibling();
-			currentAST = __currentAST645;
-			_t = __t645;
+			currentAST = __currentAST266;
+			_t = __t266;
 			_t = _t.getNextSibling();
 			functions.put(fn.getText(), new SSLFunction(fn.getText(), pl, astFactory.dupTree(fb)));
 			break;
 		}
 		case INSTR:
 		{
-			AST __t646 = _t;
+			AST __t267 = _t;
 			AST tmp8_AST = null;
 			AST tmp8_AST_in = null;
 			tmp8_AST = astFactory.create((AST)_t);
 			tmp8_AST_in = (AST)_t;
-			ASTPair __currentAST646 = currentAST.copy();
+			ASTPair __currentAST267 = currentAST.copy();
 			currentAST.root = currentAST.child;
 			currentAST.child = null;
 			match(_t,INSTR);
@@ -283,8 +282,8 @@ public SSLPreprocessor() {
 			ib_AST = astFactory.create(ib);
 			match(_t,RTL);
 			_t = _t.getNextSibling();
-			currentAST = __currentAST646;
-			_t = __t646;
+			currentAST = __currentAST267;
+			_t = __t267;
 			_t = _t.getNextSibling();
 			
 						for (SSLInstructionName in : inam) {
@@ -342,12 +341,12 @@ public SSLPreprocessor() {
 		}
 		case PLUS:
 		{
-			AST __t654 = _t;
+			AST __t275 = _t;
 			AST tmp9_AST = null;
 			AST tmp9_AST_in = null;
 			tmp9_AST = astFactory.create((AST)_t);
 			tmp9_AST_in = (AST)_t;
-			ASTPair __currentAST654 = currentAST.copy();
+			ASTPair __currentAST275 = currentAST.copy();
 			currentAST.root = currentAST.child;
 			currentAST.child = null;
 			match(_t,PLUS);
@@ -356,20 +355,20 @@ public SSLPreprocessor() {
 			_t = _retTree;
 			r=const_expr(_t);
 			_t = _retTree;
-			currentAST = __currentAST654;
-			_t = __t654;
+			currentAST = __currentAST275;
+			_t = __t275;
 			_t = _t.getNextSibling();
 			v = l + r;
 			break;
 		}
 		case MINUS:
 		{
-			AST __t655 = _t;
+			AST __t276 = _t;
 			AST tmp10_AST = null;
 			AST tmp10_AST_in = null;
 			tmp10_AST = astFactory.create((AST)_t);
 			tmp10_AST_in = (AST)_t;
-			ASTPair __currentAST655 = currentAST.copy();
+			ASTPair __currentAST276 = currentAST.copy();
 			currentAST.root = currentAST.child;
 			currentAST.child = null;
 			match(_t,MINUS);
@@ -378,8 +377,8 @@ public SSLPreprocessor() {
 			_t = _retTree;
 			r=const_expr(_t);
 			_t = _retTree;
-			currentAST = __currentAST655;
-			_t = __t655;
+			currentAST = __currentAST276;
+			_t = __t276;
 			_t = _t.getNextSibling();
 			v = l - r;
 			break;
@@ -433,7 +432,7 @@ public SSLPreprocessor() {
 			regIdFrom=intValue(_t);
 			_t = _retTree;
 			
-							registers.add((RTLVariable)factory.createRegisterVariable(r1.getText(), RTLVariable.UNKNOWN_BITWIDTH));
+							registers.add((RTLVariable)ExpressionFactory.createRegisterVariable(r1.getText(), RTLVariable.UNKNOWN_BITWIDTH));
 					
 			break;
 		}
@@ -549,9 +548,9 @@ public SSLPreprocessor() {
 							if (coveredRegFrom != null) 
 								throw new RuntimeException("COVERS not yet supported!");
 							if (sharedReg != null) {
-								factory.createSharedRegisterVariable(r2.getText(), sharedReg.getText(), shareFrom, shareTo);
+								ExpressionFactory.createSharedRegisterVariable(r2.getText(), sharedReg.getText(), shareFrom, shareTo);
 							} else {
-								registers.add((RTLVariable)factory.createRegisterVariable(r2.getText(), bitWidth));
+								registers.add((RTLVariable)ExpressionFactory.createRegisterVariable(r2.getText(), bitWidth));
 							}
 						
 			break;
@@ -624,7 +623,7 @@ public SSLPreprocessor() {
 			}
 			
 						for (String regName : regList) {
-							registers.add((RTLVariable)factory.createRegisterVariable(regName, bitWidth));
+							registers.add((RTLVariable)ExpressionFactory.createRegisterVariable(regName, bitWidth));
 						}
 					
 			break;
@@ -655,12 +654,12 @@ public SSLPreprocessor() {
 		switch ( _t.getType()) {
 		case LCURLY:
 		{
-			AST __t657 = _t;
+			AST __t278 = _t;
 			AST tmp28_AST = null;
 			AST tmp28_AST_in = null;
 			tmp28_AST = astFactory.create((AST)_t);
 			tmp28_AST_in = (AST)_t;
-			ASTPair __currentAST657 = currentAST.copy();
+			ASTPair __currentAST278 = currentAST.copy();
 			currentAST.root = currentAST.child;
 			currentAST.child = null;
 			match(_t,LCURLY);
@@ -671,7 +670,7 @@ public SSLPreprocessor() {
 				  		res = new LinkedList<AST>(h); /* Copy so we don't change the other table! */ 
 				  	
 			{
-			_loop659:
+			_loop280:
 			do {
 				if (_t==null) _t=ASTNULL;
 				if ((_tokenSet_1.member(_t.getType()))) {
@@ -680,24 +679,24 @@ public SSLPreprocessor() {
 					res.addAll(t);
 				}
 				else {
-					break _loop659;
+					break _loop280;
 				}
 				
 			} while (true);
 			}
-			currentAST = __currentAST657;
-			_t = __t657;
+			currentAST = __currentAST278;
+			_t = __t278;
 			_t = _t.getNextSibling();
 			break;
 		}
 		case CROSSP:
 		{
-			AST __t660 = _t;
+			AST __t281 = _t;
 			AST tmp29_AST = null;
 			AST tmp29_AST_in = null;
 			tmp29_AST = astFactory.create((AST)_t);
 			tmp29_AST_in = (AST)_t;
-			ASTPair __currentAST660 = currentAST.copy();
+			ASTPair __currentAST281 = currentAST.copy();
 			currentAST.root = currentAST.child;
 			currentAST.child = null;
 			match(_t,CROSSP);
@@ -714,19 +713,19 @@ public SSLPreprocessor() {
 							res.add(astFactory.create(NAME, hh.getText() + tt.getText())); 
 					
 			}
-			currentAST = __currentAST660;
-			_t = __t660;
+			currentAST = __currentAST281;
+			_t = __t281;
 			_t = _t.getNextSibling();
 			break;
 		}
 		case QUOTE:
 		{
-			AST __t662 = _t;
+			AST __t283 = _t;
 			AST tmp30_AST = null;
 			AST tmp30_AST_in = null;
 			tmp30_AST = astFactory.create((AST)_t);
 			tmp30_AST_in = (AST)_t;
-			ASTPair __currentAST662 = currentAST.copy();
+			ASTPair __currentAST283 = currentAST.copy();
 			currentAST.root = currentAST.child;
 			currentAST.child = null;
 			match(_t,QUOTE);
@@ -736,8 +735,8 @@ public SSLPreprocessor() {
 			any_AST = astFactory.create(any);
 			if ( _t==null ) throw new MismatchedTokenException();
 			_t = _t.getNextSibling();
-			currentAST = __currentAST662;
-			_t = __t662;
+			currentAST = __currentAST283;
+			_t = __t283;
 			_t = _t.getNextSibling();
 			res = new LinkedList<AST>(); res.add(astFactory.dupTree(any));
 			break;
@@ -779,19 +778,19 @@ public SSLPreprocessor() {
 		AST n = null;
 		AST n_AST = null;
 		
-		AST __t664 = _t;
+		AST __t285 = _t;
 		AST tmp31_AST = null;
 		AST tmp31_AST_in = null;
 		tmp31_AST = astFactory.create((AST)_t);
 		tmp31_AST_in = (AST)_t;
-		ASTPair __currentAST664 = currentAST.copy();
+		ASTPair __currentAST285 = currentAST.copy();
 		currentAST.root = currentAST.child;
 		currentAST.child = null;
 		match(_t,COMMA);
 		_t = _t.getFirstChild();
 		res = new LinkedList<String>();
 		{
-		_loop666:
+		_loop287:
 		do {
 			if (_t==null) _t=ASTNULL;
 			if ((_t.getType()==NAME)) {
@@ -803,13 +802,13 @@ public SSLPreprocessor() {
 				res.add(n.getText());
 			}
 			else {
-				break _loop666;
+				break _loop287;
 			}
 			
 		} while (true);
 		}
-		currentAST = __currentAST664;
-		_t = __t664;
+		currentAST = __currentAST285;
+		_t = __t285;
 		_t = _t.getNextSibling();
 		returnAST = param_list_AST;
 		_retTree = _t;
@@ -825,19 +824,19 @@ public SSLPreprocessor() {
 		AST instr_name_AST = null;
 		List<SSLInstructionName> e;
 		
-		AST __t668 = _t;
+		AST __t289 = _t;
 		AST tmp32_AST = null;
 		AST tmp32_AST_in = null;
 		tmp32_AST = astFactory.create((AST)_t);
 		tmp32_AST_in = (AST)_t;
-		ASTPair __currentAST668 = currentAST.copy();
+		ASTPair __currentAST289 = currentAST.copy();
 		currentAST.root = currentAST.child;
 		currentAST.child = null;
 		match(_t,INSTR_NAME);
 		_t = _t.getFirstChild();
 		res = new LinkedList<SSLInstructionName>();
 		{
-		_loop670:
+		_loop291:
 		do {
 			if (_t==null) _t=ASTNULL;
 			if ((_t.getType()==NAME||_t.getType()==LSQUARE||_t.getType()==DECOR)) {
@@ -863,13 +862,13 @@ public SSLPreprocessor() {
 							
 			}
 			else {
-				break _loop670;
+				break _loop291;
 			}
 			
 		} while (true);
 		}
-		currentAST = __currentAST668;
-		_t = __t668;
+		currentAST = __currentAST289;
+		_t = __t289;
 		_t = _t.getNextSibling();
 		returnAST = instr_name_AST;
 		_retTree = _t;
@@ -918,7 +917,7 @@ public SSLPreprocessor() {
 		_t = _t.getNextSibling();
 		res.add(r.getText());
 		{
-		_loop652:
+		_loop273:
 		do {
 			if (_t==null) _t=ASTNULL;
 			if ((_t.getType()==REG_ID)) {
@@ -930,7 +929,7 @@ public SSLPreprocessor() {
 				res.add(rn.getText());
 			}
 			else {
-				break _loop652;
+				break _loop273;
 			}
 			
 		} while (true);
@@ -978,12 +977,12 @@ public SSLPreprocessor() {
 		}
 		case LSQUARE:
 		{
-			AST __t672 = _t;
+			AST __t293 = _t;
 			AST tmp33_AST = null;
 			AST tmp33_AST_in = null;
 			tmp33_AST = astFactory.create((AST)_t);
 			tmp33_AST_in = (AST)_t;
-			ASTPair __currentAST672 = currentAST.copy();
+			ASTPair __currentAST293 = currentAST.copy();
 			currentAST.root = currentAST.child;
 			currentAST.child = null;
 			match(_t,LSQUARE);
@@ -1040,8 +1039,8 @@ public SSLPreprocessor() {
 			}
 			}
 			}
-			currentAST = __currentAST672;
-			_t = __t672;
+			currentAST = __currentAST293;
+			_t = __t293;
 			_t = _t.getNextSibling();
 			break;
 		}
@@ -1096,12 +1095,12 @@ public SSLPreprocessor() {
 		
 		if (_t==null) _t=ASTNULL;
 		if ((_t.getType()==RTL)) {
-			AST __t675 = _t;
+			AST __t296 = _t;
 			AST tmp34_AST = null;
 			AST tmp34_AST_in = null;
 			tmp34_AST = astFactory.create((AST)_t);
 			tmp34_AST_in = (AST)_t;
-			ASTPair __currentAST675 = currentAST.copy();
+			ASTPair __currentAST296 = currentAST.copy();
 			currentAST.root = currentAST.child;
 			currentAST.child = null;
 			match(_t,RTL);
@@ -1113,7 +1112,7 @@ public SSLPreprocessor() {
 				rtl_expand_AST.getFirstChild() : rtl_expand_AST;
 			currentAST.advanceChildToEnd();
 			{
-			_loop677:
+			_loop298:
 			do {
 				if (_t==null) _t=ASTNULL;
 				if (((_t.getType() >= SEMI && _t.getType() <= DOT))) {
@@ -1132,13 +1131,13 @@ public SSLPreprocessor() {
 								
 				}
 				else {
-					break _loop677;
+					break _loop298;
 				}
 				
 			} while (true);
 			}
-			currentAST = __currentAST675;
-			_t = __t675;
+			currentAST = __currentAST296;
+			_t = __t296;
 			_t = _t.getNextSibling();
 		}
 		else if ((_t.getType()==NAME)) {
@@ -1163,12 +1162,12 @@ public SSLPreprocessor() {
 			currentAST.advanceChildToEnd();
 		}
 		else if ((_t.getType()==LSQUARE)) {
-			AST __t678 = _t;
+			AST __t299 = _t;
 			AST tmp35_AST = null;
 			AST tmp35_AST_in = null;
 			tmp35_AST = astFactory.create((AST)_t);
 			tmp35_AST_in = (AST)_t;
-			ASTPair __currentAST678 = currentAST.copy();
+			ASTPair __currentAST299 = currentAST.copy();
 			currentAST.root = currentAST.child;
 			currentAST.child = null;
 			match(_t,LSQUARE);
@@ -1182,8 +1181,8 @@ public SSLPreprocessor() {
 			rtl_expand(_t);
 			_t = _retTree;
 			etindex_AST = (AST)returnAST;
-			currentAST = __currentAST678;
-			_t = __t678;
+			currentAST = __currentAST299;
+			_t = __t299;
 			_t = _t.getNextSibling();
 			rtl_expand_AST = (AST)currentAST.root;
 			
@@ -1198,12 +1197,12 @@ public SSLPreprocessor() {
 			currentAST.advanceChildToEnd();
 		}
 		else if ((_t.getType()==LOOKUP_OP)) {
-			AST __t679 = _t;
+			AST __t300 = _t;
 			AST tmp36_AST = null;
 			AST tmp36_AST_in = null;
 			tmp36_AST = astFactory.create((AST)_t);
 			tmp36_AST_in = (AST)_t;
-			ASTPair __currentAST679 = currentAST.copy();
+			ASTPair __currentAST300 = currentAST.copy();
 			currentAST.root = currentAST.child;
 			currentAST.child = null;
 			match(_t,LOOKUP_OP);
@@ -1225,8 +1224,8 @@ public SSLPreprocessor() {
 			rtl_expand(_t);
 			_t = _retTree;
 			rexpr_AST = (AST)returnAST;
-			currentAST = __currentAST679;
-			_t = __t679;
+			currentAST = __currentAST300;
+			_t = __t300;
 			_t = _t.getNextSibling();
 			rtl_expand_AST = (AST)currentAST.root;
 			
@@ -1242,12 +1241,12 @@ public SSLPreprocessor() {
 			currentAST.advanceChildToEnd();
 		}
 		else if ((_t.getType()==FUNCTION)) {
-			AST __t680 = _t;
+			AST __t301 = _t;
 			AST tmp37_AST = null;
 			AST tmp37_AST_in = null;
 			tmp37_AST = astFactory.create((AST)_t);
 			tmp37_AST_in = (AST)_t;
-			ASTPair __currentAST680 = currentAST.copy();
+			ASTPair __currentAST301 = currentAST.copy();
 			currentAST.root = currentAST.child;
 			currentAST.child = null;
 			match(_t,FUNCTION);
@@ -1259,7 +1258,7 @@ public SSLPreprocessor() {
 			_t = _t.getNextSibling();
 			List<AST> fargs = new LinkedList<AST>();
 			{
-			_loop682:
+			_loop303:
 			do {
 				if (_t==null) _t=ASTNULL;
 				if (((_t.getType() >= SEMI && _t.getType() <= DOT))) {
@@ -1270,13 +1269,13 @@ public SSLPreprocessor() {
 					fargs.add(farg_AST);
 				}
 				else {
-					break _loop682;
+					break _loop303;
 				}
 				
 			} while (true);
 			}
-			currentAST = __currentAST680;
-			_t = __t680;
+			currentAST = __currentAST301;
+			_t = __t301;
 			_t = _t.getNextSibling();
 			rtl_expand_AST = (AST)currentAST.root;
 			
@@ -1295,19 +1294,19 @@ public SSLPreprocessor() {
 			currentAST.advanceChildToEnd();
 		}
 		else if (((_t.getType() >= SEMI && _t.getType() <= DOT))) {
-			AST __t683 = _t;
+			AST __t304 = _t;
 			AST tmp38_AST = null;
 			AST tmp38_AST_in = null;
 			tmp38_AST = astFactory.create((AST)_t);
 			tmp38_AST_in = (AST)_t;
 			astFactory.addASTChild(currentAST, tmp38_AST);
-			ASTPair __currentAST683 = currentAST.copy();
+			ASTPair __currentAST304 = currentAST.copy();
 			currentAST.root = currentAST.child;
 			currentAST.child = null;
 			if ( _t==null ) throw new MismatchedTokenException();
 			_t = _t.getFirstChild();
 			{
-			_loop685:
+			_loop306:
 			do {
 				if (_t==null) _t=ASTNULL;
 				if (((_t.getType() >= SEMI && _t.getType() <= DOT))) {
@@ -1316,13 +1315,13 @@ public SSLPreprocessor() {
 					astFactory.addASTChild(currentAST, returnAST);
 				}
 				else {
-					break _loop685;
+					break _loop306;
 				}
 				
 			} while (true);
 			}
-			currentAST = __currentAST683;
-			_t = __t683;
+			currentAST = __currentAST304;
+			_t = __t304;
 			_t = _t.getNextSibling();
 			rtl_expand_AST = (AST)currentAST.root;
 		}
@@ -1355,18 +1354,18 @@ public SSLPreprocessor() {
 		
 		if (_t==null) _t=ASTNULL;
 		if ((_t.getType()==RTL)) {
-			AST __t687 = _t;
+			AST __t308 = _t;
 			AST tmp39_AST = null;
 			AST tmp39_AST_in = null;
 			tmp39_AST = astFactory.create((AST)_t);
 			tmp39_AST_in = (AST)_t;
-			ASTPair __currentAST687 = currentAST.copy();
+			ASTPair __currentAST308 = currentAST.copy();
 			currentAST.root = currentAST.child;
 			currentAST.child = null;
 			match(_t,RTL);
 			_t = _t.getFirstChild();
 			{
-			_loop689:
+			_loop310:
 			do {
 				if (_t==null) _t=ASTNULL;
 				if (((_t.getType() >= SEMI && _t.getType() <= DOT))) {
@@ -1375,21 +1374,21 @@ public SSLPreprocessor() {
 					statements.addLast(subStatements);
 				}
 				else {
-					break _loop689;
+					break _loop310;
 				}
 				
 			} while (true);
 			}
-			currentAST = __currentAST687;
-			_t = __t687;
+			currentAST = __currentAST308;
+			_t = __t308;
 			_t = _t.getNextSibling();
 		}
 		else if ((_t.getType()==ASSIGNTYPE)) {
-			AST __t690 = _t;
+			AST __t311 = _t;
 			type = _t==ASTNULL ? null :(AST)_t;
 			AST type_AST_in = null;
 			type_AST = astFactory.create(type);
-			ASTPair __currentAST690 = currentAST.copy();
+			ASTPair __currentAST311 = currentAST.copy();
 			currentAST.root = currentAST.child;
 			currentAST.child = null;
 			match(_t,ASSIGNTYPE);
@@ -1405,8 +1404,8 @@ public SSLPreprocessor() {
 			_t = _retTree;
 			rhs=rtlExpr(_t,-bitWidth);
 			_t = _retTree;
-			currentAST = __currentAST690;
-			_t = __t690;
+			currentAST = __currentAST311;
+			_t = __t311;
 			_t = _t.getNextSibling();
 			
 					statements.addFirst(new AssignmentTemplate(bitWidth, (Writable)lhs, rhs));
@@ -1414,9 +1413,9 @@ public SSLPreprocessor() {
 				
 		}
 		else if ((_t.getType()==LITERAL_MEMSET)) {
-			AST __t691 = _t;
+			AST __t312 = _t;
 			AST tmp40_AST_in = null;
-			ASTPair __currentAST691 = currentAST.copy();
+			ASTPair __currentAST312 = currentAST.copy();
 			currentAST.root = currentAST.child;
 			currentAST.child = null;
 			match(_t,LITERAL_MEMSET);
@@ -1428,17 +1427,17 @@ public SSLPreprocessor() {
 			_t = _retTree;
 			cnt=rtlExpr(_t,bitWidth);
 			_t = _retTree;
-			currentAST = __currentAST691;
-			_t = __t691;
+			currentAST = __currentAST312;
+			_t = __t312;
 			_t = _t.getNextSibling();
 			
 					statements.addFirst(new RTLMemset(lhs, rhs, cnt));
 				
 		}
 		else if ((_t.getType()==LITERAL_MEMCPY)) {
-			AST __t692 = _t;
+			AST __t313 = _t;
 			AST tmp41_AST_in = null;
-			ASTPair __currentAST692 = currentAST.copy();
+			ASTPair __currentAST313 = currentAST.copy();
 			currentAST.root = currentAST.child;
 			currentAST.child = null;
 			match(_t,LITERAL_MEMCPY);
@@ -1450,25 +1449,25 @@ public SSLPreprocessor() {
 			_t = _retTree;
 			cnt=rtlExpr(_t,bitWidth);
 			_t = _retTree;
-			currentAST = __currentAST692;
-			_t = __t692;
+			currentAST = __currentAST313;
+			_t = __t313;
 			_t = _t.getNextSibling();
 			
 					statements.addFirst(new RTLMemcpy(lhs, rhs, cnt));
 				
 		}
 		else if (((_t.getType() >= SEMI && _t.getType() <= DOT))) {
-			AST __t693 = _t;
+			AST __t314 = _t;
 			other = _t==ASTNULL ? null :(AST)_t;
 			AST other_AST_in = null;
 			other_AST = astFactory.create(other);
-			ASTPair __currentAST693 = currentAST.copy();
+			ASTPair __currentAST314 = currentAST.copy();
 			currentAST.root = currentAST.child;
 			currentAST.child = null;
 			if ( _t==null ) throw new MismatchedTokenException();
 			_t = _t.getFirstChild();
 			{
-			_loop695:
+			_loop316:
 			do {
 				if (_t==null) _t=ASTNULL;
 				if (((_t.getType() >= SEMI && _t.getType() <= DOT))) {
@@ -1477,13 +1476,13 @@ public SSLPreprocessor() {
 					_t = _t.getNextSibling();
 				}
 				else {
-					break _loop695;
+					break _loop316;
 				}
 				
 			} while (true);
 			}
-			currentAST = __currentAST693;
-			_t = __t693;
+			currentAST = __currentAST314;
+			_t = __t314;
 			_t = _t.getNextSibling();
 			
 					if (other.getText().equals("halt")) {
@@ -1527,13 +1526,13 @@ public SSLPreprocessor() {
 		switch ( _t.getType()) {
 		case EQ:
 		{
-			AST __t697 = _t;
+			AST __t318 = _t;
 			AST tmp43_AST = null;
 			AST tmp43_AST_in = null;
 			tmp43_AST = astFactory.create((AST)_t);
 			tmp43_AST_in = (AST)_t;
 			astFactory.addASTChild(currentAST, tmp43_AST);
-			ASTPair __currentAST697 = currentAST.copy();
+			ASTPair __currentAST318 = currentAST.copy();
 			currentAST.root = currentAST.child;
 			currentAST.child = null;
 			match(_t,EQ);
@@ -1544,22 +1543,22 @@ public SSLPreprocessor() {
 			e2=rtlExpr(_t,bw);
 			_t = _retTree;
 			astFactory.addASTChild(currentAST, returnAST);
-			currentAST = __currentAST697;
-			_t = __t697;
+			currentAST = __currentAST318;
+			_t = __t318;
 			_t = _t.getNextSibling();
-			ret = factory.createEqual(e1, e2);
+			ret = ExpressionFactory.createEqual(e1, e2);
 			rtlExpr_AST = (AST)currentAST.root;
 			break;
 		}
 		case NE:
 		{
-			AST __t698 = _t;
+			AST __t319 = _t;
 			AST tmp44_AST = null;
 			AST tmp44_AST_in = null;
 			tmp44_AST = astFactory.create((AST)_t);
 			tmp44_AST_in = (AST)_t;
 			astFactory.addASTChild(currentAST, tmp44_AST);
-			ASTPair __currentAST698 = currentAST.copy();
+			ASTPair __currentAST319 = currentAST.copy();
 			currentAST.root = currentAST.child;
 			currentAST.child = null;
 			match(_t,NE);
@@ -1570,22 +1569,22 @@ public SSLPreprocessor() {
 			e2=rtlExpr(_t,bw);
 			_t = _retTree;
 			astFactory.addASTChild(currentAST, returnAST);
-			currentAST = __currentAST698;
-			_t = __t698;
+			currentAST = __currentAST319;
+			_t = __t319;
 			_t = _t.getNextSibling();
-			ret = factory.createNotEqual(e1, e2);
+			ret = ExpressionFactory.createNotEqual(e1, e2);
 			rtlExpr_AST = (AST)currentAST.root;
 			break;
 		}
 		case GT:
 		{
-			AST __t699 = _t;
+			AST __t320 = _t;
 			AST tmp45_AST = null;
 			AST tmp45_AST_in = null;
 			tmp45_AST = astFactory.create((AST)_t);
 			tmp45_AST_in = (AST)_t;
 			astFactory.addASTChild(currentAST, tmp45_AST);
-			ASTPair __currentAST699 = currentAST.copy();
+			ASTPair __currentAST320 = currentAST.copy();
 			currentAST.root = currentAST.child;
 			currentAST.child = null;
 			match(_t,GT);
@@ -1596,22 +1595,22 @@ public SSLPreprocessor() {
 			e2=rtlExpr(_t,bw);
 			_t = _retTree;
 			astFactory.addASTChild(currentAST, returnAST);
-			currentAST = __currentAST699;
-			_t = __t699;
+			currentAST = __currentAST320;
+			_t = __t320;
 			_t = _t.getNextSibling();
-			ret = factory.createGreaterThan(e1, e2);
+			ret = ExpressionFactory.createGreaterThan(e1, e2);
 			rtlExpr_AST = (AST)currentAST.root;
 			break;
 		}
 		case LT:
 		{
-			AST __t700 = _t;
+			AST __t321 = _t;
 			AST tmp46_AST = null;
 			AST tmp46_AST_in = null;
 			tmp46_AST = astFactory.create((AST)_t);
 			tmp46_AST_in = (AST)_t;
 			astFactory.addASTChild(currentAST, tmp46_AST);
-			ASTPair __currentAST700 = currentAST.copy();
+			ASTPair __currentAST321 = currentAST.copy();
 			currentAST.root = currentAST.child;
 			currentAST.child = null;
 			match(_t,LT);
@@ -1622,22 +1621,22 @@ public SSLPreprocessor() {
 			e2=rtlExpr(_t,bw);
 			_t = _retTree;
 			astFactory.addASTChild(currentAST, returnAST);
-			currentAST = __currentAST700;
-			_t = __t700;
+			currentAST = __currentAST321;
+			_t = __t321;
 			_t = _t.getNextSibling();
-			ret = factory.createLessThan(e1, e2);
+			ret = ExpressionFactory.createLessThan(e1, e2);
 			rtlExpr_AST = (AST)currentAST.root;
 			break;
 		}
 		case GE:
 		{
-			AST __t701 = _t;
+			AST __t322 = _t;
 			AST tmp47_AST = null;
 			AST tmp47_AST_in = null;
 			tmp47_AST = astFactory.create((AST)_t);
 			tmp47_AST_in = (AST)_t;
 			astFactory.addASTChild(currentAST, tmp47_AST);
-			ASTPair __currentAST701 = currentAST.copy();
+			ASTPair __currentAST322 = currentAST.copy();
 			currentAST.root = currentAST.child;
 			currentAST.child = null;
 			match(_t,GE);
@@ -1648,22 +1647,22 @@ public SSLPreprocessor() {
 			e2=rtlExpr(_t,bw);
 			_t = _retTree;
 			astFactory.addASTChild(currentAST, returnAST);
-			currentAST = __currentAST701;
-			_t = __t701;
+			currentAST = __currentAST322;
+			_t = __t322;
 			_t = _t.getNextSibling();
-			ret = factory.createGreaterOrEqual(e1, e2);
+			ret = ExpressionFactory.createGreaterOrEqual(e1, e2);
 			rtlExpr_AST = (AST)currentAST.root;
 			break;
 		}
 		case LE:
 		{
-			AST __t702 = _t;
+			AST __t323 = _t;
 			AST tmp48_AST = null;
 			AST tmp48_AST_in = null;
 			tmp48_AST = astFactory.create((AST)_t);
 			tmp48_AST_in = (AST)_t;
 			astFactory.addASTChild(currentAST, tmp48_AST);
-			ASTPair __currentAST702 = currentAST.copy();
+			ASTPair __currentAST323 = currentAST.copy();
 			currentAST.root = currentAST.child;
 			currentAST.child = null;
 			match(_t,LE);
@@ -1674,22 +1673,22 @@ public SSLPreprocessor() {
 			e2=rtlExpr(_t,bw);
 			_t = _retTree;
 			astFactory.addASTChild(currentAST, returnAST);
-			currentAST = __currentAST702;
-			_t = __t702;
+			currentAST = __currentAST323;
+			_t = __t323;
 			_t = _t.getNextSibling();
-			ret = factory.createLessOrEqual(e1, e2);
+			ret = ExpressionFactory.createLessOrEqual(e1, e2);
 			rtlExpr_AST = (AST)currentAST.root;
 			break;
 		}
 		case GTU:
 		{
-			AST __t703 = _t;
+			AST __t324 = _t;
 			AST tmp49_AST = null;
 			AST tmp49_AST_in = null;
 			tmp49_AST = astFactory.create((AST)_t);
 			tmp49_AST_in = (AST)_t;
 			astFactory.addASTChild(currentAST, tmp49_AST);
-			ASTPair __currentAST703 = currentAST.copy();
+			ASTPair __currentAST324 = currentAST.copy();
 			currentAST.root = currentAST.child;
 			currentAST.child = null;
 			match(_t,GTU);
@@ -1700,22 +1699,22 @@ public SSLPreprocessor() {
 			e2=rtlExpr(_t,bw);
 			_t = _retTree;
 			astFactory.addASTChild(currentAST, returnAST);
-			currentAST = __currentAST703;
-			_t = __t703;
+			currentAST = __currentAST324;
+			_t = __t324;
 			_t = _t.getNextSibling();
-			ret = factory.createUnsignedGreaterThan(e1, e2);
+			ret = ExpressionFactory.createUnsignedGreaterThan(e1, e2);
 			rtlExpr_AST = (AST)currentAST.root;
 			break;
 		}
 		case LTU:
 		{
-			AST __t704 = _t;
+			AST __t325 = _t;
 			AST tmp50_AST = null;
 			AST tmp50_AST_in = null;
 			tmp50_AST = astFactory.create((AST)_t);
 			tmp50_AST_in = (AST)_t;
 			astFactory.addASTChild(currentAST, tmp50_AST);
-			ASTPair __currentAST704 = currentAST.copy();
+			ASTPair __currentAST325 = currentAST.copy();
 			currentAST.root = currentAST.child;
 			currentAST.child = null;
 			match(_t,LTU);
@@ -1726,22 +1725,22 @@ public SSLPreprocessor() {
 			e2=rtlExpr(_t,bw);
 			_t = _retTree;
 			astFactory.addASTChild(currentAST, returnAST);
-			currentAST = __currentAST704;
-			_t = __t704;
+			currentAST = __currentAST325;
+			_t = __t325;
 			_t = _t.getNextSibling();
-			ret = factory.createUnsignedLessThan(e1, e2);
+			ret = ExpressionFactory.createUnsignedLessThan(e1, e2);
 			rtlExpr_AST = (AST)currentAST.root;
 			break;
 		}
 		case GEU:
 		{
-			AST __t705 = _t;
+			AST __t326 = _t;
 			AST tmp51_AST = null;
 			AST tmp51_AST_in = null;
 			tmp51_AST = astFactory.create((AST)_t);
 			tmp51_AST_in = (AST)_t;
 			astFactory.addASTChild(currentAST, tmp51_AST);
-			ASTPair __currentAST705 = currentAST.copy();
+			ASTPair __currentAST326 = currentAST.copy();
 			currentAST.root = currentAST.child;
 			currentAST.child = null;
 			match(_t,GEU);
@@ -1752,22 +1751,22 @@ public SSLPreprocessor() {
 			e2=rtlExpr(_t,bw);
 			_t = _retTree;
 			astFactory.addASTChild(currentAST, returnAST);
-			currentAST = __currentAST705;
-			_t = __t705;
+			currentAST = __currentAST326;
+			_t = __t326;
 			_t = _t.getNextSibling();
-			ret = factory.createUnsignedGreaterOrEqual(e1, e2);
+			ret = ExpressionFactory.createUnsignedGreaterOrEqual(e1, e2);
 			rtlExpr_AST = (AST)currentAST.root;
 			break;
 		}
 		case LEU:
 		{
-			AST __t706 = _t;
+			AST __t327 = _t;
 			AST tmp52_AST = null;
 			AST tmp52_AST_in = null;
 			tmp52_AST = astFactory.create((AST)_t);
 			tmp52_AST_in = (AST)_t;
 			astFactory.addASTChild(currentAST, tmp52_AST);
-			ASTPair __currentAST706 = currentAST.copy();
+			ASTPair __currentAST327 = currentAST.copy();
 			currentAST.root = currentAST.child;
 			currentAST.child = null;
 			match(_t,LEU);
@@ -1778,22 +1777,22 @@ public SSLPreprocessor() {
 			e2=rtlExpr(_t,bw);
 			_t = _retTree;
 			astFactory.addASTChild(currentAST, returnAST);
-			currentAST = __currentAST706;
-			_t = __t706;
+			currentAST = __currentAST327;
+			_t = __t327;
 			_t = _t.getNextSibling();
-			ret = factory.createUnsignedLessOrEqual(e1, e2);
+			ret = ExpressionFactory.createUnsignedLessOrEqual(e1, e2);
 			rtlExpr_AST = (AST)currentAST.root;
 			break;
 		}
 		case PLUS:
 		{
-			AST __t707 = _t;
+			AST __t328 = _t;
 			AST tmp53_AST = null;
 			AST tmp53_AST_in = null;
 			tmp53_AST = astFactory.create((AST)_t);
 			tmp53_AST_in = (AST)_t;
 			astFactory.addASTChild(currentAST, tmp53_AST);
-			ASTPair __currentAST707 = currentAST.copy();
+			ASTPair __currentAST328 = currentAST.copy();
 			currentAST.root = currentAST.child;
 			currentAST.child = null;
 			match(_t,PLUS);
@@ -1804,22 +1803,22 @@ public SSLPreprocessor() {
 			e2=rtlExpr(_t,bw);
 			_t = _retTree;
 			astFactory.addASTChild(currentAST, returnAST);
-			currentAST = __currentAST707;
-			_t = __t707;
+			currentAST = __currentAST328;
+			_t = __t328;
 			_t = _t.getNextSibling();
-			ret = factory.createPlus(e1, e2);
+			ret = ExpressionFactory.createPlus(e1, e2);
 			rtlExpr_AST = (AST)currentAST.root;
 			break;
 		}
 		case PLUS_F:
 		{
-			AST __t708 = _t;
+			AST __t329 = _t;
 			AST tmp54_AST = null;
 			AST tmp54_AST_in = null;
 			tmp54_AST = astFactory.create((AST)_t);
 			tmp54_AST_in = (AST)_t;
 			astFactory.addASTChild(currentAST, tmp54_AST);
-			ASTPair __currentAST708 = currentAST.copy();
+			ASTPair __currentAST329 = currentAST.copy();
 			currentAST.root = currentAST.child;
 			currentAST.child = null;
 			match(_t,PLUS_F);
@@ -1830,22 +1829,22 @@ public SSLPreprocessor() {
 			e2=rtlExpr(_t,bw);
 			_t = _retTree;
 			astFactory.addASTChild(currentAST, returnAST);
-			currentAST = __currentAST708;
-			_t = __t708;
+			currentAST = __currentAST329;
+			_t = __t329;
 			_t = _t.getNextSibling();
-			ret = factory.createPlus(e1, e2);
+			ret = ExpressionFactory.createPlus(e1, e2);
 			rtlExpr_AST = (AST)currentAST.root;
 			break;
 		}
 		case PLUS_FD:
 		{
-			AST __t709 = _t;
+			AST __t330 = _t;
 			AST tmp55_AST = null;
 			AST tmp55_AST_in = null;
 			tmp55_AST = astFactory.create((AST)_t);
 			tmp55_AST_in = (AST)_t;
 			astFactory.addASTChild(currentAST, tmp55_AST);
-			ASTPair __currentAST709 = currentAST.copy();
+			ASTPair __currentAST330 = currentAST.copy();
 			currentAST.root = currentAST.child;
 			currentAST.child = null;
 			match(_t,PLUS_FD);
@@ -1856,22 +1855,22 @@ public SSLPreprocessor() {
 			e2=rtlExpr(_t,bw);
 			_t = _retTree;
 			astFactory.addASTChild(currentAST, returnAST);
-			currentAST = __currentAST709;
-			_t = __t709;
+			currentAST = __currentAST330;
+			_t = __t330;
 			_t = _t.getNextSibling();
-			ret = factory.createPlus(e1, e2);
+			ret = ExpressionFactory.createPlus(e1, e2);
 			rtlExpr_AST = (AST)currentAST.root;
 			break;
 		}
 		case PLUS_FQ:
 		{
-			AST __t710 = _t;
+			AST __t331 = _t;
 			AST tmp56_AST = null;
 			AST tmp56_AST_in = null;
 			tmp56_AST = astFactory.create((AST)_t);
 			tmp56_AST_in = (AST)_t;
 			astFactory.addASTChild(currentAST, tmp56_AST);
-			ASTPair __currentAST710 = currentAST.copy();
+			ASTPair __currentAST331 = currentAST.copy();
 			currentAST.root = currentAST.child;
 			currentAST.child = null;
 			match(_t,PLUS_FQ);
@@ -1882,22 +1881,22 @@ public SSLPreprocessor() {
 			e2=rtlExpr(_t,bw);
 			_t = _retTree;
 			astFactory.addASTChild(currentAST, returnAST);
-			currentAST = __currentAST710;
-			_t = __t710;
+			currentAST = __currentAST331;
+			_t = __t331;
 			_t = _t.getNextSibling();
-			ret = factory.createPlus(e1, e2);
+			ret = ExpressionFactory.createPlus(e1, e2);
 			rtlExpr_AST = (AST)currentAST.root;
 			break;
 		}
 		case MINUS:
 		{
-			AST __t711 = _t;
+			AST __t332 = _t;
 			AST tmp57_AST = null;
 			AST tmp57_AST_in = null;
 			tmp57_AST = astFactory.create((AST)_t);
 			tmp57_AST_in = (AST)_t;
 			astFactory.addASTChild(currentAST, tmp57_AST);
-			ASTPair __currentAST711 = currentAST.copy();
+			ASTPair __currentAST332 = currentAST.copy();
 			currentAST.root = currentAST.child;
 			currentAST.child = null;
 			match(_t,MINUS);
@@ -1908,22 +1907,22 @@ public SSLPreprocessor() {
 			e2=rtlExpr(_t,bw);
 			_t = _retTree;
 			astFactory.addASTChild(currentAST, returnAST);
-			currentAST = __currentAST711;
-			_t = __t711;
+			currentAST = __currentAST332;
+			_t = __t332;
 			_t = _t.getNextSibling();
-			ret = factory.createMinus(e1, e2);
+			ret = ExpressionFactory.createMinus(e1, e2);
 			rtlExpr_AST = (AST)currentAST.root;
 			break;
 		}
 		case MINUS_F:
 		{
-			AST __t712 = _t;
+			AST __t333 = _t;
 			AST tmp58_AST = null;
 			AST tmp58_AST_in = null;
 			tmp58_AST = astFactory.create((AST)_t);
 			tmp58_AST_in = (AST)_t;
 			astFactory.addASTChild(currentAST, tmp58_AST);
-			ASTPair __currentAST712 = currentAST.copy();
+			ASTPair __currentAST333 = currentAST.copy();
 			currentAST.root = currentAST.child;
 			currentAST.child = null;
 			match(_t,MINUS_F);
@@ -1934,22 +1933,22 @@ public SSLPreprocessor() {
 			e2=rtlExpr(_t,bw);
 			_t = _retTree;
 			astFactory.addASTChild(currentAST, returnAST);
-			currentAST = __currentAST712;
-			_t = __t712;
+			currentAST = __currentAST333;
+			_t = __t333;
 			_t = _t.getNextSibling();
-			ret = factory.createMinus(e1, e2);
+			ret = ExpressionFactory.createMinus(e1, e2);
 			rtlExpr_AST = (AST)currentAST.root;
 			break;
 		}
 		case MINUS_FD:
 		{
-			AST __t713 = _t;
+			AST __t334 = _t;
 			AST tmp59_AST = null;
 			AST tmp59_AST_in = null;
 			tmp59_AST = astFactory.create((AST)_t);
 			tmp59_AST_in = (AST)_t;
 			astFactory.addASTChild(currentAST, tmp59_AST);
-			ASTPair __currentAST713 = currentAST.copy();
+			ASTPair __currentAST334 = currentAST.copy();
 			currentAST.root = currentAST.child;
 			currentAST.child = null;
 			match(_t,MINUS_FD);
@@ -1960,22 +1959,22 @@ public SSLPreprocessor() {
 			e2=rtlExpr(_t,bw);
 			_t = _retTree;
 			astFactory.addASTChild(currentAST, returnAST);
-			currentAST = __currentAST713;
-			_t = __t713;
+			currentAST = __currentAST334;
+			_t = __t334;
 			_t = _t.getNextSibling();
-			ret = factory.createMinus(e1, e2);
+			ret = ExpressionFactory.createMinus(e1, e2);
 			rtlExpr_AST = (AST)currentAST.root;
 			break;
 		}
 		case MINUS_FQ:
 		{
-			AST __t714 = _t;
+			AST __t335 = _t;
 			AST tmp60_AST = null;
 			AST tmp60_AST_in = null;
 			tmp60_AST = astFactory.create((AST)_t);
 			tmp60_AST_in = (AST)_t;
 			astFactory.addASTChild(currentAST, tmp60_AST);
-			ASTPair __currentAST714 = currentAST.copy();
+			ASTPair __currentAST335 = currentAST.copy();
 			currentAST.root = currentAST.child;
 			currentAST.child = null;
 			match(_t,MINUS_FQ);
@@ -1986,22 +1985,22 @@ public SSLPreprocessor() {
 			e2=rtlExpr(_t,bw);
 			_t = _retTree;
 			astFactory.addASTChild(currentAST, returnAST);
-			currentAST = __currentAST714;
-			_t = __t714;
+			currentAST = __currentAST335;
+			_t = __t335;
 			_t = _t.getNextSibling();
-			ret = factory.createMinus(e1, e2);
+			ret = ExpressionFactory.createMinus(e1, e2);
 			rtlExpr_AST = (AST)currentAST.root;
 			break;
 		}
 		case MUL:
 		{
-			AST __t715 = _t;
+			AST __t336 = _t;
 			AST tmp61_AST = null;
 			AST tmp61_AST_in = null;
 			tmp61_AST = astFactory.create((AST)_t);
 			tmp61_AST_in = (AST)_t;
 			astFactory.addASTChild(currentAST, tmp61_AST);
-			ASTPair __currentAST715 = currentAST.copy();
+			ASTPair __currentAST336 = currentAST.copy();
 			currentAST.root = currentAST.child;
 			currentAST.child = null;
 			match(_t,MUL);
@@ -2012,22 +2011,22 @@ public SSLPreprocessor() {
 			e2=rtlExpr(_t,bw);
 			_t = _retTree;
 			astFactory.addASTChild(currentAST, returnAST);
-			currentAST = __currentAST715;
-			_t = __t715;
+			currentAST = __currentAST336;
+			_t = __t336;
 			_t = _t.getNextSibling();
-			ret = factory.createMultiply(e1, e2);
+			ret = ExpressionFactory.createMultiply(e1, e2);
 			rtlExpr_AST = (AST)currentAST.root;
 			break;
 		}
 		case MUL_F:
 		{
-			AST __t716 = _t;
+			AST __t337 = _t;
 			AST tmp62_AST = null;
 			AST tmp62_AST_in = null;
 			tmp62_AST = astFactory.create((AST)_t);
 			tmp62_AST_in = (AST)_t;
 			astFactory.addASTChild(currentAST, tmp62_AST);
-			ASTPair __currentAST716 = currentAST.copy();
+			ASTPair __currentAST337 = currentAST.copy();
 			currentAST.root = currentAST.child;
 			currentAST.child = null;
 			match(_t,MUL_F);
@@ -2038,22 +2037,22 @@ public SSLPreprocessor() {
 			e2=rtlExpr(_t,bw);
 			_t = _retTree;
 			astFactory.addASTChild(currentAST, returnAST);
-			currentAST = __currentAST716;
-			_t = __t716;
+			currentAST = __currentAST337;
+			_t = __t337;
 			_t = _t.getNextSibling();
-			ret = factory.createFloatMultiply(e1, e2);
+			ret = ExpressionFactory.createFloatMultiply(e1, e2);
 			rtlExpr_AST = (AST)currentAST.root;
 			break;
 		}
 		case MUL_FD:
 		{
-			AST __t717 = _t;
+			AST __t338 = _t;
 			AST tmp63_AST = null;
 			AST tmp63_AST_in = null;
 			tmp63_AST = astFactory.create((AST)_t);
 			tmp63_AST_in = (AST)_t;
 			astFactory.addASTChild(currentAST, tmp63_AST);
-			ASTPair __currentAST717 = currentAST.copy();
+			ASTPair __currentAST338 = currentAST.copy();
 			currentAST.root = currentAST.child;
 			currentAST.child = null;
 			match(_t,MUL_FD);
@@ -2064,22 +2063,22 @@ public SSLPreprocessor() {
 			e2=rtlExpr(_t,bw);
 			_t = _retTree;
 			astFactory.addASTChild(currentAST, returnAST);
-			currentAST = __currentAST717;
-			_t = __t717;
+			currentAST = __currentAST338;
+			_t = __t338;
 			_t = _t.getNextSibling();
-			ret = factory.createFloatMultiply(e1, e2);
+			ret = ExpressionFactory.createFloatMultiply(e1, e2);
 			rtlExpr_AST = (AST)currentAST.root;
 			break;
 		}
 		case MUL_FQ:
 		{
-			AST __t718 = _t;
+			AST __t339 = _t;
 			AST tmp64_AST = null;
 			AST tmp64_AST_in = null;
 			tmp64_AST = astFactory.create((AST)_t);
 			tmp64_AST_in = (AST)_t;
 			astFactory.addASTChild(currentAST, tmp64_AST);
-			ASTPair __currentAST718 = currentAST.copy();
+			ASTPair __currentAST339 = currentAST.copy();
 			currentAST.root = currentAST.child;
 			currentAST.child = null;
 			match(_t,MUL_FQ);
@@ -2090,22 +2089,22 @@ public SSLPreprocessor() {
 			e2=rtlExpr(_t,bw);
 			_t = _retTree;
 			astFactory.addASTChild(currentAST, returnAST);
-			currentAST = __currentAST718;
-			_t = __t718;
+			currentAST = __currentAST339;
+			_t = __t339;
 			_t = _t.getNextSibling();
-			ret = factory.createFloatMultiply(e1, e2);
+			ret = ExpressionFactory.createFloatMultiply(e1, e2);
 			rtlExpr_AST = (AST)currentAST.root;
 			break;
 		}
 		case MUL_FSD:
 		{
-			AST __t719 = _t;
+			AST __t340 = _t;
 			AST tmp65_AST = null;
 			AST tmp65_AST_in = null;
 			tmp65_AST = astFactory.create((AST)_t);
 			tmp65_AST_in = (AST)_t;
 			astFactory.addASTChild(currentAST, tmp65_AST);
-			ASTPair __currentAST719 = currentAST.copy();
+			ASTPair __currentAST340 = currentAST.copy();
 			currentAST.root = currentAST.child;
 			currentAST.child = null;
 			match(_t,MUL_FSD);
@@ -2116,22 +2115,22 @@ public SSLPreprocessor() {
 			e2=rtlExpr(_t,bw);
 			_t = _retTree;
 			astFactory.addASTChild(currentAST, returnAST);
-			currentAST = __currentAST719;
-			_t = __t719;
+			currentAST = __currentAST340;
+			_t = __t340;
 			_t = _t.getNextSibling();
-			ret = factory.createFloatMultiply(e1, e2);
+			ret = ExpressionFactory.createFloatMultiply(e1, e2);
 			rtlExpr_AST = (AST)currentAST.root;
 			break;
 		}
 		case MUL_FDQ:
 		{
-			AST __t720 = _t;
+			AST __t341 = _t;
 			AST tmp66_AST = null;
 			AST tmp66_AST_in = null;
 			tmp66_AST = astFactory.create((AST)_t);
 			tmp66_AST_in = (AST)_t;
 			astFactory.addASTChild(currentAST, tmp66_AST);
-			ASTPair __currentAST720 = currentAST.copy();
+			ASTPair __currentAST341 = currentAST.copy();
 			currentAST.root = currentAST.child;
 			currentAST.child = null;
 			match(_t,MUL_FDQ);
@@ -2142,22 +2141,22 @@ public SSLPreprocessor() {
 			e2=rtlExpr(_t,bw);
 			_t = _retTree;
 			astFactory.addASTChild(currentAST, returnAST);
-			currentAST = __currentAST720;
-			_t = __t720;
+			currentAST = __currentAST341;
+			_t = __t341;
 			_t = _t.getNextSibling();
-			ret = factory.createFloatMultiply(e1, e2);
+			ret = ExpressionFactory.createFloatMultiply(e1, e2);
 			rtlExpr_AST = (AST)currentAST.root;
 			break;
 		}
 		case SMUL:
 		{
-			AST __t721 = _t;
+			AST __t342 = _t;
 			AST tmp67_AST = null;
 			AST tmp67_AST_in = null;
 			tmp67_AST = astFactory.create((AST)_t);
 			tmp67_AST_in = (AST)_t;
 			astFactory.addASTChild(currentAST, tmp67_AST);
-			ASTPair __currentAST721 = currentAST.copy();
+			ASTPair __currentAST342 = currentAST.copy();
 			currentAST.root = currentAST.child;
 			currentAST.child = null;
 			match(_t,SMUL);
@@ -2168,22 +2167,22 @@ public SSLPreprocessor() {
 			e2=rtlExpr(_t,bw);
 			_t = _retTree;
 			astFactory.addASTChild(currentAST, returnAST);
-			currentAST = __currentAST721;
-			_t = __t721;
+			currentAST = __currentAST342;
+			_t = __t342;
 			_t = _t.getNextSibling();
-			ret = factory.createMultiply(e1, e2);
+			ret = ExpressionFactory.createMultiply(e1, e2);
 			rtlExpr_AST = (AST)currentAST.root;
 			break;
 		}
 		case DIV:
 		{
-			AST __t722 = _t;
+			AST __t343 = _t;
 			AST tmp68_AST = null;
 			AST tmp68_AST_in = null;
 			tmp68_AST = astFactory.create((AST)_t);
 			tmp68_AST_in = (AST)_t;
 			astFactory.addASTChild(currentAST, tmp68_AST);
-			ASTPair __currentAST722 = currentAST.copy();
+			ASTPair __currentAST343 = currentAST.copy();
 			currentAST.root = currentAST.child;
 			currentAST.child = null;
 			match(_t,DIV);
@@ -2194,22 +2193,22 @@ public SSLPreprocessor() {
 			e2=rtlExpr(_t,bw);
 			_t = _retTree;
 			astFactory.addASTChild(currentAST, returnAST);
-			currentAST = __currentAST722;
-			_t = __t722;
+			currentAST = __currentAST343;
+			_t = __t343;
 			_t = _t.getNextSibling();
-			ret = factory.createDivide(e1, e2);
+			ret = ExpressionFactory.createDivide(e1, e2);
 			rtlExpr_AST = (AST)currentAST.root;
 			break;
 		}
 		case DIV_F:
 		{
-			AST __t723 = _t;
+			AST __t344 = _t;
 			AST tmp69_AST = null;
 			AST tmp69_AST_in = null;
 			tmp69_AST = astFactory.create((AST)_t);
 			tmp69_AST_in = (AST)_t;
 			astFactory.addASTChild(currentAST, tmp69_AST);
-			ASTPair __currentAST723 = currentAST.copy();
+			ASTPair __currentAST344 = currentAST.copy();
 			currentAST.root = currentAST.child;
 			currentAST.child = null;
 			match(_t,DIV_F);
@@ -2220,22 +2219,22 @@ public SSLPreprocessor() {
 			e2=rtlExpr(_t,bw);
 			_t = _retTree;
 			astFactory.addASTChild(currentAST, returnAST);
-			currentAST = __currentAST723;
-			_t = __t723;
+			currentAST = __currentAST344;
+			_t = __t344;
 			_t = _t.getNextSibling();
-			ret = factory.createFloatDivide(e1, e2);
+			ret = ExpressionFactory.createFloatDivide(e1, e2);
 			rtlExpr_AST = (AST)currentAST.root;
 			break;
 		}
 		case DIV_FD:
 		{
-			AST __t724 = _t;
+			AST __t345 = _t;
 			AST tmp70_AST = null;
 			AST tmp70_AST_in = null;
 			tmp70_AST = astFactory.create((AST)_t);
 			tmp70_AST_in = (AST)_t;
 			astFactory.addASTChild(currentAST, tmp70_AST);
-			ASTPair __currentAST724 = currentAST.copy();
+			ASTPair __currentAST345 = currentAST.copy();
 			currentAST.root = currentAST.child;
 			currentAST.child = null;
 			match(_t,DIV_FD);
@@ -2246,22 +2245,22 @@ public SSLPreprocessor() {
 			e2=rtlExpr(_t,bw);
 			_t = _retTree;
 			astFactory.addASTChild(currentAST, returnAST);
-			currentAST = __currentAST724;
-			_t = __t724;
+			currentAST = __currentAST345;
+			_t = __t345;
 			_t = _t.getNextSibling();
-			ret = factory.createFloatDivide(e1, e2);
+			ret = ExpressionFactory.createFloatDivide(e1, e2);
 			rtlExpr_AST = (AST)currentAST.root;
 			break;
 		}
 		case DIV_FQ:
 		{
-			AST __t725 = _t;
+			AST __t346 = _t;
 			AST tmp71_AST = null;
 			AST tmp71_AST_in = null;
 			tmp71_AST = astFactory.create((AST)_t);
 			tmp71_AST_in = (AST)_t;
 			astFactory.addASTChild(currentAST, tmp71_AST);
-			ASTPair __currentAST725 = currentAST.copy();
+			ASTPair __currentAST346 = currentAST.copy();
 			currentAST.root = currentAST.child;
 			currentAST.child = null;
 			match(_t,DIV_FQ);
@@ -2272,22 +2271,22 @@ public SSLPreprocessor() {
 			e2=rtlExpr(_t,bw);
 			_t = _retTree;
 			astFactory.addASTChild(currentAST, returnAST);
-			currentAST = __currentAST725;
-			_t = __t725;
+			currentAST = __currentAST346;
+			_t = __t346;
 			_t = _t.getNextSibling();
-			ret = factory.createFloatDivide(e1, e2);
+			ret = ExpressionFactory.createFloatDivide(e1, e2);
 			rtlExpr_AST = (AST)currentAST.root;
 			break;
 		}
 		case SDIV:
 		{
-			AST __t726 = _t;
+			AST __t347 = _t;
 			AST tmp72_AST = null;
 			AST tmp72_AST_in = null;
 			tmp72_AST = astFactory.create((AST)_t);
 			tmp72_AST_in = (AST)_t;
 			astFactory.addASTChild(currentAST, tmp72_AST);
-			ASTPair __currentAST726 = currentAST.copy();
+			ASTPair __currentAST347 = currentAST.copy();
 			currentAST.root = currentAST.child;
 			currentAST.child = null;
 			match(_t,SDIV);
@@ -2298,22 +2297,22 @@ public SSLPreprocessor() {
 			e2=rtlExpr(_t,bw);
 			_t = _retTree;
 			astFactory.addASTChild(currentAST, returnAST);
-			currentAST = __currentAST726;
-			_t = __t726;
+			currentAST = __currentAST347;
+			_t = __t347;
 			_t = _t.getNextSibling();
-			ret = factory.createDivide(e1, e2);
+			ret = ExpressionFactory.createDivide(e1, e2);
 			rtlExpr_AST = (AST)currentAST.root;
 			break;
 		}
 		case MOD:
 		{
-			AST __t727 = _t;
+			AST __t348 = _t;
 			AST tmp73_AST = null;
 			AST tmp73_AST_in = null;
 			tmp73_AST = astFactory.create((AST)_t);
 			tmp73_AST_in = (AST)_t;
 			astFactory.addASTChild(currentAST, tmp73_AST);
-			ASTPair __currentAST727 = currentAST.copy();
+			ASTPair __currentAST348 = currentAST.copy();
 			currentAST.root = currentAST.child;
 			currentAST.child = null;
 			match(_t,MOD);
@@ -2324,22 +2323,22 @@ public SSLPreprocessor() {
 			e2=rtlExpr(_t,bw);
 			_t = _retTree;
 			astFactory.addASTChild(currentAST, returnAST);
-			currentAST = __currentAST727;
-			_t = __t727;
+			currentAST = __currentAST348;
+			_t = __t348;
 			_t = _t.getNextSibling();
-			ret = factory.createModulo(e1, e2);
+			ret = ExpressionFactory.createModulo(e1, e2);
 			rtlExpr_AST = (AST)currentAST.root;
 			break;
 		}
 		case SMOD:
 		{
-			AST __t728 = _t;
+			AST __t349 = _t;
 			AST tmp74_AST = null;
 			AST tmp74_AST_in = null;
 			tmp74_AST = astFactory.create((AST)_t);
 			tmp74_AST_in = (AST)_t;
 			astFactory.addASTChild(currentAST, tmp74_AST);
-			ASTPair __currentAST728 = currentAST.copy();
+			ASTPair __currentAST349 = currentAST.copy();
 			currentAST.root = currentAST.child;
 			currentAST.child = null;
 			match(_t,SMOD);
@@ -2350,22 +2349,22 @@ public SSLPreprocessor() {
 			e2=rtlExpr(_t,bw);
 			_t = _retTree;
 			astFactory.addASTChild(currentAST, returnAST);
-			currentAST = __currentAST728;
-			_t = __t728;
+			currentAST = __currentAST349;
+			_t = __t349;
 			_t = _t.getNextSibling();
-			ret = factory.createModulo(e1, e2);
+			ret = ExpressionFactory.createModulo(e1, e2);
 			rtlExpr_AST = (AST)currentAST.root;
 			break;
 		}
 		case LITERAL_pow:
 		{
-			AST __t729 = _t;
+			AST __t350 = _t;
 			AST tmp75_AST = null;
 			AST tmp75_AST_in = null;
 			tmp75_AST = astFactory.create((AST)_t);
 			tmp75_AST_in = (AST)_t;
 			astFactory.addASTChild(currentAST, tmp75_AST);
-			ASTPair __currentAST729 = currentAST.copy();
+			ASTPair __currentAST350 = currentAST.copy();
 			currentAST.root = currentAST.child;
 			currentAST.child = null;
 			match(_t,LITERAL_pow);
@@ -2376,22 +2375,22 @@ public SSLPreprocessor() {
 			e2=rtlExpr(_t,bw);
 			_t = _retTree;
 			astFactory.addASTChild(currentAST, returnAST);
-			currentAST = __currentAST729;
-			_t = __t729;
+			currentAST = __currentAST350;
+			_t = __t350;
 			_t = _t.getNextSibling();
-			ret = factory.createPowerOf(e1, e2);
+			ret = ExpressionFactory.createPowerOf(e1, e2);
 			rtlExpr_AST = (AST)currentAST.root;
 			break;
 		}
 		case AND:
 		{
-			AST __t730 = _t;
+			AST __t351 = _t;
 			AST tmp76_AST = null;
 			AST tmp76_AST_in = null;
 			tmp76_AST = astFactory.create((AST)_t);
 			tmp76_AST_in = (AST)_t;
 			astFactory.addASTChild(currentAST, tmp76_AST);
-			ASTPair __currentAST730 = currentAST.copy();
+			ASTPair __currentAST351 = currentAST.copy();
 			currentAST.root = currentAST.child;
 			currentAST.child = null;
 			match(_t,AND);
@@ -2402,22 +2401,22 @@ public SSLPreprocessor() {
 			e2=rtlExpr(_t,bw);
 			_t = _retTree;
 			astFactory.addASTChild(currentAST, returnAST);
-			currentAST = __currentAST730;
-			_t = __t730;
+			currentAST = __currentAST351;
+			_t = __t351;
 			_t = _t.getNextSibling();
-			ret = factory.createAnd(e1, e2);
+			ret = ExpressionFactory.createAnd(e1, e2);
 			rtlExpr_AST = (AST)currentAST.root;
 			break;
 		}
 		case LAND:
 		{
-			AST __t731 = _t;
+			AST __t352 = _t;
 			AST tmp77_AST = null;
 			AST tmp77_AST_in = null;
 			tmp77_AST = astFactory.create((AST)_t);
 			tmp77_AST_in = (AST)_t;
 			astFactory.addASTChild(currentAST, tmp77_AST);
-			ASTPair __currentAST731 = currentAST.copy();
+			ASTPair __currentAST352 = currentAST.copy();
 			currentAST.root = currentAST.child;
 			currentAST.child = null;
 			match(_t,LAND);
@@ -2428,22 +2427,22 @@ public SSLPreprocessor() {
 			e2=rtlExpr(_t,bw);
 			_t = _retTree;
 			astFactory.addASTChild(currentAST, returnAST);
-			currentAST = __currentAST731;
-			_t = __t731;
+			currentAST = __currentAST352;
+			_t = __t352;
 			_t = _t.getNextSibling();
-			ret = factory.createAnd(e1, e2);
+			ret = ExpressionFactory.createAnd(e1, e2);
 			rtlExpr_AST = (AST)currentAST.root;
 			break;
 		}
 		case OR:
 		{
-			AST __t732 = _t;
+			AST __t353 = _t;
 			AST tmp78_AST = null;
 			AST tmp78_AST_in = null;
 			tmp78_AST = astFactory.create((AST)_t);
 			tmp78_AST_in = (AST)_t;
 			astFactory.addASTChild(currentAST, tmp78_AST);
-			ASTPair __currentAST732 = currentAST.copy();
+			ASTPair __currentAST353 = currentAST.copy();
 			currentAST.root = currentAST.child;
 			currentAST.child = null;
 			match(_t,OR);
@@ -2454,22 +2453,22 @@ public SSLPreprocessor() {
 			e2=rtlExpr(_t,bw);
 			_t = _retTree;
 			astFactory.addASTChild(currentAST, returnAST);
-			currentAST = __currentAST732;
-			_t = __t732;
+			currentAST = __currentAST353;
+			_t = __t353;
 			_t = _t.getNextSibling();
-			ret = factory.createOr(e1, e2);
+			ret = ExpressionFactory.createOr(e1, e2);
 			rtlExpr_AST = (AST)currentAST.root;
 			break;
 		}
 		case LOR:
 		{
-			AST __t733 = _t;
+			AST __t354 = _t;
 			AST tmp79_AST = null;
 			AST tmp79_AST_in = null;
 			tmp79_AST = astFactory.create((AST)_t);
 			tmp79_AST_in = (AST)_t;
 			astFactory.addASTChild(currentAST, tmp79_AST);
-			ASTPair __currentAST733 = currentAST.copy();
+			ASTPair __currentAST354 = currentAST.copy();
 			currentAST.root = currentAST.child;
 			currentAST.child = null;
 			match(_t,LOR);
@@ -2480,22 +2479,22 @@ public SSLPreprocessor() {
 			e2=rtlExpr(_t,bw);
 			_t = _retTree;
 			astFactory.addASTChild(currentAST, returnAST);
-			currentAST = __currentAST733;
-			_t = __t733;
+			currentAST = __currentAST354;
+			_t = __t354;
 			_t = _t.getNextSibling();
-			ret = factory.createOr(e1, e2);
+			ret = ExpressionFactory.createOr(e1, e2);
 			rtlExpr_AST = (AST)currentAST.root;
 			break;
 		}
 		case XOR:
 		{
-			AST __t734 = _t;
+			AST __t355 = _t;
 			AST tmp80_AST = null;
 			AST tmp80_AST_in = null;
 			tmp80_AST = astFactory.create((AST)_t);
 			tmp80_AST_in = (AST)_t;
 			astFactory.addASTChild(currentAST, tmp80_AST);
-			ASTPair __currentAST734 = currentAST.copy();
+			ASTPair __currentAST355 = currentAST.copy();
 			currentAST.root = currentAST.child;
 			currentAST.child = null;
 			match(_t,XOR);
@@ -2506,22 +2505,22 @@ public SSLPreprocessor() {
 			e2=rtlExpr(_t,bw);
 			_t = _retTree;
 			astFactory.addASTChild(currentAST, returnAST);
-			currentAST = __currentAST734;
-			_t = __t734;
+			currentAST = __currentAST355;
+			_t = __t355;
 			_t = _t.getNextSibling();
-			ret = factory.createXor(e1, e2);
+			ret = ExpressionFactory.createXor(e1, e2);
 			rtlExpr_AST = (AST)currentAST.root;
 			break;
 		}
 		case ANDNOT:
 		{
-			AST __t735 = _t;
+			AST __t356 = _t;
 			AST tmp81_AST = null;
 			AST tmp81_AST_in = null;
 			tmp81_AST = astFactory.create((AST)_t);
 			tmp81_AST_in = (AST)_t;
 			astFactory.addASTChild(currentAST, tmp81_AST);
-			ASTPair __currentAST735 = currentAST.copy();
+			ASTPair __currentAST356 = currentAST.copy();
 			currentAST.root = currentAST.child;
 			currentAST.child = null;
 			match(_t,ANDNOT);
@@ -2532,22 +2531,22 @@ public SSLPreprocessor() {
 			e2=rtlExpr(_t,bw);
 			_t = _retTree;
 			astFactory.addASTChild(currentAST, returnAST);
-			currentAST = __currentAST735;
-			_t = __t735;
+			currentAST = __currentAST356;
+			_t = __t356;
 			_t = _t.getNextSibling();
-			ret = factory.createAnd(e1, factory.createNot(e2));
+			ret = ExpressionFactory.createAnd(e1, ExpressionFactory.createNot(e2));
 			rtlExpr_AST = (AST)currentAST.root;
 			break;
 		}
 		case ORNOT:
 		{
-			AST __t736 = _t;
+			AST __t357 = _t;
 			AST tmp82_AST = null;
 			AST tmp82_AST_in = null;
 			tmp82_AST = astFactory.create((AST)_t);
 			tmp82_AST_in = (AST)_t;
 			astFactory.addASTChild(currentAST, tmp82_AST);
-			ASTPair __currentAST736 = currentAST.copy();
+			ASTPair __currentAST357 = currentAST.copy();
 			currentAST.root = currentAST.child;
 			currentAST.child = null;
 			match(_t,ORNOT);
@@ -2558,22 +2557,22 @@ public SSLPreprocessor() {
 			e2=rtlExpr(_t,bw);
 			_t = _retTree;
 			astFactory.addASTChild(currentAST, returnAST);
-			currentAST = __currentAST736;
-			_t = __t736;
+			currentAST = __currentAST357;
+			_t = __t357;
 			_t = _t.getNextSibling();
-			ret = factory.createOr(e1, factory.createNot(e2));
+			ret = ExpressionFactory.createOr(e1, ExpressionFactory.createNot(e2));
 			rtlExpr_AST = (AST)currentAST.root;
 			break;
 		}
 		case XORNOT:
 		{
-			AST __t737 = _t;
+			AST __t358 = _t;
 			AST tmp83_AST = null;
 			AST tmp83_AST_in = null;
 			tmp83_AST = astFactory.create((AST)_t);
 			tmp83_AST_in = (AST)_t;
 			astFactory.addASTChild(currentAST, tmp83_AST);
-			ASTPair __currentAST737 = currentAST.copy();
+			ASTPair __currentAST358 = currentAST.copy();
 			currentAST.root = currentAST.child;
 			currentAST.child = null;
 			match(_t,XORNOT);
@@ -2584,22 +2583,22 @@ public SSLPreprocessor() {
 			e2=rtlExpr(_t,bw);
 			_t = _retTree;
 			astFactory.addASTChild(currentAST, returnAST);
-			currentAST = __currentAST737;
-			_t = __t737;
+			currentAST = __currentAST358;
+			_t = __t358;
 			_t = _t.getNextSibling();
-			ret = factory.createXor(e1, factory.createNot(e2));
+			ret = ExpressionFactory.createXor(e1, ExpressionFactory.createNot(e2));
 			rtlExpr_AST = (AST)currentAST.root;
 			break;
 		}
 		case NOT:
 		{
-			AST __t738 = _t;
+			AST __t359 = _t;
 			AST tmp84_AST = null;
 			AST tmp84_AST_in = null;
 			tmp84_AST = astFactory.create((AST)_t);
 			tmp84_AST_in = (AST)_t;
 			astFactory.addASTChild(currentAST, tmp84_AST);
-			ASTPair __currentAST738 = currentAST.copy();
+			ASTPair __currentAST359 = currentAST.copy();
 			currentAST.root = currentAST.child;
 			currentAST.child = null;
 			match(_t,NOT);
@@ -2607,22 +2606,22 @@ public SSLPreprocessor() {
 			e1=rtlExpr(_t,bw);
 			_t = _retTree;
 			astFactory.addASTChild(currentAST, returnAST);
-			currentAST = __currentAST738;
-			_t = __t738;
+			currentAST = __currentAST359;
+			_t = __t359;
 			_t = _t.getNextSibling();
-			ret = factory.createNot(e1);
+			ret = ExpressionFactory.createNot(e1);
 			rtlExpr_AST = (AST)currentAST.root;
 			break;
 		}
 		case LNOT:
 		{
-			AST __t739 = _t;
+			AST __t360 = _t;
 			AST tmp85_AST = null;
 			AST tmp85_AST_in = null;
 			tmp85_AST = astFactory.create((AST)_t);
 			tmp85_AST_in = (AST)_t;
 			astFactory.addASTChild(currentAST, tmp85_AST);
-			ASTPair __currentAST739 = currentAST.copy();
+			ASTPair __currentAST360 = currentAST.copy();
 			currentAST.root = currentAST.child;
 			currentAST.child = null;
 			match(_t,LNOT);
@@ -2630,22 +2629,22 @@ public SSLPreprocessor() {
 			e1=rtlExpr(_t,bw);
 			_t = _retTree;
 			astFactory.addASTChild(currentAST, returnAST);
-			currentAST = __currentAST739;
-			_t = __t739;
+			currentAST = __currentAST360;
+			_t = __t360;
 			_t = _t.getNextSibling();
-			ret = factory.createNot(e1);
+			ret = ExpressionFactory.createNot(e1);
 			rtlExpr_AST = (AST)currentAST.root;
 			break;
 		}
 		case FNEG:
 		{
-			AST __t740 = _t;
+			AST __t361 = _t;
 			AST tmp86_AST = null;
 			AST tmp86_AST_in = null;
 			tmp86_AST = astFactory.create((AST)_t);
 			tmp86_AST_in = (AST)_t;
 			astFactory.addASTChild(currentAST, tmp86_AST);
-			ASTPair __currentAST740 = currentAST.copy();
+			ASTPair __currentAST361 = currentAST.copy();
 			currentAST.root = currentAST.child;
 			currentAST.child = null;
 			match(_t,FNEG);
@@ -2653,22 +2652,22 @@ public SSLPreprocessor() {
 			e1=rtlExpr(_t,bw);
 			_t = _retTree;
 			astFactory.addASTChild(currentAST, returnAST);
-			currentAST = __currentAST740;
-			_t = __t740;
+			currentAST = __currentAST361;
+			_t = __t361;
 			_t = _t.getNextSibling();
-			ret = factory.createNeg(e1);
+			ret = ExpressionFactory.createNeg(e1);
 			rtlExpr_AST = (AST)currentAST.root;
 			break;
 		}
 		case LITERAL_rlc:
 		{
-			AST __t741 = _t;
+			AST __t362 = _t;
 			AST tmp87_AST = null;
 			AST tmp87_AST_in = null;
 			tmp87_AST = astFactory.create((AST)_t);
 			tmp87_AST_in = (AST)_t;
 			astFactory.addASTChild(currentAST, tmp87_AST);
-			ASTPair __currentAST741 = currentAST.copy();
+			ASTPair __currentAST362 = currentAST.copy();
 			currentAST.root = currentAST.child;
 			currentAST.child = null;
 			match(_t,LITERAL_rlc);
@@ -2679,22 +2678,22 @@ public SSLPreprocessor() {
 			e2=rtlExpr(_t,bw);
 			_t = _retTree;
 			astFactory.addASTChild(currentAST, returnAST);
-			currentAST = __currentAST741;
-			_t = __t741;
+			currentAST = __currentAST362;
+			_t = __t362;
 			_t = _t.getNextSibling();
-			ret = factory.createRotateLeftWithCarry(e1, e2);
+			ret = ExpressionFactory.createRotateLeftWithCarry(e1, e2);
 			rtlExpr_AST = (AST)currentAST.root;
 			break;
 		}
 		case LITERAL_rrc:
 		{
-			AST __t742 = _t;
+			AST __t363 = _t;
 			AST tmp88_AST = null;
 			AST tmp88_AST_in = null;
 			tmp88_AST = astFactory.create((AST)_t);
 			tmp88_AST_in = (AST)_t;
 			astFactory.addASTChild(currentAST, tmp88_AST);
-			ASTPair __currentAST742 = currentAST.copy();
+			ASTPair __currentAST363 = currentAST.copy();
 			currentAST.root = currentAST.child;
 			currentAST.child = null;
 			match(_t,LITERAL_rrc);
@@ -2705,22 +2704,22 @@ public SSLPreprocessor() {
 			e2=rtlExpr(_t,bw);
 			_t = _retTree;
 			astFactory.addASTChild(currentAST, returnAST);
-			currentAST = __currentAST742;
-			_t = __t742;
+			currentAST = __currentAST363;
+			_t = __t363;
 			_t = _t.getNextSibling();
-			ret = factory.createRotateRightWithCarry(e1, e2);
+			ret = ExpressionFactory.createRotateRightWithCarry(e1, e2);
 			rtlExpr_AST = (AST)currentAST.root;
 			break;
 		}
 		case LITERAL_rl:
 		{
-			AST __t743 = _t;
+			AST __t364 = _t;
 			AST tmp89_AST = null;
 			AST tmp89_AST_in = null;
 			tmp89_AST = astFactory.create((AST)_t);
 			tmp89_AST_in = (AST)_t;
 			astFactory.addASTChild(currentAST, tmp89_AST);
-			ASTPair __currentAST743 = currentAST.copy();
+			ASTPair __currentAST364 = currentAST.copy();
 			currentAST.root = currentAST.child;
 			currentAST.child = null;
 			match(_t,LITERAL_rl);
@@ -2731,22 +2730,22 @@ public SSLPreprocessor() {
 			e2=rtlExpr(_t,bw);
 			_t = _retTree;
 			astFactory.addASTChild(currentAST, returnAST);
-			currentAST = __currentAST743;
-			_t = __t743;
+			currentAST = __currentAST364;
+			_t = __t364;
 			_t = _t.getNextSibling();
-			ret = factory.createRotateLeft(e1, e2);
+			ret = ExpressionFactory.createRotateLeft(e1, e2);
 			rtlExpr_AST = (AST)currentAST.root;
 			break;
 		}
 		case LITERAL_rr:
 		{
-			AST __t744 = _t;
+			AST __t365 = _t;
 			AST tmp90_AST = null;
 			AST tmp90_AST_in = null;
 			tmp90_AST = astFactory.create((AST)_t);
 			tmp90_AST_in = (AST)_t;
 			astFactory.addASTChild(currentAST, tmp90_AST);
-			ASTPair __currentAST744 = currentAST.copy();
+			ASTPair __currentAST365 = currentAST.copy();
 			currentAST.root = currentAST.child;
 			currentAST.child = null;
 			match(_t,LITERAL_rr);
@@ -2757,22 +2756,22 @@ public SSLPreprocessor() {
 			e2=rtlExpr(_t,bw);
 			_t = _retTree;
 			astFactory.addASTChild(currentAST, returnAST);
-			currentAST = __currentAST744;
-			_t = __t744;
+			currentAST = __currentAST365;
+			_t = __t365;
 			_t = _t.getNextSibling();
-			ret = factory.createRotateRight(e1, e2);
+			ret = ExpressionFactory.createRotateRight(e1, e2);
 			rtlExpr_AST = (AST)currentAST.root;
 			break;
 		}
 		case RSHIFT:
 		{
-			AST __t745 = _t;
+			AST __t366 = _t;
 			AST tmp91_AST = null;
 			AST tmp91_AST_in = null;
 			tmp91_AST = astFactory.create((AST)_t);
 			tmp91_AST_in = (AST)_t;
 			astFactory.addASTChild(currentAST, tmp91_AST);
-			ASTPair __currentAST745 = currentAST.copy();
+			ASTPair __currentAST366 = currentAST.copy();
 			currentAST.root = currentAST.child;
 			currentAST.child = null;
 			match(_t,RSHIFT);
@@ -2783,22 +2782,22 @@ public SSLPreprocessor() {
 			e2=rtlExpr(_t,bw);
 			_t = _retTree;
 			astFactory.addASTChild(currentAST, returnAST);
-			currentAST = __currentAST745;
-			_t = __t745;
+			currentAST = __currentAST366;
+			_t = __t366;
 			_t = _t.getNextSibling();
-			ret = factory.createShiftRight(e1, e2);
+			ret = ExpressionFactory.createShiftRight(e1, e2);
 			rtlExpr_AST = (AST)currentAST.root;
 			break;
 		}
 		case LSHIFT:
 		{
-			AST __t746 = _t;
+			AST __t367 = _t;
 			AST tmp92_AST = null;
 			AST tmp92_AST_in = null;
 			tmp92_AST = astFactory.create((AST)_t);
 			tmp92_AST_in = (AST)_t;
 			astFactory.addASTChild(currentAST, tmp92_AST);
-			ASTPair __currentAST746 = currentAST.copy();
+			ASTPair __currentAST367 = currentAST.copy();
 			currentAST.root = currentAST.child;
 			currentAST.child = null;
 			match(_t,LSHIFT);
@@ -2809,22 +2808,22 @@ public SSLPreprocessor() {
 			e2=rtlExpr(_t,bw);
 			_t = _retTree;
 			astFactory.addASTChild(currentAST, returnAST);
-			currentAST = __currentAST746;
-			_t = __t746;
+			currentAST = __currentAST367;
+			_t = __t367;
 			_t = _t.getNextSibling();
-			ret = factory.createShiftLeft(e1, e2);
+			ret = ExpressionFactory.createShiftLeft(e1, e2);
 			rtlExpr_AST = (AST)currentAST.root;
 			break;
 		}
 		case RSHIFTA:
 		{
-			AST __t747 = _t;
+			AST __t368 = _t;
 			AST tmp93_AST = null;
 			AST tmp93_AST_in = null;
 			tmp93_AST = astFactory.create((AST)_t);
 			tmp93_AST_in = (AST)_t;
 			astFactory.addASTChild(currentAST, tmp93_AST);
-			ASTPair __currentAST747 = currentAST.copy();
+			ASTPair __currentAST368 = currentAST.copy();
 			currentAST.root = currentAST.child;
 			currentAST.child = null;
 			match(_t,RSHIFTA);
@@ -2835,10 +2834,10 @@ public SSLPreprocessor() {
 			e2=rtlExpr(_t,bw);
 			_t = _retTree;
 			astFactory.addASTChild(currentAST, returnAST);
-			currentAST = __currentAST747;
-			_t = __t747;
+			currentAST = __currentAST368;
+			_t = __t368;
 			_t = _t.getNextSibling();
-			ret = factory.createShiftArithmeticRight(e1, e2);
+			ret = ExpressionFactory.createShiftArithmeticRight(e1, e2);
 			rtlExpr_AST = (AST)currentAST.root;
 			break;
 		}
@@ -2850,7 +2849,7 @@ public SSLPreprocessor() {
 			astFactory.addASTChild(currentAST, vname_AST);
 			match(_t,NAME);
 			_t = _t.getNextSibling();
-			ret = factory.createRegisterVariable(vname.getText(), (bw>0 ? bw : RTLVariable.UNKNOWN_BITWIDTH));
+			ret = ExpressionFactory.createRegisterVariable(vname.getText(), (bw>0 ? bw : RTLVariable.UNKNOWN_BITWIDTH));
 			rtlExpr_AST = (AST)currentAST.root;
 			break;
 		}
@@ -2862,7 +2861,7 @@ public SSLPreprocessor() {
 			astFactory.addASTChild(currentAST, rname_AST);
 			match(_t,REG_ID);
 			_t = _t.getNextSibling();
-			ret = factory.createRegisterVariable(rname.getText(), (bw>0 ? bw : RTLVariable.UNKNOWN_BITWIDTH));
+			ret = ExpressionFactory.createRegisterVariable(rname.getText(), (bw>0 ? bw : RTLVariable.UNKNOWN_BITWIDTH));
 			rtlExpr_AST = (AST)currentAST.root;
 			break;
 		}
@@ -2871,7 +2870,7 @@ public SSLPreprocessor() {
 			n1=intValue(_t);
 			_t = _retTree;
 			astFactory.addASTChild(currentAST, returnAST);
-			ret = factory.createNumber(n1, RTLVariable.UNKNOWN_BITWIDTH);
+			ret = ExpressionFactory.createNumber(n1, RTLVariable.UNKNOWN_BITWIDTH);
 			rtlExpr_AST = (AST)currentAST.root;
 			break;
 		}
@@ -2880,19 +2879,19 @@ public SSLPreprocessor() {
 			f1=floatValue(_t);
 			_t = _retTree;
 			astFactory.addASTChild(currentAST, returnAST);
-			ret = factory.createNumber((long)f1, 80);
+			ret = ExpressionFactory.createNumber((long)f1, 80);
 			rtlExpr_AST = (AST)currentAST.root;
 			break;
 		}
 		case MEM_IDX:
 		{
-			AST __t748 = _t;
+			AST __t369 = _t;
 			AST tmp94_AST = null;
 			AST tmp94_AST_in = null;
 			tmp94_AST = astFactory.create((AST)_t);
 			tmp94_AST_in = (AST)_t;
 			astFactory.addASTChild(currentAST, tmp94_AST);
-			ASTPair __currentAST748 = currentAST.copy();
+			ASTPair __currentAST369 = currentAST.copy();
 			currentAST.root = currentAST.child;
 			currentAST.child = null;
 			match(_t,MEM_IDX);
@@ -2900,22 +2899,22 @@ public SSLPreprocessor() {
 			e1=rtlExpr(_t,-Math.abs(bw));
 			_t = _retTree;
 			astFactory.addASTChild(currentAST, returnAST);
-			currentAST = __currentAST748;
-			_t = __t748;
+			currentAST = __currentAST369;
+			_t = __t369;
 			_t = _t.getNextSibling();
-			ret = factory.createMemoryLocation(e1, (bw!=0 ? Math.abs(bw) : RTLVariable.UNKNOWN_BITWIDTH));
+			ret = ExpressionFactory.createMemoryLocation(e1, (bw!=0 ? Math.abs(bw) : RTLVariable.UNKNOWN_BITWIDTH));
 			rtlExpr_AST = (AST)currentAST.root;
 			break;
 		}
 		case CAST:
 		{
-			AST __t749 = _t;
+			AST __t370 = _t;
 			AST tmp95_AST = null;
 			AST tmp95_AST_in = null;
 			tmp95_AST = astFactory.create((AST)_t);
 			tmp95_AST_in = (AST)_t;
 			astFactory.addASTChild(currentAST, tmp95_AST);
-			ASTPair __currentAST749 = currentAST.copy();
+			ASTPair __currentAST370 = currentAST.copy();
 			currentAST.root = currentAST.child;
 			currentAST.child = null;
 			match(_t,CAST);
@@ -2926,11 +2925,11 @@ public SSLPreprocessor() {
 			e1=rtlExpr(_t,n1);
 			_t = _retTree;
 			astFactory.addASTChild(currentAST, returnAST);
-			currentAST = __currentAST749;
-			_t = __t749;
+			currentAST = __currentAST370;
+			_t = __t370;
 			_t = _t.getNextSibling();
 			
-						//ret = factory.createCast(e1, factory.createNumber(n1, RTLVariable.UNKNOWN_BITWIDTH));
+						//ret = ExpressionFactory.createCast(e1, ExpressionFactory.createNumber(n1, RTLVariable.UNKNOWN_BITWIDTH));
 						ret = e1;
 						
 			rtlExpr_AST = (AST)currentAST.root;
@@ -2938,13 +2937,13 @@ public SSLPreprocessor() {
 		}
 		case AT:
 		{
-			AST __t750 = _t;
+			AST __t371 = _t;
 			AST tmp96_AST = null;
 			AST tmp96_AST_in = null;
 			tmp96_AST = astFactory.create((AST)_t);
 			tmp96_AST_in = (AST)_t;
 			astFactory.addASTChild(currentAST, tmp96_AST);
-			ASTPair __currentAST750 = currentAST.copy();
+			ASTPair __currentAST371 = currentAST.copy();
 			currentAST.root = currentAST.child;
 			currentAST.child = null;
 			match(_t,AT);
@@ -2958,22 +2957,22 @@ public SSLPreprocessor() {
 			e3=rtlExpr(_t,0);
 			_t = _retTree;
 			astFactory.addASTChild(currentAST, returnAST);
-			currentAST = __currentAST750;
-			_t = __t750;
+			currentAST = __currentAST371;
+			_t = __t371;
 			_t = _t.getNextSibling();
-			ret = factory.createBitRange(e1, e2, e3);
+			ret = ExpressionFactory.createBitRange(e1, e2, e3);
 			rtlExpr_AST = (AST)currentAST.root;
 			break;
 		}
 		case QUEST:
 		{
-			AST __t751 = _t;
+			AST __t372 = _t;
 			AST tmp97_AST = null;
 			AST tmp97_AST_in = null;
 			tmp97_AST = astFactory.create((AST)_t);
 			tmp97_AST_in = (AST)_t;
 			astFactory.addASTChild(currentAST, tmp97_AST);
-			ASTPair __currentAST751 = currentAST.copy();
+			ASTPair __currentAST372 = currentAST.copy();
 			currentAST.root = currentAST.child;
 			currentAST.child = null;
 			match(_t,QUEST);
@@ -2987,22 +2986,22 @@ public SSLPreprocessor() {
 			e3=rtlExpr(_t,bw);
 			_t = _retTree;
 			astFactory.addASTChild(currentAST, returnAST);
-			currentAST = __currentAST751;
-			_t = __t751;
+			currentAST = __currentAST372;
+			_t = __t372;
 			_t = _t.getNextSibling();
-			ret = factory.createConditionalExpression(e1, e2, e3);
+			ret = ExpressionFactory.createConditionalExpression(e1, e2, e3);
 			rtlExpr_AST = (AST)currentAST.root;
 			break;
 		}
 		case BUILTIN:
 		{
-			AST __t752 = _t;
+			AST __t373 = _t;
 			AST tmp98_AST = null;
 			AST tmp98_AST_in = null;
 			tmp98_AST = astFactory.create((AST)_t);
 			tmp98_AST_in = (AST)_t;
 			astFactory.addASTChild(currentAST, tmp98_AST);
-			ASTPair __currentAST752 = currentAST.copy();
+			ASTPair __currentAST373 = currentAST.copy();
 			currentAST.root = currentAST.child;
 			currentAST.child = null;
 			match(_t,BUILTIN);
@@ -3011,7 +3010,7 @@ public SSLPreprocessor() {
 			_t = _retTree;
 			astFactory.addASTChild(currentAST, returnAST);
 			{
-			_loop754:
+			_loop375:
 			do {
 				if (_t==null) _t=ASTNULL;
 				if ((_tokenSet_2.member(_t.getType()))) {
@@ -3021,22 +3020,22 @@ public SSLPreprocessor() {
 					exprList[i++] = e1;
 				}
 				else {
-					break _loop754;
+					break _loop375;
 				}
 				
 			} while (true);
 			}
-			currentAST = __currentAST752;
-			_t = __t752;
+			currentAST = __currentAST373;
+			_t = __t373;
 			_t = _t.getNextSibling();
 			
-						  	if (str.equals("sgnex")) ret = factory.createSignExtend(exprList[0], exprList[1], exprList[2]);
-						  	else if (str.equals("zfill")) ret = factory.createZeroFill(exprList[0], exprList[1], exprList[2]);
-						  	else if (str.equals("fsize")) ret = factory.createFloatResize(exprList[0], exprList[1], exprList[2]);
+						  	if (str.equals("sgnex")) ret = ExpressionFactory.createSignExtend(exprList[0], exprList[1], exprList[2]);
+						  	else if (str.equals("zfill")) ret = ExpressionFactory.createZeroFill(exprList[0], exprList[1], exprList[2]);
+						  	else if (str.equals("fsize")) ret = ExpressionFactory.createFloatResize(exprList[0], exprList[1], exprList[2]);
 						  	// temporary solution until real float support
-						  	else if (str.equals("ftoi")) ret = factory.createFloatResize(exprList[0], exprList[1], exprList[2]);
-						  	else if (str.equals("itof")) ret = factory.createFloatResize(exprList[0], exprList[1], exprList[2]);
-							else ret = factory.createSpecialExpression(str, exprList); 
+						  	else if (str.equals("ftoi")) ret = ExpressionFactory.createFloatResize(exprList[0], exprList[1], exprList[2]);
+						  	else if (str.equals("itof")) ret = ExpressionFactory.createFloatResize(exprList[0], exprList[1], exprList[2]);
+							else ret = ExpressionFactory.createSpecialExpression(str, exprList); 
 						
 			rtlExpr_AST = (AST)currentAST.root;
 			break;

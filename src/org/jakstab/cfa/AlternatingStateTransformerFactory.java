@@ -54,12 +54,10 @@ public class AlternatingStateTransformerFactory extends ResolvingTransformerFact
 	@SuppressWarnings("unused")
 	private static final Logger logger = Logger.getLogger(AlternatingStateTransformerFactory.class);
 
-	private ExpressionFactory factory = ExpressionFactory.getInstance();
-	
 	private Map<RTLNumber, RTLNumber> realToStub = new HashMap<RTLNumber, RTLNumber>();
 	private Map<RTLNumber, RTLNumber> stubToReal = new HashMap<RTLNumber, RTLNumber>();
 	private Program program = Program.getProgram();
-	
+
 	@Override
 	public Set<CFAEdge> getTransformers(final AbstractState a) {
 		RTLStatement stmt = Program.getProgram().getStatement(a.getLocation());
@@ -68,9 +66,9 @@ public class AlternatingStateTransformerFactory extends ResolvingTransformerFact
 
 			@Override
 			protected Set<CFAEdge> visitDefault(RTLStatement stmt) {
-				
+
 				CFAEdge.Kind edgeKind = Kind.MAY;
-	
+
 				// If any under-approximate component is not BOT, then we have a witness
 				// and this is a MUST edge.
 				DualCompositeState dcs = (DualCompositeState)a;
@@ -82,7 +80,7 @@ public class AlternatingStateTransformerFactory extends ResolvingTransformerFact
 						break;
 					} 
 				}
-				
+
 				return Collections.singleton(new CFAEdge(stmt.getLabel(), stmt.getNextLabel(), stmt, edgeKind));
 			}
 
@@ -90,8 +88,8 @@ public class AlternatingStateTransformerFactory extends ResolvingTransformerFact
 			public Set<CFAEdge> visit(RTLGoto stmt) {
 				assert stmt.getCondition() != null;
 				Set<CFAEdge> results = new FastSet<CFAEdge>();
-				
-				
+
+
 				if (Options.procedureAbstraction.getValue() == 2) {
 					// Calls always get a fallthrough edge in optimistic mode
 					if (stmt.getType() == RTLGoto.Type.CALL) {
@@ -115,9 +113,9 @@ public class AlternatingStateTransformerFactory extends ResolvingTransformerFact
 						return Collections.emptySet();
 					}
 				}
-				
+
 				DualCompositeState dcs = (DualCompositeState)a;
-				
+
 				// Add all edges from over-approximation
 				for (Tuple<RTLNumber> pair : dcs.projectionFromConcretization(stmt.getCondition(), stmt.getTargetExpression())) {
 					RTLNumber conditionValue = pair.get(0);
@@ -126,24 +124,24 @@ public class AlternatingStateTransformerFactory extends ResolvingTransformerFact
 					// Start building the assume expression: assume correct condition case 
 					assert conditionValue != null;
 					RTLExpression assumption = 
-						factory.createEqual(stmt.getCondition(), conditionValue);
-					if (conditionValue.equals(factory.FALSE)) {
+							ExpressionFactory.createEqual(stmt.getCondition(), conditionValue);
+					if (conditionValue.equals(ExpressionFactory.FALSE)) {
 						// assume (condition = false), and set next statement to fallthrough
 						nextLabel = stmt.getNextLabel();
 					} else {
 						if (targetValue == null) {
 							logger.debug("No value from MAY-analysis at " + stmt.getLabel());
-								sound = false;
-								unresolvedBranches.add(stmt.getLabel());
-								continue;
+							sound = false;
+							unresolvedBranches.add(stmt.getLabel());
+							continue;
 						}
 						// assume (condition = true AND targetExpression = targetValue)
-						assumption = factory.createAnd(
+						assumption = ExpressionFactory.createAnd(
 								assumption,
-								factory.createEqual(
+								ExpressionFactory.createEqual(
 										stmt.getTargetExpression(),
 										targetValue)
-						);
+								);
 						// set next label to jump target
 						nextLabel = new Location(new AbsoluteAddress(targetValue));
 					}
@@ -160,7 +158,7 @@ public class AlternatingStateTransformerFactory extends ResolvingTransformerFact
 				}
 
 				// Add all edges from under-approximation
-				
+
 				for (Tuple<RTLNumber> pair : dcs.projection(stmt.getCondition(), stmt.getTargetExpression())) {
 					RTLNumber conditionValue = pair.get(0);
 					RTLNumber targetValue = pair.get(1);
@@ -168,8 +166,8 @@ public class AlternatingStateTransformerFactory extends ResolvingTransformerFact
 					// Start building the assume expression: assume correct condition case 
 					assert conditionValue != null;
 					RTLExpression assumption = 
-						factory.createEqual(stmt.getCondition(), conditionValue);
-					if (conditionValue.equals(factory.FALSE)) {
+							ExpressionFactory.createEqual(stmt.getCondition(), conditionValue);
+					if (conditionValue.equals(ExpressionFactory.FALSE)) {
 						// assume (condition = false), and set next statement to fallthrough
 						nextLabel = stmt.getNextLabel();
 					} else {
@@ -179,7 +177,7 @@ public class AlternatingStateTransformerFactory extends ResolvingTransformerFact
 						// does not know about concrete import addresses, so it uses a stub system.
 						if (!isProgramAddress(targetValue)) {
 							logger.debug(dcs.getLocation() + ": Jumping out of module to " + targetValue.toHexString());
-							
+
 							// Attempt to map this out-of-module location to a stub
 							if (realToStub.containsKey(targetValue)) {
 								// If we saw this concrete address before, replace it by the known stub
@@ -202,12 +200,12 @@ public class AlternatingStateTransformerFactory extends ResolvingTransformerFact
 										break;
 									}
 								}
-								
+
 								if (!foundStub) {
 									// If we have not found anything suitable, we need to create a new stub
 									// FIXME: The new stub will likely have incorrect stack height adjustment.
 									//        We should extract that information from the trace.
-									
+
 									logger.info(dcs.getLocation() + ": Creating new stub for unknown function at " + targetValue.toHexString());
 									RTLNumber stubTarget = Program.getProgram().getProcAddress("JAK_UNKNOWN", "proc" + targetValue.toHexString()).toNumericConstant();
 									stubToReal.put(stubTarget, targetValue);
@@ -215,16 +213,16 @@ public class AlternatingStateTransformerFactory extends ResolvingTransformerFact
 									targetValue = stubTarget;
 								}
 							}
-							
+
 						}
-						
+
 						// assume (condition = true AND targetExpression = targetValue)
-						assumption = factory.createAnd(
+						assumption = ExpressionFactory.createAnd(
 								assumption,
-								factory.createEqual(
+								ExpressionFactory.createEqual(
 										stmt.getTargetExpression(),
 										targetValue)
-						);
+								);
 						// set next label to jump target
 						nextLabel = new Location(new AbsoluteAddress(targetValue));
 					}
@@ -247,7 +245,7 @@ public class AlternatingStateTransformerFactory extends ResolvingTransformerFact
 		});		
 
 		saveNewEdges(transformers, a.getLocation());
-		
+
 		return transformers;
 	}
 
@@ -296,7 +294,7 @@ public class AlternatingStateTransformerFactory extends ResolvingTransformerFact
 	protected Set<CFAEdge> resolveGoto(AbstractState a, RTLGoto stmt) {
 		throw new UnsupportedOperationException("Not used");
 	}
-	
+
 	private boolean isProgramAddress(RTLNumber n) {
 		return program.getModule(new AbsoluteAddress(n.longValue())) != null;
 	}

@@ -59,7 +59,7 @@ public abstract class Solver {
 	}
 	
 	public static boolean isValid(RTLExpression f) {
-		return isUnsatisfiable(ExpressionFactory.getInstance().createNot(f));
+		return isUnsatisfiable(ExpressionFactory.createNot(f));
 	}
 
 	/**

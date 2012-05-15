@@ -42,18 +42,16 @@ public class LinuxStubLibrary implements StubProvider {
 	
 	private Map<String,AbsoluteAddress> activeStubs;
 	private int impId;
-	private ExpressionFactory factory;
 	private Architecture arch;
 	private RTLExpression arg0;
 	//private RTLExpression arg1;
 
 	public LinuxStubLibrary(Architecture arch) {
-		factory = ExpressionFactory.getInstance();
 		this.arch = arch;
 		activeStubs = new HashMap<String, AbsoluteAddress>();
 		impId = 0;
-		arg0 = factory.createMemoryLocation(factory.createPlus(arch.stackPointer(), factory.createNumber(4, 32)), 32);
-		//arg1 = factory.createMemoryLocation(factory.createPlus(arch.stackPointer(), factory.createNumber(8, 32)), 32);
+		arg0 = ExpressionFactory.createMemoryLocation(ExpressionFactory.createPlus(arch.stackPointer(), ExpressionFactory.createNumber(4, 32)), 32);
+		//arg1 = ExpressionFactory.createMemoryLocation(ExpressionFactory.createPlus(arch.stackPointer(), ExpressionFactory.createNumber(8, 32)), 32);
 	}
 	
 	private AbsoluteAddress createStubInstance(String library, String function) {
@@ -75,15 +73,15 @@ public class LinuxStubLibrary implements StubProvider {
 		if (function.equals("__libc_start_main")) {
 			seq.addLast(new RTLGoto(arg0, Type.CALL));
 		} else {
-			seq.addLast(new RTLVariableAssignment(32, factory.createVariable("%eax"), factory.nondet(32)));
-			seq.addLast(new RTLVariableAssignment(32, factory.createVariable("%ecx"), factory.nondet(32)));
-			seq.addLast(new RTLVariableAssignment(32, factory.createVariable("%edx"), factory.nondet(32)));
+			seq.addLast(new RTLVariableAssignment(32, ExpressionFactory.createVariable("%eax"), ExpressionFactory.nondet(32)));
+			seq.addLast(new RTLVariableAssignment(32, ExpressionFactory.createVariable("%ecx"), ExpressionFactory.nondet(32)));
+			seq.addLast(new RTLVariableAssignment(32, ExpressionFactory.createVariable("%edx"), ExpressionFactory.nondet(32)));
 		}
 		
 		// store return address in retaddr
 		if (returns) {
 			seq.addLast(new RTLVariableAssignment(32, Program.getProgram().getArchitecture().returnAddressVariable(), 
-					factory.createMemoryLocation(arch.stackPointer(), 
+					ExpressionFactory.createMemoryLocation(arch.stackPointer(), 
 							arch.stackPointer().getBitWidth())
 			));
 		}
@@ -92,9 +90,9 @@ public class LinuxStubLibrary implements StubProvider {
 		// adjust stack pointer
 		seq.addLast(new RTLVariableAssignment(arch.stackPointer().getBitWidth(), 
 				arch.stackPointer(), 
-				factory.createPlus( 
+				ExpressionFactory.createPlus( 
 						arch.stackPointer(), 
-						factory.createNumber(stackIncrement, arch.stackPointer().getBitWidth())
+						ExpressionFactory.createNumber(stackIncrement, arch.stackPointer().getBitWidth())
 				)
 		));
 

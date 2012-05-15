@@ -199,10 +199,9 @@ public class BoundedAddressTracking implements ConfigurableProgramAnalysis {
 			X86Instruction instr = (X86Instruction)program.getInstruction(addr);
 			if (instr != null && (instr.hasPrefixREPZ() || instr.hasPrefixREPNZ())) {
 				logger.debug("boost-rep: REP instruction at " + location + ", increasing precision of loop registers.");
-				ExpressionFactory factory = ExpressionFactory.getInstance();
-				p.setThreshold(factory.createVariable("%ecx"), 1000);
-				p.setThreshold(factory.createVariable("%esi"), 1000);
-				p.setThreshold(factory.createVariable("%edi"), 1000);
+				p.setThreshold(ExpressionFactory.createVariable("%ecx"), 1000);
+				p.setThreshold(ExpressionFactory.createVariable("%esi"), 1000);
+				p.setThreshold(ExpressionFactory.createVariable("%edi"), 1000);
 			}
 		}
 		

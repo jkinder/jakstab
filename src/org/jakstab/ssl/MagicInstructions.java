@@ -44,14 +44,13 @@ public class MagicInstructions {
 	private final SSLInstruction assertEQPrototype;
 	
 	protected MagicInstructions() {
-		ExpressionFactory factory = ExpressionFactory.getInstance();
-		RTLVariable reg8 = factory.createVariable("reg8"); 
-		RTLVariable reg16 = factory.createVariable("reg16"); 
-		RTLVariable reg32 = factory.createVariable("reg32");
-		RTLVariable i8 = factory.createVariable("i8");
-		RTLVariable i16 = factory.createVariable("i16");
-		RTLVariable i32 = factory.createVariable("i32");
-		Writable modrm = factory.createVariable("modrm");
+		RTLVariable reg8 = ExpressionFactory.createVariable("reg8"); 
+		RTLVariable reg16 = ExpressionFactory.createVariable("reg16"); 
+		RTLVariable reg32 = ExpressionFactory.createVariable("reg32");
+		RTLVariable i8 = ExpressionFactory.createVariable("i8");
+		RTLVariable i16 = ExpressionFactory.createVariable("i16");
+		RTLVariable i32 = ExpressionFactory.createVariable("i32");
+		Writable modrm = ExpressionFactory.createVariable("modrm");
 		allocPrototype = makePrototype(
 				"ALLOC", 
 				new RTLAlloc(reg32),
@@ -59,24 +58,24 @@ public class MagicInstructions {
 				);
 		deallocPrototype = makePrototype(
 				"DEALLOC", 
-				new RTLDealloc(factory.createVariable("modrm")),
+				new RTLDealloc(ExpressionFactory.createVariable("modrm")),
 				modrm.toString()
 				);
 		nondet8Prototype = makePrototype(
 				"NONDET8", 
-				new AssignmentTemplate(8, reg8, factory.nondet(8)),
+				new AssignmentTemplate(8, reg8, ExpressionFactory.nondet(8)),
 				reg8.toString(),
 				i8.toString()
 				);
 		nondet16Prototype = makePrototype(
 				"NONDET16", 
-				new AssignmentTemplate(16, reg16, factory.nondet(16)),
+				new AssignmentTemplate(16, reg16, ExpressionFactory.nondet(16)),
 				reg16.toString(),
 				i16.toString()
 				);
 		nondet32Prototype = makePrototype(
 				"NONDET32", 
-				new AssignmentTemplate(32, reg32, factory.nondet(32)),
+				new AssignmentTemplate(32, reg32, ExpressionFactory.nondet(32)),
 				reg32.toString(),
 				i32.toString()
 				);
@@ -100,19 +99,22 @@ public class MagicInstructions {
 				);
 		assertGTPrototype = makePrototype(
 				"ASSERTGT", 
-				new RTLAssert(factory.createGreaterThan(reg32, factory.createCast(modrm, factory.createNumber(32, 8)))),
+				new RTLAssert(ExpressionFactory.createGreaterThan(
+						reg32, ExpressionFactory.createCast(modrm, ExpressionFactory.createNumber(32, 8)))),
 				reg32.toString(),
 				modrm.toString()
 				);
 		assertGEPrototype = makePrototype(
 				"ASSERTGE", 
-				new RTLAssert(factory.createGreaterOrEqual(reg32, factory.createCast(modrm, factory.createNumber(32, 8)))),
+				new RTLAssert(ExpressionFactory.createGreaterOrEqual(
+						reg32, ExpressionFactory.createCast(modrm, ExpressionFactory.createNumber(32, 8)))),
 				reg32.toString(),
 				modrm.toString()
 				);
 		assertEQPrototype = makePrototype(
 				"ASSERTEQ", 
-				new RTLAssert(factory.createEqual(reg32, factory.createCast(modrm, factory.createNumber(32, 8)))),
+				new RTLAssert(ExpressionFactory.createEqual(
+						reg32, ExpressionFactory.createCast(modrm, ExpressionFactory.createNumber(32, 8)))),
 				reg32.toString(),
 				modrm.toString()
 				);

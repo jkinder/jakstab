@@ -251,7 +251,7 @@ public class Main {
 			logger.error( "   Indirect Branches (no import calls): " + String.format("%8d", indirectBranches));
 			logger.error( "   Unresolved Branches:                 " + String.format("%8d", program.getUnresolvedBranches().size()));
 			logger.debug("   FastSet conversions:                 " + String.format("%8d", FastSet.getConversionCount()));
-			logger.debug("   Variable count:                      " + String.format("%8d", ExpressionFactory.getInstance().getVariableCount()));
+			logger.debug("   Variable count:                      " + String.format("%8d", ExpressionFactory.getVariableCount()));
 			logger.error(Characters.DOUBLE_LINE_FULL_WIDTH);
 
 			int slashIdx = baseFileName.lastIndexOf('\\');

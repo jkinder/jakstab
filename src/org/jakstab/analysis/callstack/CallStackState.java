@@ -146,9 +146,8 @@ public class CallStackState implements AbstractState {
 	@Override
 	public Set<Tuple<RTLNumber>> projectionFromConcretization(
 			RTLExpression... expressions) {
-		ExpressionFactory factory = ExpressionFactory.getInstance();
 		if (!isBot() && !isTop() && expressions.length == 2 && 
- 				expressions[0].equals(ExpressionFactory.getInstance().TRUE) && 
+ 				expressions[0].equals(ExpressionFactory.TRUE) && 
 				expressions[1].equals(Program.getProgram().getArchitecture().returnAddressVariable())) {
 			
 			if (callStack.isEmpty()) {
@@ -158,8 +157,8 @@ public class CallStackState implements AbstractState {
 			
 			logger.debug("Concretizing callstack element: " + callStack.peek());
 			return Collections.singleton(Tuple.create(
-					factory.TRUE,
-					factory.createNumber(callStack.peek().getAddress().getValue(), 32))
+					ExpressionFactory.TRUE,
+					ExpressionFactory.createNumber(callStack.peek().getAddress().getValue(), 32))
 					); 
 		} else {
 			Tuple<RTLNumber> result = new Tuple<RTLNumber>(expressions.length);

@@ -99,8 +99,6 @@ public class SignAnalysis implements ConfigurableProgramAnalysis {
 
 				RTLExpression assumption = stmt.getAssumption();
 
-				ExpressionFactory factory = ExpressionFactory.getInstance();
-
 				// First analysis to use yices, demo implementation
 				
 				Solver solver = Solver.createSolver();
@@ -118,7 +116,7 @@ public class SignAnalysis implements ConfigurableProgramAnalysis {
 					if (s.getValue(v).isTop()) {
 
 						solver.push();
-						RTLExpression f = factory.createLessOrEqual(v, factory.createNumber(0, v.getBitWidth()));
+						RTLExpression f = ExpressionFactory.createLessOrEqual(v, ExpressionFactory.createNumber(0, v.getBitWidth()));
 						solver.addAssertion(f);
 						if (!solver.isSatisfiable()) {
 							post.setValue(v, SignElement.POSITIVE);
@@ -126,7 +124,7 @@ public class SignAnalysis implements ConfigurableProgramAnalysis {
 						} else {
 							solver.pop();
 							solver.push();
-							f = factory.createNot(factory.createEqual(v, factory.createNumber(0, v.getBitWidth())));
+							f = ExpressionFactory.createNot(ExpressionFactory.createEqual(v, ExpressionFactory.createNumber(0, v.getBitWidth())));
 							solver.addAssertion(f);
 							if (!solver.isSatisfiable()) {
 								post.setValue(v, SignElement.ZERO);
@@ -134,7 +132,7 @@ public class SignAnalysis implements ConfigurableProgramAnalysis {
 							} else {
 								solver.pop();
 								solver.push();
-								f = factory.createLessOrEqual(factory.createNumber(0, v.getBitWidth()), v);
+								f = ExpressionFactory.createLessOrEqual(ExpressionFactory.createNumber(0, v.getBitWidth()), v);
 								solver.addAssertion(f);
 								if (!solver.isSatisfiable()) {
 									post.setValue(v, SignElement.NEGATIVE);

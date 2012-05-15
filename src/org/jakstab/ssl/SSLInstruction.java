@@ -53,7 +53,7 @@ public final class SSLInstruction implements Serializable {
 					parameterCount = i;
 					break;
 				} else {
-					this.parameters[i] = ExpressionFactory.getInstance().createVariable(parameters[i]);
+					this.parameters[i] = ExpressionFactory.createVariable(parameters[i]);
 				}
 			this.parameterCount = parameterCount; 
 		}

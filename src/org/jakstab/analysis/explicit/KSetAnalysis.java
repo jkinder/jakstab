@@ -100,7 +100,7 @@ public class KSetAnalysis implements ConfigurableProgramAnalysis {
 				}
 				
 				KSet basePointer = new KSet(bound, new BasedNumberElement(newRegion, 
-						ExpressionFactory.getInstance().createNumber(0, 32)));
+						ExpressionFactory.createNumber(0, 32)));
 				
 				if (lhs instanceof RTLVariable) {
 					post.setVariableValue((RTLVariable)lhs, basePointer); 

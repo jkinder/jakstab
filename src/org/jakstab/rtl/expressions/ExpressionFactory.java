@@ -33,62 +33,53 @@ import com.google.common.collect.SetMultimap;
  * 
  * @author Johannes Kinder
  */
-public class ExpressionFactory {
+public final class ExpressionFactory {
 
 	private static final Logger logger = Logger.getLogger(ExpressionFactory.class);
 	// This should be a multiple of 64 for use as bitset size
 	public static final int DEFAULT_VARIABLE_COUNT = 128;
-	private static ExpressionFactory instance = new ExpressionFactory();
 
-	/**
-	 * Get the singleton instance of the factory.
-	 * 
-	 * @return an ExpressionFactory instance
-	 */
-	public static ExpressionFactory getInstance() {
-		return instance;
-	}
+	// Initialize constants
+	// Setting TRUE to -1 yields TRUE = ~FALSE, which makes life easier 
+	public static final RTLNumber TRUE = new RTLNumber(-1, 1);
+	public static final RTLNumber FALSE = new RTLNumber(0, 1);
+
+	public static final RTLVariable pc;
+	public static final RTLVariable SKIP;
+	public static final RTLVariable REPEAT;
+
+	private static int uniqueVariableCount = 0;
+	private static final Map<String, RTLVariable> variableInstances;
+	private static ArrayList<RTLVariable> variableArray;
+	private static final RTLNondet[] nondetArray;
+
+	private static final Map<RTLVariable, RTLBitRange> sharedRegisterMap;
+	private static final SetMultimap<RTLVariable, RTLVariable> coveredRegs;
+	private static final SetMultimap<RTLVariable, RTLVariable> coveredBy;
 	
-	public final RTLNumber TRUE;
-	public final RTLNumber FALSE;
-
-	public final RTLVariable pc;
-	public final RTLVariable SKIP;
-	public final RTLVariable REPEAT;
-
-	private int uniqueVariableCount;
-	private final Map<String, RTLVariable> variableInstances;
-	private ArrayList<RTLVariable> variableArray;
-	private final RTLNondet[] nondetArray;
-
-	private final Map<RTLVariable, RTLBitRange> sharedRegisterMap;
-	private final SetMultimap<RTLVariable, RTLVariable> coveredRegs;
-	private final SetMultimap<RTLVariable, RTLVariable> coveredBy;
-	
-	private ExpressionFactory() {
+	static {
+		uniqueVariableCount = 0;
 		variableInstances = new HashMap<String, RTLVariable>(DEFAULT_VARIABLE_COUNT);
 		variableArray = new ArrayList<RTLVariable>(DEFAULT_VARIABLE_COUNT);
-		uniqueVariableCount = 0;
+		nondetArray = new RTLNondet[128];
 		sharedRegisterMap = new HashMap<RTLVariable, RTLBitRange>();
 		coveredRegs = HashMultimap.create();
 		coveredBy = HashMultimap.create();
-		nondetArray = new RTLNondet[128];
-
-		// Initialize constants
-		// Setting TRUE to -1 yields TRUE = ~FALSE, which makes life easier 
-		TRUE = new RTLNumber(-1, 1);
-		FALSE = new RTLNumber(0, 1);
+	
 		pc = createVariable("%pc", 32);
 		SKIP = createVariable("%SKIP", 1);
 		REPEAT = createVariable("%RPT", 1);
 	}
 	
-	public RTLBitRange createBitRange(RTLExpression operand,
+	private ExpressionFactory() {
+	}
+	
+	public static RTLBitRange createBitRange(RTLExpression operand,
 			RTLExpression firstBit, RTLExpression lastBit) {
 		return new RTLBitRange(operand, firstBit, lastBit);
 	}
 
-	public RTLConditionalExpression createConditionalExpression(
+	public static RTLConditionalExpression createConditionalExpression(
 			RTLExpression condition, RTLExpression trueExpression,
 			RTLExpression falseExpression) {
 		// Invert not-expressions
@@ -102,28 +93,28 @@ public class ExpressionFactory {
 				falseExpression);
 	}
 	
-	public RTLExpression createImplication(RTLExpression a, RTLExpression b) {
+	public static RTLExpression createImplication(RTLExpression a, RTLExpression b) {
 		return createOr(createNot(a), b);
 	}
 
-	public RTLMemoryLocation createMemoryLocation(RTLExpression address, int bitWidth) {
+	public static RTLMemoryLocation createMemoryLocation(RTLExpression address, int bitWidth) {
 		return createMemoryLocation(0, null, address, bitWidth);
 	}
 
-	public RTLMemoryLocation createMemoryLocation(int memoryState, RTLExpression address, int bitWidth) {
+	public static RTLMemoryLocation createMemoryLocation(int memoryState, RTLExpression address, int bitWidth) {
 		return createMemoryLocation(memoryState, null, address, bitWidth);
 	}
 
-	public RTLMemoryLocation createMemoryLocation(RTLExpression segmentRegister, RTLExpression address, int bitWidth) {
+	public static RTLMemoryLocation createMemoryLocation(RTLExpression segmentRegister, RTLExpression address, int bitWidth) {
 		return createMemoryLocation(0, segmentRegister, address, bitWidth);
 	}
 
-	public RTLMemoryLocation createMemoryLocation(int memoryState, RTLExpression segmentRegister, RTLExpression address, int bitWidth) {
+	public static RTLMemoryLocation createMemoryLocation(int memoryState, RTLExpression segmentRegister, RTLExpression address, int bitWidth) {
 		assert bitWidth > 0 : "Trying to create memory location of unknown width with address " + address + "!";
 		return new RTLMemoryLocation(memoryState, segmentRegister, address, bitWidth);
 	}
 
-	public RTLNumber createNumber(Number value) {
+	public static RTLNumber createNumber(Number value) {
 		int bitWidth = 64;
 		if (value instanceof Long) bitWidth = 64;
 		else if (value instanceof Integer) bitWidth = 32;
@@ -132,7 +123,7 @@ public class ExpressionFactory {
 		return new RTLNumber(value.longValue(), bitWidth);
 	}
 
-	public RTLNumber createNumber(long value, int bitWidth) {
+	public static RTLNumber createNumber(long value, int bitWidth) {
 		if (bitWidth == 1) {
 			if (value == 0) return FALSE;
 			else return TRUE;
@@ -147,7 +138,7 @@ public class ExpressionFactory {
 	 * @param iOp an operand of an assembly instruction 
 	 * @return a translation of the operand into an RTLExpression 
 	 */
-	public RTLExpression createOperand(Operand iOp) {
+	public static RTLExpression createOperand(Operand iOp) {
 		RTLExpression opAsExpr = null;
 		if (iOp instanceof Immediate) {
 			opAsExpr = createNumber(((Immediate)iOp).getNumber());
@@ -166,154 +157,154 @@ public class ExpressionFactory {
 		return opAsExpr;
 	}
 	
-	public RTLExpression createPlus(RTLExpression... operands) {
+	public static RTLExpression createPlus(RTLExpression... operands) {
 		return createOperation(Operator.PLUS, operands);
 	}
 
-	public RTLExpression createMinus(RTLExpression op1, RTLExpression op2) {
+	public static RTLExpression createMinus(RTLExpression op1, RTLExpression op2) {
 		return createPlus(op1, createNeg(op2));
 	}
 
-	public RTLExpression createMultiply(RTLExpression... operands) {
+	public static RTLExpression createMultiply(RTLExpression... operands) {
 		return createOperation(Operator.MUL, operands);
 	}
 
-	public RTLExpression createFloatMultiply(RTLExpression... operands) {
+	public static RTLExpression createFloatMultiply(RTLExpression... operands) {
 		return createOperation(Operator.FMUL, operands);
 	}
 
-	public RTLExpression createFloatDivide(RTLExpression op1, RTLExpression op2) {
+	public static RTLExpression createFloatDivide(RTLExpression op1, RTLExpression op2) {
 		return createOperation(Operator.FDIV, op1, op2);
 	}
 
-	public RTLExpression createDivide(RTLExpression op1, RTLExpression op2) {
+	public static RTLExpression createDivide(RTLExpression op1, RTLExpression op2) {
 		return createOperation(Operator.DIV, op1, op2);
 	}
 
-	public RTLExpression createPowerOf(RTLExpression op1, RTLExpression op2) {
+	public static RTLExpression createPowerOf(RTLExpression op1, RTLExpression op2) {
 		return createOperation(Operator.POWER_OF, op1, op2);
 	}
 
-	public RTLExpression createModulo(RTLExpression... operands) {
+	public static RTLExpression createModulo(RTLExpression... operands) {
 		return createOperation(Operator.MOD, operands);
 	}
 	
-	public RTLExpression createEqual(RTLExpression op1, RTLExpression op2) {
+	public static RTLExpression createEqual(RTLExpression op1, RTLExpression op2) {
 		return createOperation(Operator.EQUAL, op1, op2);
 	}
 
-	public RTLExpression createNotEqual(RTLExpression op1, RTLExpression op2) {
+	public static RTLExpression createNotEqual(RTLExpression op1, RTLExpression op2) {
 		return createNot(createEqual(op1, op2));
 	}
 
-	public RTLExpression createLessThan(RTLExpression op1, RTLExpression op2) {
+	public static RTLExpression createLessThan(RTLExpression op1, RTLExpression op2) {
 		return createOperation(Operator.LESS, op1, op2);
 	}
 
-	public RTLExpression createLessOrEqual(RTLExpression op1, RTLExpression op2) {
+	public static RTLExpression createLessOrEqual(RTLExpression op1, RTLExpression op2) {
 		return createOperation(Operator.LESS_OR_EQUAL, op1, op2);
 	}
 
-	public RTLExpression createGreaterThan(RTLExpression op1, RTLExpression op2) {
+	public static RTLExpression createGreaterThan(RTLExpression op1, RTLExpression op2) {
 		return createLessThan(op2, op1);
 	}
 
-	public RTLExpression createGreaterOrEqual(RTLExpression op1, RTLExpression op2) {
+	public static RTLExpression createGreaterOrEqual(RTLExpression op1, RTLExpression op2) {
 		//return createLessOrEqual(op2, op1);
 		return createNot(createLessThan(op1, op2));
 	}
 
-	public RTLExpression createUnsignedLessThan(RTLExpression op1, RTLExpression op2) {
+	public static RTLExpression createUnsignedLessThan(RTLExpression op1, RTLExpression op2) {
 		return createOperation(Operator.UNSIGNED_LESS, op1, op2);
 	}
 
-	public RTLExpression createUnsignedLessOrEqual(RTLExpression op1, RTLExpression op2) {
+	public static RTLExpression createUnsignedLessOrEqual(RTLExpression op1, RTLExpression op2) {
 		return createOperation(Operator.UNSIGNED_LESS_OR_EQUAL, op1, op2);
 	}
 
-	public RTLExpression createUnsignedGreaterThan(RTLExpression op1, RTLExpression op2) {
+	public static RTLExpression createUnsignedGreaterThan(RTLExpression op1, RTLExpression op2) {
 		return createUnsignedLessThan(op2, op1);
 	}
 
-	public RTLExpression createUnsignedGreaterOrEqual(RTLExpression op1, RTLExpression op2) {
+	public static RTLExpression createUnsignedGreaterOrEqual(RTLExpression op1, RTLExpression op2) {
 		return createNot(createUnsignedLessThan(op1, op2));
 	}
 
-	public RTLExpression createAnd(RTLExpression op1, RTLExpression op2) {
+	public static RTLExpression createAnd(RTLExpression op1, RTLExpression op2) {
 		return createOperation(Operator.AND, op1, op2);
 	}
 
-	public RTLExpression createOr(RTLExpression op1, RTLExpression op2) {
+	public static RTLExpression createOr(RTLExpression op1, RTLExpression op2) {
 		return createOperation(Operator.OR, op1, op2);
 	}
 
-	public RTLExpression createXor(RTLExpression op1, RTLExpression op2) {
+	public static RTLExpression createXor(RTLExpression op1, RTLExpression op2) {
 		return createOperation(Operator.XOR, op1, op2);
 	}
 	
-	public RTLExpression createNot(RTLExpression op) {
+	public static RTLExpression createNot(RTLExpression op) {
 		return createOperation(Operator.NOT, op);
 	}
 
-	public RTLExpression createNeg(RTLExpression op) {
+	public static RTLExpression createNeg(RTLExpression op) {
 		return createOperation(Operator.NEG, op);
 	}
 
-	public RTLExpression createShiftRight(RTLExpression op1, RTLExpression op2) {
+	public static RTLExpression createShiftRight(RTLExpression op1, RTLExpression op2) {
 		return createOperation(Operator.SHR, op1, op2);
 	}
 	
-	public RTLExpression createShiftArithmeticRight(RTLExpression op1, RTLExpression op2) {
+	public static RTLExpression createShiftArithmeticRight(RTLExpression op1, RTLExpression op2) {
 		return createOperation(Operator.SAR, op1, op2);
 	}
 	
-	public RTLExpression createShiftLeft(RTLExpression op1, RTLExpression op2) {
+	public static RTLExpression createShiftLeft(RTLExpression op1, RTLExpression op2) {
 		return createOperation(Operator.SHL, op1, op2);
 	}
 	
-	public RTLExpression createRotateLeft(RTLExpression op1, RTLExpression op2) {
+	public static RTLExpression createRotateLeft(RTLExpression op1, RTLExpression op2) {
 		return createOperation(Operator.ROL, op1, op2);
 	}
 	
-	public RTLExpression createRotateRight(RTLExpression op1, RTLExpression op2) {
+	public static RTLExpression createRotateRight(RTLExpression op1, RTLExpression op2) {
 		return createOperation(Operator.ROR, op1, op2);
 	}
 	
-	public RTLExpression createRotateLeftWithCarry(RTLExpression op1, RTLExpression op2) {
+	public static RTLExpression createRotateLeftWithCarry(RTLExpression op1, RTLExpression op2) {
 		return createOperation(Operator.ROLC, op1, op2);
 	}
 	
-	public RTLExpression createRotateRightWithCarry(RTLExpression op1, RTLExpression op2) {
+	public static RTLExpression createRotateRightWithCarry(RTLExpression op1, RTLExpression op2) {
 		return createOperation(Operator.RORC, op1, op2);
 	}
 	
-	public RTLExpression createCast(RTLExpression op, RTLNumber bitWidth) {
+	public static RTLExpression createCast(RTLExpression op, RTLNumber bitWidth) {
 		return createOperation(Operator.CAST, op, bitWidth);
 	}
 	
-	public RTLExpression createSignExtend(int from, int to, RTLExpression op) {
+	public static RTLExpression createSignExtend(int from, int to, RTLExpression op) {
 		return createSignExtend(createNumber(from, 8), createNumber(to, 8), op);
 	}
 
-	public RTLExpression createSignExtend(RTLExpression from, RTLExpression to, RTLExpression op) {
+	public static RTLExpression createSignExtend(RTLExpression from, RTLExpression to, RTLExpression op) {
 		return createOperation(Operator.SIGN_EXTEND, from, to, op);
 	}
 	
-	public RTLExpression createZeroFill(int from, int to, RTLExpression op) {
+	public static RTLExpression createZeroFill(int from, int to, RTLExpression op) {
 		return createZeroFill(createNumber(from, 8), createNumber(to, 8), op);
 	}
 	
-	public RTLExpression createZeroFill(RTLExpression from, RTLExpression to, RTLExpression op) {
+	public static RTLExpression createZeroFill(RTLExpression from, RTLExpression to, RTLExpression op) {
 		return createOperation(Operator.ZERO_FILL, from, to, op);
 	}
 	
-	public RTLExpression createFloatResize(RTLExpression toBits, RTLExpression fromBits, RTLExpression op) {
+	public static RTLExpression createFloatResize(RTLExpression toBits, RTLExpression fromBits, RTLExpression op) {
 		//fromBits = createNumber(((RTLNumber)fromBits).intValue(), 8);
 		//toBits = createNumber(((RTLNumber)toBits).intValue(), 8);
 		return createOperation(Operator.FSIZE, toBits, fromBits, op);
 	}
 	
-	public RTLExpression createOperation(Operator operator,
+	public static RTLExpression createOperation(Operator operator,
 			RTLExpression... operands) {
 		switch (operator) {
 		// Handle nested operators for commutative associative operations
@@ -356,7 +347,7 @@ public class ExpressionFactory {
 		return new RTLOperation(operator, operands);
 	}
 
-	public RTLExpression createSpecialExpression(
+	public static RTLExpression createSpecialExpression(
 			String operation, RTLExpression... operands) {
 		// Load effective address (lea)
 		if (operation.equals("addr")) {
@@ -371,7 +362,7 @@ public class ExpressionFactory {
 		return new RTLSpecialExpression(operation, operands);
 	}
 
-	public RTLVariable createVariable(String name, int bitWidth) {
+	public static RTLVariable createVariable(String name, int bitWidth) {
 		// Remove leading %-signs on registers to avoid confusion of users
 		if (name.charAt(0) == '%') name = name.substring(1);
 		
@@ -397,21 +388,21 @@ public class ExpressionFactory {
 		return var;
 	}
 	
-	private void addCoveringRegister(RTLVariable var, RTLVariable parent) {
+	private static void addCoveringRegister(RTLVariable var, RTLVariable parent) {
 		for (RTLVariable ancestor : coveringRegisters(parent)) {
 			addCoveringRegister(var, ancestor);
 		}
 		coveredBy.put(var, parent);
 	}
 	
-	private void addCoveredRegister(RTLVariable var, RTLVariable child) {
+	private static void addCoveredRegister(RTLVariable var, RTLVariable child) {
 		for (RTLVariable ancestor : coveringRegisters(var)) {
 			addCoveredRegister(ancestor, child);
 		}
 		coveredRegs.put(var, child);
 	}
 	
-	public RTLVariable createSharedRegisterVariable(String name, String parentName, int startBit, int endBit) {
+	public static RTLVariable createSharedRegisterVariable(String name, String parentName, int startBit, int endBit) {
 		RTLVariable var = createVariable(name, endBit - startBit + 1);
 		RTLVariable parent = createVariable(parentName);
 
@@ -424,33 +415,33 @@ public class ExpressionFactory {
 		return var;
 	}
 	
-	public RTLBitRange getRegisterAsParent(RTLVariable var) {
+	public static RTLBitRange getRegisterAsParent(RTLVariable var) {
 		return sharedRegisterMap.get(var);
 	}
 	
-	public Set<RTLVariable> coveredRegisters(RTLVariable var) {
+	public static Set<RTLVariable> coveredRegisters(RTLVariable var) {
 		return coveredRegs.get(var);
 	}
 	
-	public Set<RTLVariable> coveringRegisters(RTLVariable var) {
+	public static Set<RTLVariable> coveringRegisters(RTLVariable var) {
 		return coveredBy.get(var);
 	}
 
-	public Writable createRegisterVariable(String name, int bitWidth) {
+	public static Writable createRegisterVariable(String name, int bitWidth) {
 		// Use explicit 16 and 8 bit registers now
 		//if (sharedRegisterMap.containsKey(name)) return sharedRegisterMap.get(name);
 		return createVariable(name, bitWidth);
 	}
 	
-	public RTLVariable createVariable(String name) {
+	public static RTLVariable createVariable(String name) {
 		return createVariable(name, RTLVariable.UNKNOWN_BITWIDTH);
 	}
 	
-	public RTLVariable getVariable(int index) {
+	public static RTLVariable getVariable(int index) {
 		return variableArray.get(index);
 	}
 
-	public int getVariableCount() {
+	public static int getVariableCount() {
 		return uniqueVariableCount;
 	}
 
@@ -462,26 +453,26 @@ public class ExpressionFactory {
 	 * @param bitWidth
 	 * @return a nondeterministic RTLExpression. 
 	 */
-	public RTLExpression nondet(int bitWidth) {
+	public static RTLExpression nondet(int bitWidth) {
 		if (nondetArray[bitWidth - 1] == null)
 			nondetArray[bitWidth - 1] = new RTLNondet(bitWidth);
 		return nondetArray[bitWidth - 1];
 	}
 
-	private RTLExpression createAddress(AbsoluteAddress asmAddress) {
+	private static RTLExpression createAddress(AbsoluteAddress asmAddress) {
 		RTLExpression addressExpression;
 		addressExpression = 
 			createNumber(asmAddress.getValue(), asmAddress.getBitWidth());
 		return addressExpression;
 	}
 
-	private RTLExpression createAddress(PCRelativeAddress asmAddress) {
+	private static RTLExpression createAddress(PCRelativeAddress asmAddress) {
 		RTLExpression addressExpression;
 		addressExpression = createNumber(asmAddress.getDisplacement(), asmAddress.getBitWidth());
 		return addressExpression;
 	}
 
-	private RTLMemoryLocation createMemoryLocation(MemoryOperand asmMemOp) {
+	private static RTLMemoryLocation createMemoryLocation(MemoryOperand asmMemOp) {
 		RTLExpression segmentRegister = null;
 		if (asmMemOp instanceof X86MemoryOperand) {
 			X86SegmentRegister segReg = ((X86MemoryOperand)asmMemOp).getSegmentRegister();
@@ -518,7 +509,7 @@ public class ExpressionFactory {
 		return createMemoryLocation(segmentRegister, addressExpr, bitWidth);
 	}
 
-	private RTLExpression createRegister(Register asmRegister) {
+	private static RTLExpression createRegister(Register asmRegister) {
 		return createRegisterVariable(asmRegister.toString(), RTLVariable.UNKNOWN_BITWIDTH);
 	}
 }

@@ -44,23 +44,21 @@ public class VariableValuationTest {
 	private static RTLVariable ax;
 	private static RTLVariable ah;
 	private static RTLVariable al;
-	private ExpressionFactory factory;
 	
 	
 	@Before
 	public void setUp() throws Exception {
-		factory = ExpressionFactory.getInstance();
-		x32 = factory.createVariable("x32", 32);
-		y16 = factory.createVariable("y16", 16);
-		z32 = factory.createVariable("z32", 32);
-		n32 = new NumberElement(factory.createNumber(52, 32));
-		n32b = new NumberElement(factory.createNumber(13, 32));
-		n32c = new NumberElement(factory.createNumber(13, 32));
-		n16 = new NumberElement(factory.createNumber(-123, 16));
-		eax = factory.createVariable("eax", 32);
-		ax = factory.createSharedRegisterVariable("ax", "eax", 0, 15);
-		ah = factory.createSharedRegisterVariable("ah", "ax", 8, 15);
-		al = factory.createSharedRegisterVariable("al", "ax", 0, 7);
+		x32 = ExpressionFactory.createVariable("x32", 32);
+		y16 = ExpressionFactory.createVariable("y16", 16);
+		z32 = ExpressionFactory.createVariable("z32", 32);
+		n32 = new NumberElement(ExpressionFactory.createNumber(52, 32));
+		n32b = new NumberElement(ExpressionFactory.createNumber(13, 32));
+		n32c = new NumberElement(ExpressionFactory.createNumber(13, 32));
+		n16 = new NumberElement(ExpressionFactory.createNumber(-123, 16));
+		eax = ExpressionFactory.createVariable("eax", 32);
+		ax = ExpressionFactory.createSharedRegisterVariable("ax", "eax", 0, 15);
+		ah = ExpressionFactory.createSharedRegisterVariable("ah", "ax", 8, 15);
+		al = ExpressionFactory.createSharedRegisterVariable("al", "ax", 0, 7);
 	}
 
 	@After
@@ -81,16 +79,16 @@ public class VariableValuationTest {
 	public void testRegisterMasking() {
 		VariableValuation<BasedNumberElement> aVarVal = 
 			new VariableValuation<BasedNumberElement>(new BasedNumberElementFactory());
-		BasedNumberElement val1 = new BasedNumberElement(factory.createNumber(0xCAFE3344, 32));
-		BasedNumberElement val2 = new BasedNumberElement(factory.createNumber(0xBE, 8));
-		BasedNumberElement val3 = new BasedNumberElement(factory.createNumber(0xBA, 8));
+		BasedNumberElement val1 = new BasedNumberElement(ExpressionFactory.createNumber(0xCAFE3344, 32));
+		BasedNumberElement val2 = new BasedNumberElement(ExpressionFactory.createNumber(0xBE, 8));
+		BasedNumberElement val3 = new BasedNumberElement(ExpressionFactory.createNumber(0xBA, 8));
 		aVarVal.set(eax, val1);
 		assertEquals(val1, aVarVal.get(eax));
 		aVarVal.set(al, val2);
-		assertEquals(new BasedNumberElement(factory.createNumber(0xCAFE33BE, 32)), aVarVal.get(eax));
+		assertEquals(new BasedNumberElement(ExpressionFactory.createNumber(0xCAFE33BE, 32)), aVarVal.get(eax));
 		aVarVal.set(ah, val3);
-		assertEquals(new BasedNumberElement(factory.createNumber(0xCAFEBABE, 32)), aVarVal.get(eax));
-		assertEquals(new BasedNumberElement(factory.createNumber(0xBABE, 16)), aVarVal.get(ax));
+		assertEquals(new BasedNumberElement(ExpressionFactory.createNumber(0xCAFEBABE, 32)), aVarVal.get(eax));
+		assertEquals(new BasedNumberElement(ExpressionFactory.createNumber(0xBABE, 16)), aVarVal.get(ax));
 	}
 
 	@Test

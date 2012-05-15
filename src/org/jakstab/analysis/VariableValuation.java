@@ -58,8 +58,7 @@ public class VariableValuation<A extends AbstractValue> implements LatticeElemen
 			return e;
 		} else {
 			// See if we can get the value from a covering register
-			ExpressionFactory factory = ExpressionFactory.getInstance(); 
-			RTLBitRange asParent = factory.getRegisterAsParent(var);
+			RTLBitRange asParent = ExpressionFactory.getRegisterAsParent(var);
 
 			if (asParent != null && asParent.getOperand() instanceof RTLVariable) {
 				RTLVariable parent = (RTLVariable)asParent.getOperand();
@@ -90,16 +89,14 @@ public class VariableValuation<A extends AbstractValue> implements LatticeElemen
 	}
 	
 	private void clearCovering(RTLVariable var) {
-		ExpressionFactory factory = ExpressionFactory.getInstance(); 
-		for (RTLVariable covering : factory.coveringRegisters(var)) {
+		for (RTLVariable covering : ExpressionFactory.coveringRegisters(var)) {
 			aVarVal.remove(covering);
 			//clearCovering(covering);
 		}
 	}
 	
 	private void clearCovered(RTLVariable var) {
-		ExpressionFactory factory = ExpressionFactory.getInstance(); 
-		for (RTLVariable covered : factory.coveredRegisters(var)) {
+		for (RTLVariable covered : ExpressionFactory.coveredRegisters(var)) {
 			aVarVal.remove(covered);
 			//clearCovered(covered);
 		}
@@ -108,9 +105,7 @@ public class VariableValuation<A extends AbstractValue> implements LatticeElemen
 	@SuppressWarnings("unchecked")
 	public void set(RTLVariable var, A value) {
 		
-		ExpressionFactory factory = ExpressionFactory.getInstance();
-		
-		RTLBitRange asParent = factory.getRegisterAsParent(var);
+		RTLBitRange asParent = ExpressionFactory.getRegisterAsParent(var);
 
 		// Set parent register - we only do this if the value to set represents 
 		// a single concrete value. If we want to generalize this, we have to

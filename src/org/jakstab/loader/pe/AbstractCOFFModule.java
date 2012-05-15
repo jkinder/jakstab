@@ -174,7 +174,7 @@ public abstract class AbstractCOFFModule implements ExecutableImage {
 			// do not mask the MSB with 0xFF, so we get sign extension for free
 			val = val | (((long)inBuf.readINT8()) << (bytes - 1) * 8);
 			//logger.debug("Read constant value " + val + " from address " + m + " (file offset: " + Long.toHexString(fp) + ") in image.");
-			return ExpressionFactory.getInstance().createNumber(val, m.getBitWidth());
+			return ExpressionFactory.createNumber(val, m.getBitWidth());
 		}
 		logger.debug("No value can be read from image for address " + m);
 		return null;

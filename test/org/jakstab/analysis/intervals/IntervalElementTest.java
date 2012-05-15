@@ -33,11 +33,9 @@ public class IntervalElementTest {
 			.getLogger(IntervalElementTest.class);
 
 	private IntervalElement i1, i2, expected, r;
-	private ExpressionFactory factory;
 
 	@Before
 	public void setUp() throws Exception {
-		factory = ExpressionFactory.getInstance();
 	}
 
 	@After
@@ -79,7 +77,7 @@ public class IntervalElementTest {
 		assertEquals(expected, r);
 
 		i1 = new IntervalElement(MemoryRegion.GLOBAL, -100, 100, 10, 16);
-		i2 = new IntervalElement(MemoryRegion.GLOBAL, factory.createNumber(43, 16));
+		i2 = new IntervalElement(MemoryRegion.GLOBAL, ExpressionFactory.createNumber(43, 16));
 		expected = new IntervalElement(MemoryRegion.GLOBAL, -57, 143, 10, 16);
 		r = i1.plus(i2);
 		assertEquals(expected, r);

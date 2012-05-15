@@ -185,7 +185,7 @@ public class CompositeProgramAnalysis implements ConfigurableProgramAnalysis {
 				logger.error(state);
 				//if (Options.errorTrace)
 				throw new AssertionViolationException(state, "Assertion " + stmt + " might have failed!");
-			} else if (cAssertionResult.iterator().next().get(0).equals(ExpressionFactory.getInstance().FALSE)) {
+			} else if (cAssertionResult.iterator().next().get(0).equals(ExpressionFactory.FALSE)) {
 				logger.error("Found assertion violation at " + state.getLocation() + "! " + stmt + " failed in state:");
 				logger.error(state);
 				//if (Options.errorTrace)

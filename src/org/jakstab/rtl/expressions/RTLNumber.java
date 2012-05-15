@@ -157,12 +157,12 @@ public class RTLNumber extends AbstractRTLExpression implements RTLExpression, A
 		else if (bitWidth <= 0) {
 			// Does the value (signed) fit into the bits? 
 			if (Math.log(Math.abs(value)) / Math.log(2) <= (expectedBitWidth - 1))
-				return ExpressionFactory.getInstance().createNumber(this.value, expectedBitWidth);
+				return ExpressionFactory.createNumber(this.value, expectedBitWidth);
 			else throw new TypeInferenceException("Expected bit width of " + 
 					expectedBitWidth + " too small to hold numeric value of " + value + "!"); 
 		} else if (bitWidth < expectedBitWidth) {
 			// TODO: Check if sign extension is correct
-			return ExpressionFactory.getInstance().createNumber(value, expectedBitWidth);
+			return ExpressionFactory.createNumber(value, expectedBitWidth);
 		} else {
 			// Expected bitwidth less than our bitwidth
 			throw new TypeInferenceException(this.toString() + " expected to be of bitwidth " + expectedBitWidth);
@@ -187,19 +187,19 @@ public class RTLNumber extends AbstractRTLExpression implements RTLExpression, A
 	@Override
 	public RTLNumber multiply(AbstractDomainElement op) {
 		RTLNumber other = (RTLNumber)op;
-		return ExpressionFactory.getInstance().createNumber(
+		return ExpressionFactory.createNumber(
 				value * other.value, Math.max(bitWidth, other.bitWidth));
 	}
 
 	@Override
 	public RTLNumber negate() {
-		return ExpressionFactory.getInstance().createNumber(-value, bitWidth);
+		return ExpressionFactory.createNumber(-value, bitWidth);
 	}
 
 	@Override
 	public RTLNumber plus(AbstractDomainElement op) {
 		RTLNumber other = (RTLNumber)op;
-		return ExpressionFactory.getInstance().createNumber(
+		return ExpressionFactory.createNumber(
 				value + other.value, Math.max(bitWidth, other.bitWidth));
 	}
 
@@ -230,7 +230,7 @@ public class RTLNumber extends AbstractRTLExpression implements RTLExpression, A
 		if ((value & RTLBitRange.bitMask(bitWidth - 1,  bitWidth - 1)) > 0) {
 			extension = value | RTLBitRange.bitMask(first, last);
 		}
-		return ExpressionFactory.getInstance().createNumber(extension, targetWidth);
+		return ExpressionFactory.createNumber(extension, targetWidth);
 	}
 
 	@Override
@@ -239,7 +239,7 @@ public class RTLNumber extends AbstractRTLExpression implements RTLExpression, A
 		long filled = value & (
 				RTLBitRange.bitMask(0, first - 1) |
 				RTLBitRange.bitMask(last + 1, targetWidth - 1));
-		return ExpressionFactory.getInstance().createNumber(filled, targetWidth);
+		return ExpressionFactory.createNumber(filled, targetWidth);
 	}
 
 	@Override

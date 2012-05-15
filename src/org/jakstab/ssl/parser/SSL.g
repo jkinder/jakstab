@@ -560,7 +560,6 @@ options {
 	private Map<String,SSLFunction> instructions = new TreeMap<String,SSLFunction>();
 	private Stack<Map<String,AST>> locals = new Stack<Map<String,AST>>();
 	private SetOfVariables registers = new SetOfVariables(); 
-	private ExpressionFactory factory = ExpressionFactory.getInstance();
 
 	public SetOfVariables getRegisters() { return registers; }	
 	//public Map<String,SSLFunction> getFunctions() { return functions; }
@@ -628,7 +627,7 @@ register_decl! {
 	}
 	:
 		INDEX r1:REG_ID regIdFrom=intValue {
-				registers.add((RTLVariable)factory.createRegisterVariable(r1.getText(), RTLVariable.UNKNOWN_BITWIDTH));
+				registers.add((RTLVariable)ExpressionFactory.createRegisterVariable(r1.getText(), RTLVariable.UNKNOWN_BITWIDTH));
 		}
 		
 		| r2:REG_ID LSQUARE bitWidth=intValue RSQUARE INDEX regIdFrom=intValue
@@ -638,15 +637,15 @@ register_decl! {
 				if (coveredRegFrom != null) 
 					throw new RuntimeException("COVERS not yet supported!");
 				if (sharedReg != null) {
-					factory.createSharedRegisterVariable(r2.getText(), sharedReg.getText(), shareFrom, shareTo);
+					ExpressionFactory.createSharedRegisterVariable(r2.getText(), sharedReg.getText(), shareFrom, shareTo);
 				} else {
-					registers.add((RTLVariable)factory.createRegisterVariable(r2.getText(), bitWidth));
+					registers.add((RTLVariable)ExpressionFactory.createRegisterVariable(r2.getText(), bitWidth));
 				}
 			}
 		
 		| LSQUARE regList=register_list RSQUARE LSQUARE bitWidth=intValue RSQUARE INDEX regIdFrom=intValue (TO regIdTo=intValue)? {
 			for (String regName : regList) {
-				registers.add((RTLVariable)factory.createRegisterVariable(regName, bitWidth));
+				registers.add((RTLVariable)ExpressionFactory.createRegisterVariable(regName, bitWidth));
 			}
 		}
 	;
@@ -919,91 +918,91 @@ rtlExpr[int bw] returns [ RTLExpression ret = null;]
 }
 	:
 		// Test operators 
-		#( EQ e1=rtlExpr[bw] e2=rtlExpr[bw] ) { ret = factory.createEqual(e1, e2); }
-		| #( NE e1=rtlExpr[bw] e2=rtlExpr[bw] ) { ret = factory.createNotEqual(e1, e2); }
-		| #( GT e1=rtlExpr[bw] e2=rtlExpr[bw] ) { ret = factory.createGreaterThan(e1, e2); }
-		| #( LT e1=rtlExpr[bw] e2=rtlExpr[bw] ) { ret = factory.createLessThan(e1, e2); }
-		| #( GE e1=rtlExpr[bw] e2=rtlExpr[bw] ) { ret = factory.createGreaterOrEqual(e1, e2); }
-		| #( LE e1=rtlExpr[bw] e2=rtlExpr[bw] ) { ret = factory.createLessOrEqual(e1, e2); }
-		| #( GTU e1=rtlExpr[bw] e2=rtlExpr[bw] ) { ret = factory.createUnsignedGreaterThan(e1, e2); }
-		| #( LTU e1=rtlExpr[bw] e2=rtlExpr[bw] ) { ret = factory.createUnsignedLessThan(e1, e2); }
-		| #( GEU e1=rtlExpr[bw] e2=rtlExpr[bw] ) { ret = factory.createUnsignedGreaterOrEqual(e1, e2); }
-		| #( LEU e1=rtlExpr[bw] e2=rtlExpr[bw] ) { ret = factory.createUnsignedLessOrEqual(e1, e2); }
+		#( EQ e1=rtlExpr[bw] e2=rtlExpr[bw] ) { ret = ExpressionFactory.createEqual(e1, e2); }
+		| #( NE e1=rtlExpr[bw] e2=rtlExpr[bw] ) { ret = ExpressionFactory.createNotEqual(e1, e2); }
+		| #( GT e1=rtlExpr[bw] e2=rtlExpr[bw] ) { ret = ExpressionFactory.createGreaterThan(e1, e2); }
+		| #( LT e1=rtlExpr[bw] e2=rtlExpr[bw] ) { ret = ExpressionFactory.createLessThan(e1, e2); }
+		| #( GE e1=rtlExpr[bw] e2=rtlExpr[bw] ) { ret = ExpressionFactory.createGreaterOrEqual(e1, e2); }
+		| #( LE e1=rtlExpr[bw] e2=rtlExpr[bw] ) { ret = ExpressionFactory.createLessOrEqual(e1, e2); }
+		| #( GTU e1=rtlExpr[bw] e2=rtlExpr[bw] ) { ret = ExpressionFactory.createUnsignedGreaterThan(e1, e2); }
+		| #( LTU e1=rtlExpr[bw] e2=rtlExpr[bw] ) { ret = ExpressionFactory.createUnsignedLessThan(e1, e2); }
+		| #( GEU e1=rtlExpr[bw] e2=rtlExpr[bw] ) { ret = ExpressionFactory.createUnsignedGreaterOrEqual(e1, e2); }
+		| #( LEU e1=rtlExpr[bw] e2=rtlExpr[bw] ) { ret = ExpressionFactory.createUnsignedLessOrEqual(e1, e2); }
 		// Arithmetic operators
-		| #( PLUS e1=rtlExpr[bw] e2=rtlExpr[bw] ) { ret = factory.createPlus(e1, e2); }
-		| #( PLUS_F e1=rtlExpr[bw] e2=rtlExpr[bw] ) { ret = factory.createPlus(e1, e2); }
-		| #( PLUS_FD e1=rtlExpr[bw] e2=rtlExpr[bw] ) { ret = factory.createPlus(e1, e2); }
-		| #( PLUS_FQ e1=rtlExpr[bw] e2=rtlExpr[bw] ) { ret = factory.createPlus(e1, e2); }
-		| #( MINUS e1=rtlExpr[bw] e2=rtlExpr[bw] ) { ret = factory.createMinus(e1, e2); }
-		| #( MINUS_F e1=rtlExpr[bw] e2=rtlExpr[bw] ) { ret = factory.createMinus(e1, e2); }
-		| #( MINUS_FD e1=rtlExpr[bw] e2=rtlExpr[bw] ) { ret = factory.createMinus(e1, e2); }
-		| #( MINUS_FQ e1=rtlExpr[bw] e2=rtlExpr[bw] ) { ret = factory.createMinus(e1, e2); }
-		| #( MUL e1=rtlExpr[bw] e2=rtlExpr[bw] ) { ret = factory.createMultiply(e1, e2); }
-		| #( MUL_F e1=rtlExpr[bw] e2=rtlExpr[bw] ) { ret = factory.createFloatMultiply(e1, e2); }
-		| #( MUL_FD e1=rtlExpr[bw] e2=rtlExpr[bw] ) { ret = factory.createFloatMultiply(e1, e2); }
-		| #( MUL_FQ e1=rtlExpr[bw] e2=rtlExpr[bw] ) { ret = factory.createFloatMultiply(e1, e2); }
-		| #( MUL_FSD e1=rtlExpr[bw] e2=rtlExpr[bw] ) { ret = factory.createFloatMultiply(e1, e2); }
-		| #( MUL_FDQ e1=rtlExpr[bw] e2=rtlExpr[bw] ) { ret = factory.createFloatMultiply(e1, e2); }
-		| #( SMUL e1=rtlExpr[bw] e2=rtlExpr[bw] ) { ret = factory.createMultiply(e1, e2); }
-		| #( DIV e1=rtlExpr[bw] e2=rtlExpr[bw] ) { ret = factory.createDivide(e1, e2); }
-		| #( DIV_F e1=rtlExpr[bw] e2=rtlExpr[bw] ) { ret = factory.createFloatDivide(e1, e2); }
-		| #( DIV_FD e1=rtlExpr[bw] e2=rtlExpr[bw] ) { ret = factory.createFloatDivide(e1, e2); }
-		| #( DIV_FQ e1=rtlExpr[bw] e2=rtlExpr[bw]) { ret = factory.createFloatDivide(e1, e2); }
-		| #( SDIV e1=rtlExpr[bw] e2=rtlExpr[bw] ) { ret = factory.createDivide(e1, e2); }
-		| #( MOD e1=rtlExpr[bw] e2=rtlExpr[bw] ) { ret = factory.createModulo(e1, e2); }
-		| #( SMOD e1=rtlExpr[bw] e2=rtlExpr[bw] ) { ret = factory.createModulo(e1, e2); }
-		| #( "pow" e1=rtlExpr[bw] e2=rtlExpr[bw] ) { ret = factory.createPowerOf(e1, e2); }
+		| #( PLUS e1=rtlExpr[bw] e2=rtlExpr[bw] ) { ret = ExpressionFactory.createPlus(e1, e2); }
+		| #( PLUS_F e1=rtlExpr[bw] e2=rtlExpr[bw] ) { ret = ExpressionFactory.createPlus(e1, e2); }
+		| #( PLUS_FD e1=rtlExpr[bw] e2=rtlExpr[bw] ) { ret = ExpressionFactory.createPlus(e1, e2); }
+		| #( PLUS_FQ e1=rtlExpr[bw] e2=rtlExpr[bw] ) { ret = ExpressionFactory.createPlus(e1, e2); }
+		| #( MINUS e1=rtlExpr[bw] e2=rtlExpr[bw] ) { ret = ExpressionFactory.createMinus(e1, e2); }
+		| #( MINUS_F e1=rtlExpr[bw] e2=rtlExpr[bw] ) { ret = ExpressionFactory.createMinus(e1, e2); }
+		| #( MINUS_FD e1=rtlExpr[bw] e2=rtlExpr[bw] ) { ret = ExpressionFactory.createMinus(e1, e2); }
+		| #( MINUS_FQ e1=rtlExpr[bw] e2=rtlExpr[bw] ) { ret = ExpressionFactory.createMinus(e1, e2); }
+		| #( MUL e1=rtlExpr[bw] e2=rtlExpr[bw] ) { ret = ExpressionFactory.createMultiply(e1, e2); }
+		| #( MUL_F e1=rtlExpr[bw] e2=rtlExpr[bw] ) { ret = ExpressionFactory.createFloatMultiply(e1, e2); }
+		| #( MUL_FD e1=rtlExpr[bw] e2=rtlExpr[bw] ) { ret = ExpressionFactory.createFloatMultiply(e1, e2); }
+		| #( MUL_FQ e1=rtlExpr[bw] e2=rtlExpr[bw] ) { ret = ExpressionFactory.createFloatMultiply(e1, e2); }
+		| #( MUL_FSD e1=rtlExpr[bw] e2=rtlExpr[bw] ) { ret = ExpressionFactory.createFloatMultiply(e1, e2); }
+		| #( MUL_FDQ e1=rtlExpr[bw] e2=rtlExpr[bw] ) { ret = ExpressionFactory.createFloatMultiply(e1, e2); }
+		| #( SMUL e1=rtlExpr[bw] e2=rtlExpr[bw] ) { ret = ExpressionFactory.createMultiply(e1, e2); }
+		| #( DIV e1=rtlExpr[bw] e2=rtlExpr[bw] ) { ret = ExpressionFactory.createDivide(e1, e2); }
+		| #( DIV_F e1=rtlExpr[bw] e2=rtlExpr[bw] ) { ret = ExpressionFactory.createFloatDivide(e1, e2); }
+		| #( DIV_FD e1=rtlExpr[bw] e2=rtlExpr[bw] ) { ret = ExpressionFactory.createFloatDivide(e1, e2); }
+		| #( DIV_FQ e1=rtlExpr[bw] e2=rtlExpr[bw]) { ret = ExpressionFactory.createFloatDivide(e1, e2); }
+		| #( SDIV e1=rtlExpr[bw] e2=rtlExpr[bw] ) { ret = ExpressionFactory.createDivide(e1, e2); }
+		| #( MOD e1=rtlExpr[bw] e2=rtlExpr[bw] ) { ret = ExpressionFactory.createModulo(e1, e2); }
+		| #( SMOD e1=rtlExpr[bw] e2=rtlExpr[bw] ) { ret = ExpressionFactory.createModulo(e1, e2); }
+		| #( "pow" e1=rtlExpr[bw] e2=rtlExpr[bw] ) { ret = ExpressionFactory.createPowerOf(e1, e2); }
 		// Logcical operators
-		| #( AND e1=rtlExpr[bw] e2=rtlExpr[bw] ) { ret = factory.createAnd(e1, e2); }
-		| #( LAND e1=rtlExpr[bw] e2=rtlExpr[bw] ) { ret = factory.createAnd(e1, e2); }
-		| #( OR e1=rtlExpr[bw] e2=rtlExpr[bw] ) { ret = factory.createOr(e1, e2); }
-		| #( LOR e1=rtlExpr[bw] e2=rtlExpr[bw] ) { ret = factory.createOr(e1, e2); }
-		| #( XOR e1=rtlExpr[bw] e2=rtlExpr[bw] ) { ret = factory.createXor(e1, e2); }
-		| #( ANDNOT e1=rtlExpr[bw] e2=rtlExpr[bw] ) { ret = factory.createAnd(e1, factory.createNot(e2)); }
-		| #( ORNOT e1=rtlExpr[bw] e2=rtlExpr[bw] ) { ret = factory.createOr(e1, factory.createNot(e2)); }
-		| #( XORNOT e1=rtlExpr[bw] e2=rtlExpr[bw] ) { ret = factory.createXor(e1, factory.createNot(e2)); }
-		| #( NOT e1=rtlExpr[bw] ) { ret = factory.createNot(e1); }
-		| #( LNOT e1=rtlExpr[bw] ) { ret = factory.createNot(e1); }
-		| #( FNEG e1=rtlExpr[bw] ) { ret = factory.createNeg(e1); }
+		| #( AND e1=rtlExpr[bw] e2=rtlExpr[bw] ) { ret = ExpressionFactory.createAnd(e1, e2); }
+		| #( LAND e1=rtlExpr[bw] e2=rtlExpr[bw] ) { ret = ExpressionFactory.createAnd(e1, e2); }
+		| #( OR e1=rtlExpr[bw] e2=rtlExpr[bw] ) { ret = ExpressionFactory.createOr(e1, e2); }
+		| #( LOR e1=rtlExpr[bw] e2=rtlExpr[bw] ) { ret = ExpressionFactory.createOr(e1, e2); }
+		| #( XOR e1=rtlExpr[bw] e2=rtlExpr[bw] ) { ret = ExpressionFactory.createXor(e1, e2); }
+		| #( ANDNOT e1=rtlExpr[bw] e2=rtlExpr[bw] ) { ret = ExpressionFactory.createAnd(e1, ExpressionFactory.createNot(e2)); }
+		| #( ORNOT e1=rtlExpr[bw] e2=rtlExpr[bw] ) { ret = ExpressionFactory.createOr(e1, ExpressionFactory.createNot(e2)); }
+		| #( XORNOT e1=rtlExpr[bw] e2=rtlExpr[bw] ) { ret = ExpressionFactory.createXor(e1, ExpressionFactory.createNot(e2)); }
+		| #( NOT e1=rtlExpr[bw] ) { ret = ExpressionFactory.createNot(e1); }
+		| #( LNOT e1=rtlExpr[bw] ) { ret = ExpressionFactory.createNot(e1); }
+		| #( FNEG e1=rtlExpr[bw] ) { ret = ExpressionFactory.createNeg(e1); }
 		// Shift operators
-		| #( "rlc" e1=rtlExpr[bw] e2=rtlExpr[bw] ) { ret = factory.createRotateLeftWithCarry(e1, e2); }
-		| #( "rrc" e1=rtlExpr[bw] e2=rtlExpr[bw] ) { ret = factory.createRotateRightWithCarry(e1, e2); }
-		| #( "rl" e1=rtlExpr[bw] e2=rtlExpr[bw] ) { ret = factory.createRotateLeft(e1, e2); }
-		| #( "rr" e1=rtlExpr[bw] e2=rtlExpr[bw] ) { ret = factory.createRotateRight(e1, e2); }
-		| #( RSHIFT e1=rtlExpr[bw] e2=rtlExpr[bw] ) { ret = factory.createShiftRight(e1, e2); }
-		| #( LSHIFT e1=rtlExpr[bw] e2=rtlExpr[bw] ) { ret = factory.createShiftLeft(e1, e2); }
-		| #( RSHIFTA e1=rtlExpr[bw] e2=rtlExpr[bw] ) { ret = factory.createShiftArithmeticRight(e1, e2); }
+		| #( "rlc" e1=rtlExpr[bw] e2=rtlExpr[bw] ) { ret = ExpressionFactory.createRotateLeftWithCarry(e1, e2); }
+		| #( "rrc" e1=rtlExpr[bw] e2=rtlExpr[bw] ) { ret = ExpressionFactory.createRotateRightWithCarry(e1, e2); }
+		| #( "rl" e1=rtlExpr[bw] e2=rtlExpr[bw] ) { ret = ExpressionFactory.createRotateLeft(e1, e2); }
+		| #( "rr" e1=rtlExpr[bw] e2=rtlExpr[bw] ) { ret = ExpressionFactory.createRotateRight(e1, e2); }
+		| #( RSHIFT e1=rtlExpr[bw] e2=rtlExpr[bw] ) { ret = ExpressionFactory.createShiftRight(e1, e2); }
+		| #( LSHIFT e1=rtlExpr[bw] e2=rtlExpr[bw] ) { ret = ExpressionFactory.createShiftLeft(e1, e2); }
+		| #( RSHIFTA e1=rtlExpr[bw] e2=rtlExpr[bw] ) { ret = ExpressionFactory.createShiftArithmeticRight(e1, e2); }
 		// Primitives
-		| vname:NAME	{ ret = factory.createRegisterVariable(vname.getText(), (bw>0 ? bw : RTLVariable.UNKNOWN_BITWIDTH)); }
-		| rname:REG_ID	{ ret = factory.createRegisterVariable(rname.getText(), (bw>0 ? bw : RTLVariable.UNKNOWN_BITWIDTH)); }
+		| vname:NAME	{ ret = ExpressionFactory.createRegisterVariable(vname.getText(), (bw>0 ? bw : RTLVariable.UNKNOWN_BITWIDTH)); }
+		| rname:REG_ID	{ ret = ExpressionFactory.createRegisterVariable(rname.getText(), (bw>0 ? bw : RTLVariable.UNKNOWN_BITWIDTH)); }
 		// | #( riname:REG_IDX e1=rtlExpr[bw] ) { ret = RTLVariable.valueOf(riname.getText() + "[" + e1.toString() + "]"); }
-		| n1=intValue { ret = factory.createNumber(n1, RTLVariable.UNKNOWN_BITWIDTH); }
+		| n1=intValue { ret = ExpressionFactory.createNumber(n1, RTLVariable.UNKNOWN_BITWIDTH); }
 		// Round floats to long - not very nice :(
-		| f1=floatValue { ret = factory.createNumber((long)f1, 80); }
-		| #( MEM_IDX e1=rtlExpr[-Math.abs(bw)] ) { ret = factory.createMemoryLocation(e1, (bw!=0 ? Math.abs(bw) : RTLVariable.UNKNOWN_BITWIDTH)); }
+		| f1=floatValue { ret = ExpressionFactory.createNumber((long)f1, 80); }
+		| #( MEM_IDX e1=rtlExpr[-Math.abs(bw)] ) { ret = ExpressionFactory.createMemoryLocation(e1, (bw!=0 ? Math.abs(bw) : RTLVariable.UNKNOWN_BITWIDTH)); }
 		// Cast
 		// this is now turned around in the parser to allow bitwidth inference - simply set bitwidth to the cast value
 		| #( CAST n1=intValue e1=rtlExpr[n1] ) { 
-			//ret = factory.createCast(e1, factory.createNumber(n1, RTLVariable.UNKNOWN_BITWIDTH));
+			//ret = ExpressionFactory.createCast(e1, ExpressionFactory.createNumber(n1, RTLVariable.UNKNOWN_BITWIDTH));
 			ret = e1;
 			}
 		// Sign Extension -- I never saw this operator (!) in use... sign extension now refers to sgnex() 
-		//| #( S_E e1=rtlExpr[bw] ) { ret = factory.createOperation(Operator.SIGN_EXTEND, e1); }
+		//| #( S_E e1=rtlExpr[bw] ) { ret = ExpressionFactory.createOperation(Operator.SIGN_EXTEND, e1); }
 		// Bit index - We don't know anything about the width of the operand.
-		| #( AT e1=rtlExpr[0] e2=rtlExpr[0] e3=rtlExpr[0] ) { ret = factory.createBitRange(e1, e2, e3); }
+		| #( AT e1=rtlExpr[0] e2=rtlExpr[0] e3=rtlExpr[0] ) { ret = ExpressionFactory.createBitRange(e1, e2, e3); }
 		// Conditional
-		| #( QUEST e1=rtlExpr[bw] e2=rtlExpr[bw] e3=rtlExpr[bw] ) { ret = factory.createConditionalExpression(e1, e2, e3); }
+		| #( QUEST e1=rtlExpr[bw] e2=rtlExpr[bw] e3=rtlExpr[bw] ) { ret = ExpressionFactory.createConditionalExpression(e1, e2, e3); }
 		// Builtin functions 
 		| #( BUILTIN str=nameValue (
 				 e1=rtlExpr[bw] { exprList[i++] = e1; }  
 			  )* )	{
-			  	if (str.equals("sgnex")) ret = factory.createSignExtend(exprList[0], exprList[1], exprList[2]);
-			  	else if (str.equals("zfill")) ret = factory.createZeroFill(exprList[0], exprList[1], exprList[2]);
-			  	else if (str.equals("fsize")) ret = factory.createFloatResize(exprList[0], exprList[1], exprList[2]);
+			  	if (str.equals("sgnex")) ret = ExpressionFactory.createSignExtend(exprList[0], exprList[1], exprList[2]);
+			  	else if (str.equals("zfill")) ret = ExpressionFactory.createZeroFill(exprList[0], exprList[1], exprList[2]);
+			  	else if (str.equals("fsize")) ret = ExpressionFactory.createFloatResize(exprList[0], exprList[1], exprList[2]);
 			  	// temporary solution until real float support
-			  	else if (str.equals("ftoi")) ret = factory.createFloatResize(exprList[0], exprList[1], exprList[2]);
-			  	else if (str.equals("itof")) ret = factory.createFloatResize(exprList[0], exprList[1], exprList[2]);
-				else ret = factory.createSpecialExpression(str, exprList); 
+			  	else if (str.equals("ftoi")) ret = ExpressionFactory.createFloatResize(exprList[0], exprList[1], exprList[2]);
+			  	else if (str.equals("itof")) ret = ExpressionFactory.createFloatResize(exprList[0], exprList[1], exprList[2]);
+				else ret = ExpressionFactory.createSpecialExpression(str, exprList); 
 			}
 ;
 

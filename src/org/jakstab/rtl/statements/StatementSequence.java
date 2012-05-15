@@ -124,7 +124,6 @@ public class StatementSequence implements Iterable<RTLStatement>, Serializable {
 	 * @return this statement sequence converted to canonical form. 
 	 */
 	public StatementSequence canonize() {
-		ExpressionFactory factory = ExpressionFactory.getInstance();
 		CanonizationVisitor visitor = new CanonizationVisitor();
 		
 		RTLExpression skipCondition = null;
@@ -150,13 +149,13 @@ public class StatementSequence implements Iterable<RTLStatement>, Serializable {
 				Writable evaldLHS = (Writable)genericEvaldLHS;
 
 				/* Convert %SKIP assignments to conditionals */
-				if (evaldLHS.equals(factory.SKIP)) {
+				if (evaldLHS.equals(ExpressionFactory.SKIP)) {
 					skipCondition = evaldRHS;
 					continue;
 				}
 
 				/* Convert %RPT assignments to conditionals */
-				if (evaldLHS.equals(factory.REPEAT)) {
+				if (evaldLHS.equals(ExpressionFactory.REPEAT)) {
 					repeatCondition = evaldRHS;
 					continue;
 				}
@@ -177,13 +176,13 @@ public class StatementSequence implements Iterable<RTLStatement>, Serializable {
 			return null;
 
 		if (skipCondition != null) {
-			RTLGoto skipGoto = new RTLGoto(factory.pc, skipCondition, RTLGoto.Type.STRING_LENGTH_CHECK);
+			RTLGoto skipGoto = new RTLGoto(ExpressionFactory.pc, skipCondition, RTLGoto.Type.STRING_LENGTH_CHECK);
 			addFirst(skipGoto);
 		}
 
 		if (repeatCondition != null) {
 			// Create a dummy goto statement, this will point to the instruction's address after instantiation
-			if (!repeatCondition.equals(factory.FALSE)) {
+			if (!repeatCondition.equals(ExpressionFactory.FALSE)) {
 				RTLStatement condGoto = new RTLGoto(null, repeatCondition, RTLGoto.Type.REPEAT);
 				addLast(condGoto);
 			}

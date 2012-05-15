@@ -84,9 +84,8 @@ public class PredicateAbstractionState implements AbstractState {
 	
 	@SuppressWarnings("unchecked")
 	RTLExpression getStateFormula(PredicatePrecision prec) {
-		ExpressionFactory factory = ExpressionFactory.getInstance();
 		
-		if (isTop()) return factory.TRUE;
+		if (isTop()) return ExpressionFactory.TRUE;
 		
 		RTLExpression result = null;
 
@@ -98,13 +97,13 @@ public class PredicateAbstractionState implements AbstractState {
 				RTLExpression p = PredicateMap.getPredicate(i);
 				
 				if (assignment[i] < 0) continue; 
-				if (assignment[i] == 0) p = factory.createNot(p); 
+				if (assignment[i] == 0) p = ExpressionFactory.createNot(p); 
 				
 				if (clause == null) clause = p;
-				else clause = factory.createAnd(clause, p);
+				else clause = ExpressionFactory.createAnd(clause, p);
 			}	
 			if (result == null) result = clause;
-			else result = factory.createOr(result, clause); 
+			else result = ExpressionFactory.createOr(result, clause); 
 		}
 		assert(result != null);
 		return result;

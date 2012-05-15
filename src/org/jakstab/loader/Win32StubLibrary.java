@@ -110,7 +110,6 @@ public class Win32StubLibrary implements StubProvider {
 	private Set<String> loadedDefFiles = new FastSet<String>();
 	private RTLExpression arg0;
 	private RTLExpression arg1;
-	private ExpressionFactory factory;
 	private SymbolFinder symFinder;
 	
 	private final void registerStub(String library, int callingConvention, String name, int stackIncrement, boolean returns) {
@@ -124,14 +123,13 @@ public class Win32StubLibrary implements StubProvider {
 	}
 	
 	public Win32StubLibrary(Architecture arch) {
-		factory = ExpressionFactory.getInstance();
 		this.arch = arch;
 		activeStubs = new HashMap<String, Map<String, AbsoluteAddress>>();
 		stubMap = new HashMap<String, Map<String,Stub>>();
 		addressMap = new HashMap<AbsoluteAddress, String>();
 		impId = 0;
-		arg0 = factory.createMemoryLocation(factory.createPlus(arch.stackPointer(), factory.createNumber(4, 32)), 32);
-		arg1 = factory.createMemoryLocation(factory.createPlus(arch.stackPointer(), factory.createNumber(8, 32)), 32);
+		arg0 = ExpressionFactory.createMemoryLocation(ExpressionFactory.createPlus(arch.stackPointer(), ExpressionFactory.createNumber(4, 32)), 32);
+		arg1 = ExpressionFactory.createMemoryLocation(ExpressionFactory.createPlus(arch.stackPointer(), ExpressionFactory.createNumber(8, 32)), 32);
 	}
 	
 	private void loadDefFile(String library) {
@@ -245,20 +243,20 @@ public class Win32StubLibrary implements StubProvider {
 			if (function.equals("_jakstab_print_driver_object@4")) {
 				logger.debug("Intercepting " + function);
 				stackIncrement = 8;
-				RTLVariable driverObject = factory.createVariable("driverObject", 32);
+				RTLVariable driverObject = ExpressionFactory.createVariable("driverObject", 32);
 				int mjFunArray = 0x38;
-				seq.addLast(new RTLVariableAssignment(32, driverObject, factory.createMemoryLocation(
-						factory.createPlus(arch.stackPointer(), factory.createNumber(4)), 
+				seq.addLast(new RTLVariableAssignment(32, driverObject, ExpressionFactory.createMemoryLocation(
+						ExpressionFactory.createPlus(arch.stackPointer(), ExpressionFactory.createNumber(4)), 
 						arch.stackPointer().getBitWidth())));
 
 				for (mjFunctionCode mjFun : mjFunctionCode.values()) {
 					seq.addLast(new RTLDebugPrint(
 							"Driver registers " + mjFun.name() + "(DriverObject[0x" + 
 							Integer.toHexString(mjFunArray + mjFun.code * 4) + "])",
-							factory.createMemoryLocation(
-									factory.createPlus(
+							ExpressionFactory.createMemoryLocation(
+									ExpressionFactory.createPlus(
 											driverObject, 
-											factory.createNumber(mjFunArray + mjFun.code * 4, 32)
+											ExpressionFactory.createNumber(mjFunArray + mjFun.code * 4, 32)
 									),
 									32)
 					));
@@ -302,32 +300,32 @@ public class Win32StubLibrary implements StubProvider {
 			if (library.toUpperCase().startsWith("KERNEL32") && function.equals("GetProcAddress")) {
 				
 				if (Options.getProcAddress.getValue() == 0) {
-					RTLExpression loadExpression = factory.createSpecialExpression(RTLSpecialExpression.GETPROCADDRESS, arg0, arg1); 
-					seq.addLast(new RTLVariableAssignment(32, factory.createVariable("%eax"), loadExpression));
+					RTLExpression loadExpression = ExpressionFactory.createSpecialExpression(RTLSpecialExpression.GETPROCADDRESS, arg0, arg1); 
+					seq.addLast(new RTLVariableAssignment(32, ExpressionFactory.createVariable("%eax"), loadExpression));
 				} else if (Options.getProcAddress.getValue() == 1) {
 					logger.warn("Havocing GetProcAddress is not yet implemented!");
 					assert false;
-					seq.addLast(new RTLVariableAssignment(32, factory.createVariable("%eax"), factory.nondet(32)));
+					seq.addLast(new RTLVariableAssignment(32, ExpressionFactory.createVariable("%eax"), ExpressionFactory.nondet(32)));
 				} else if (Options.getProcAddress.getValue() == 2) {
-					seq.addLast(new RTLVariableAssignment(32, factory.createVariable("%eax"), factory.nondet(32)));
+					seq.addLast(new RTLVariableAssignment(32, ExpressionFactory.createVariable("%eax"), ExpressionFactory.nondet(32)));
 				}
 			} else if (library.toUpperCase().startsWith("KERNEL32") && function.startsWith("GetModuleHandle")) {
 				// This function returns either 0 or a valid handle to the given module
 				// This hack here uses the string as the handle value, not very nice
-				//seq.addLast(new RTLVariableAssignment(32, factory.createVariable("%eax"), arg0));
-				seq.addLast(new RTLVariableAssignment(32, factory.createVariable("%eax"), factory.nondet(32)));
+				//seq.addLast(new RTLVariableAssignment(32, ExpressionFactory.createVariable("%eax"), arg0));
+				seq.addLast(new RTLVariableAssignment(32, ExpressionFactory.createVariable("%eax"), ExpressionFactory.nondet(32)));
 			} else {
 				// overwrite registers according to ABI
-				seq.addLast(new RTLVariableAssignment(32, factory.createVariable("%eax"), factory.nondet(32)));
+				seq.addLast(new RTLVariableAssignment(32, ExpressionFactory.createVariable("%eax"), ExpressionFactory.nondet(32)));
 			}
-			seq.addLast(new RTLVariableAssignment(32, factory.createVariable("%ecx"), factory.nondet(32)));
-			seq.addLast(new RTLVariableAssignment(32, factory.createVariable("%edx"), factory.nondet(32)));
+			seq.addLast(new RTLVariableAssignment(32, ExpressionFactory.createVariable("%ecx"), ExpressionFactory.nondet(32)));
+			seq.addLast(new RTLVariableAssignment(32, ExpressionFactory.createVariable("%edx"), ExpressionFactory.nondet(32)));
 		}
 
 		// store return address in retaddr
 		if (returns) {
 			seq.addLast(new RTLVariableAssignment(32, Program.getProgram().getArchitecture().returnAddressVariable(), 
-					factory.createMemoryLocation(arch.stackPointer(), 
+					ExpressionFactory.createMemoryLocation(arch.stackPointer(), 
 							arch.stackPointer().getBitWidth())
 			));
 		}
@@ -336,9 +334,9 @@ public class Win32StubLibrary implements StubProvider {
 		// adjust stack pointer
 		seq.addLast(new RTLVariableAssignment(arch.stackPointer().getBitWidth(), 
 				arch.stackPointer(), 
-				factory.createPlus( 
+				ExpressionFactory.createPlus( 
 						arch.stackPointer(), 
-						factory.createNumber(stackIncrement, arch.stackPointer().getBitWidth())
+						ExpressionFactory.createNumber(stackIncrement, arch.stackPointer().getBitWidth())
 				)
 		));
 

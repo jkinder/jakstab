@@ -46,7 +46,6 @@ public class DeadCodeElimination implements CFATransformation {
 	private SetOfVariables liveInSinks;
 	private Program program;
 	@SuppressWarnings("unused")
-	private ExpressionFactory factory = ExpressionFactory.getInstance();
 	private volatile boolean stop = false;
 	private long removalCount;
 	

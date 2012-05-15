@@ -51,44 +51,43 @@ public class Architecture {
     // flags
 	private static final SetOfVariables statusFlags;
 	static {
-		ExpressionFactory factory = ExpressionFactory.getInstance();
 		temporaryVariables = new SetOfVariables(Arrays.asList(new RTLVariable[] {
-				factory.createVariable("tmpb", 8),
-				factory.createVariable("tmph", 16),
-				factory.createVariable("tmp1", 32),
-				factory.createVariable("tmp2", 32),
-				factory.createVariable("tmp3", 32),
-				factory.createVariable("tmp4", 32),
-				factory.createVariable("tmp5", 32),
-				factory.createVariable("retaddr", 32),
-				factory.createVariable("tmpl", 64),
-				factory.createVariable("tmpD", 80),
-				factory.createVariable("tmpD1", 80),
-				factory.createVariable("tmpD2", 80),
-				factory.createVariable("tmpb1", 8),
-				factory.createVariable("tmpb2", 8),
-				factory.createVariable("tmph1", 16),
-				factory.createVariable("tmph2", 16),
-				factory.createVariable("tmpq2", 64),
-				factory.createVariable("tmpq3", 64),
-				factory.createVariable("tmpq5", 64)
+				ExpressionFactory.createVariable("tmpb", 8),
+				ExpressionFactory.createVariable("tmph", 16),
+				ExpressionFactory.createVariable("tmp1", 32),
+				ExpressionFactory.createVariable("tmp2", 32),
+				ExpressionFactory.createVariable("tmp3", 32),
+				ExpressionFactory.createVariable("tmp4", 32),
+				ExpressionFactory.createVariable("tmp5", 32),
+				ExpressionFactory.createVariable("retaddr", 32),
+				ExpressionFactory.createVariable("tmpl", 64),
+				ExpressionFactory.createVariable("tmpD", 80),
+				ExpressionFactory.createVariable("tmpD1", 80),
+				ExpressionFactory.createVariable("tmpD2", 80),
+				ExpressionFactory.createVariable("tmpb1", 8),
+				ExpressionFactory.createVariable("tmpb2", 8),
+				ExpressionFactory.createVariable("tmph1", 16),
+				ExpressionFactory.createVariable("tmph2", 16),
+				ExpressionFactory.createVariable("tmpq2", 64),
+				ExpressionFactory.createVariable("tmpq3", 64),
+				ExpressionFactory.createVariable("tmpq5", 64)
 		}));
 		statusFlags = new SetOfVariables(Arrays.asList(new RTLVariable[] {
-				factory.createVariable("%AF", 1),
-				factory.createVariable("%CF", 1),
-				factory.createVariable("%C1", 1),
-				factory.createVariable("%C2", 1),
-				factory.createVariable("%FLF", 1),
-				factory.createVariable("%FZF", 1),
-				factory.createVariable("%fsw", 16),
-				factory.createVariable("%fcw", 16),
-				factory.createVariable("%fstp", 8),
-				factory.createVariable("%DF", 1),
-				factory.createVariable("%IF", 1),
-				factory.createVariable("%OF", 1),
-				factory.createVariable("%PF", 1),
-				factory.createVariable("%SF", 1),
-				factory.createVariable("%ZF", 1)
+				ExpressionFactory.createVariable("%AF", 1),
+				ExpressionFactory.createVariable("%CF", 1),
+				ExpressionFactory.createVariable("%C1", 1),
+				ExpressionFactory.createVariable("%C2", 1),
+				ExpressionFactory.createVariable("%FLF", 1),
+				ExpressionFactory.createVariable("%FZF", 1),
+				ExpressionFactory.createVariable("%fsw", 16),
+				ExpressionFactory.createVariable("%fcw", 16),
+				ExpressionFactory.createVariable("%fstp", 8),
+				ExpressionFactory.createVariable("%DF", 1),
+				ExpressionFactory.createVariable("%IF", 1),
+				ExpressionFactory.createVariable("%OF", 1),
+				ExpressionFactory.createVariable("%PF", 1),
+				ExpressionFactory.createVariable("%SF", 1),
+				ExpressionFactory.createVariable("%ZF", 1)
 		}));
 	}
 
@@ -104,8 +103,6 @@ public class Architecture {
 	private final RTLVariable retAddrVar;
 	private final MagicInstructions magicInstructions;
 
-	private final ExpressionFactory factory;
-	
 	private SetOfVariables registers;
 
 	/**
@@ -116,16 +113,15 @@ public class Architecture {
 	 */
 	public Architecture(String fileName) throws FileNotFoundException, ANTLRException {
 
-		this.factory = ExpressionFactory.getInstance();
 		parseSSL(fileName);
 		magicInstructions = new MagicInstructions();
 		
-		stackPointer = factory.createVariable("%esp", 32);
-		framePointer = factory.createVariable("%ebp", 32);
-		retAddrVar = factory.createVariable("retaddr", 32);
-		loopCounter = factory.createVariable("%ecx", 32);
-		stringSource = factory.createVariable("%esi", 32);
-		stringTarget = factory.createVariable("%edi", 32);
+		stackPointer = ExpressionFactory.createVariable("%esp", 32);
+		framePointer = ExpressionFactory.createVariable("%ebp", 32);
+		retAddrVar = ExpressionFactory.createVariable("retaddr", 32);
+		loopCounter = ExpressionFactory.createVariable("%ecx", 32);
+		stringSource = ExpressionFactory.createVariable("%esi", 32);
+		stringTarget = ExpressionFactory.createVariable("%edi", 32);
 	}
 	
 	public RTLVariable stackPointer() {
@@ -141,7 +137,7 @@ public class Architecture {
 	}
 	
 	public RTLVariable programCounter() {
-		return factory.pc;
+		return ExpressionFactory.pc;
 	}
 	
 	public RTLVariable loopCounter() {
@@ -374,14 +370,14 @@ public class Architecture {
 		 * architectures than x86! */
 		if (sslInstr != null) for (int i=0; i<sslInstr.getParameterCount(); i++) {
 			Operand iOp = excessAsmOps ? instr.getOperand(i+1) : instr.getOperand(i);
-			RTLExpression opAsExpr = factory.createOperand(iOp);
+			RTLExpression opAsExpr = ExpressionFactory.createOperand(iOp);
 			instrParamContext.substitute(sslInstr.getParameter(i), opAsExpr);
 		}
 
 		/* Assign PC - the PC value in the RTL is that of the next instruction in Intel assembly */
 		long pcValue = address.getValue(); 
 		if (instr instanceof X86Instruction) pcValue += instr.getSize();
-		instrParamContext.addAssignment(factory.pc, factory.createNumber(pcValue, factory.pc.getBitWidth()));
+		instrParamContext.addAssignment(ExpressionFactory.pc, ExpressionFactory.createNumber(pcValue, ExpressionFactory.pc.getBitWidth()));
 
 		if (rtlTemplate == null) {
 			logger.debug("Null RTL body for instruction: " + instr.getName());
@@ -482,16 +478,16 @@ public class Architecture {
 				RTLStatement exitStatement = rtlBody.getLast();
 				if (exitStatement instanceof AssignmentTemplate) {
 					AssignmentTemplate assignment = (AssignmentTemplate)exitStatement;
-					if (assignment.getLeftHandSide().equals(factory.pc)) {
+					if (assignment.getLeftHandSide().equals(ExpressionFactory.pc)) {
 						RTLGoto newGoto;
 						RTLExpression rhs = assignment.getRightHandSide();
 						if (rhs instanceof RTLConditionalExpression) {
 							RTLConditionalExpression condExpr = (RTLConditionalExpression)rhs;
-							if (condExpr.getTrueExpression() == factory.pc) {
+							if (condExpr.getTrueExpression() == ExpressionFactory.pc) {
 								// conditional goto to false expression
 								newGoto = new RTLGoto(condExpr.getFalseExpression(), 
-										factory.createNot(condExpr.getCondition()), gotoType);
-							} else if (condExpr.getFalseExpression() == factory.pc) {
+										ExpressionFactory.createNot(condExpr.getCondition()), gotoType);
+							} else if (condExpr.getFalseExpression() == ExpressionFactory.pc) {
 								// conditional goto to true expression
 								newGoto = new RTLGoto(condExpr.getTrueExpression(), 
 										condExpr.getCondition(), gotoType);
@@ -509,8 +505,8 @@ public class Architecture {
 				}
 				
 				// If there is any pc-assignment, then add a goto to the end
-				if (rtlBody.getDefinedVariables().contains(factory.pc)) {
-					rtlBody.addLast(new RTLGoto(factory.pc, gotoType));
+				if (rtlBody.getDefinedVariables().contains(ExpressionFactory.pc)) {
+					rtlBody.addLast(new RTLGoto(ExpressionFactory.pc, gotoType));
 				}
 
 			} else logger.debug("Null rtl body: " + proto);

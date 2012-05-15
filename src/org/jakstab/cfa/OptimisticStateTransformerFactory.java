@@ -44,12 +44,11 @@ public class OptimisticStateTransformerFactory extends ResolvingTransformerFacto
 
 	@SuppressWarnings("unused")
 	private static final Logger logger = Logger.getLogger(OptimisticStateTransformerFactory.class);
-	
+
 	@Override
 	public Set<CFAEdge> resolveGoto(final AbstractState a, final RTLGoto stmt) {
 
 		assert stmt.getCondition() != null;
-		ExpressionFactory factory = ExpressionFactory.getInstance();
 		Set<CFAEdge> results = new FastSet<CFAEdge>();
 
 		// Calls always get a fallthrough edge in optimistic mode
@@ -83,8 +82,8 @@ public class OptimisticStateTransformerFactory extends ResolvingTransformerFacto
 			// assume correct condition case 
 			assert conditionValue != null;
 			RTLExpression assumption = 
-				factory.createEqual(stmt.getCondition(), conditionValue);
-			if (conditionValue.equals(factory.FALSE)) {
+					ExpressionFactory.createEqual(stmt.getCondition(), conditionValue);
+			if (conditionValue.equals(ExpressionFactory.FALSE)) {
 				// assume (condition = false), and set next statement to fallthrough
 				nextLabel = stmt.getNextLabel();
 			} else {
@@ -99,12 +98,12 @@ public class OptimisticStateTransformerFactory extends ResolvingTransformerFacto
 					continue;
 				} else {
 					// assume (condition = true AND targetExpression = targetValue)
-					assumption = factory.createAnd(
+					assumption = ExpressionFactory.createAnd(
 							assumption,
-							factory.createEqual(
+							ExpressionFactory.createEqual(
 									stmt.getTargetExpression(),
 									targetValue)
-					);
+							);
 					// set next label to jump target
 					nextLabel = new Location(new AbsoluteAddress(targetValue));
 				}
