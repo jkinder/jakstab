@@ -31,7 +31,6 @@ import org.jakstab.rtl.expressions.RTLMemoryLocation;
 import org.jakstab.rtl.expressions.RTLNumber;
 import org.jakstab.ssl.Architecture;
 import org.jakstab.util.BinaryFileInputBuffer;
-import org.jakstab.util.BinaryInputBuffer;
 import org.jakstab.util.Logger;
 
 /**
@@ -42,7 +41,7 @@ public class RawModule implements ExecutableImage {
 	@SuppressWarnings("unused")
 	private static final Logger logger = Logger.getLogger(RawModule.class);
 	
-	private final BinaryInputBuffer inBuf;
+	private final BinaryFileInputBuffer inBuf;
 	private final AbsoluteAddress baseAddress;
 	private Disassembler disassembler;
 
@@ -120,6 +119,11 @@ public class RawModule implements ExecutableImage {
 	@Override
 	public Iterator<AbsoluteAddress> codeBytesIterator() {
 		throw new UnsupportedOperationException("Code iteration not yet implemented for " + this.getClass().getSimpleName() + "!");
+	}
+
+	@Override
+	public byte[] getByteArray() {
+		return inBuf.getByteArray();
 	}
 
 }

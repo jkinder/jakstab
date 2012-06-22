@@ -144,4 +144,11 @@ public interface ExecutableImage {
 	 * @return a set of exported symbols, or an empty set if it does not contain any.
 	 */
 	public Set<ExportedSymbol> getExportedSymbols();
+	
+	/**
+	 * Returns the file contents as an array of bytes.
+	 *  
+	 * @return the byte array.
+	 */
+	public byte[] getByteArray();
 }

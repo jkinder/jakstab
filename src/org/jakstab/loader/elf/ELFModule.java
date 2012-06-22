@@ -314,7 +314,15 @@ public class ELFModule implements ExecutableImage {
 	 */
 	@Override
 	public boolean isCodeArea(AbsoluteAddress va) {
-		throw new UnsupportedOperationException();
+		long a = va.getValue();
+		for (Elf.Section section : elf.sections) {
+			if (a >= section.sh_addr.getValue().longValue() && 
+					a <= section.sh_addr.getValue().longValue() + section.sh_size) {
+				return (section.sh_type == Elf.Section.SHT_PROGBITS); 
+			}
+		}
+		// Section not found
+		return false;
 	}
 	
 	public Map<AbsoluteAddress, String> getSymbolMap() {
@@ -359,5 +367,10 @@ public class ELFModule implements ExecutableImage {
 	@Override
 	public Iterator<AbsoluteAddress> codeBytesIterator() {
 		throw new UnsupportedOperationException("Code iteration not yet implemented for " + this.getClass().getSimpleName() + "!");
+	}
+
+	@Override
+	public byte[] getByteArray() {
+		return inBuf.getByteArray();
 	}
 }
