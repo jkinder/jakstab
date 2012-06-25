@@ -37,6 +37,7 @@ public class RTLSpecialExpression extends AbstractRTLExpression implements RTLEx
 	public static final String LOG2 = "log2";
 	public static final String TICKCOUNT = "tickcount";
 	public static final String GETPROCADDRESS = "getProcAddress";
+	public static final String DBG_PRINTF = "dbgPrintf";
 	
 	@SuppressWarnings("unused")
 	private static final Logger logger = Logger.getLogger(RTLSpecialExpression.class);
@@ -53,6 +54,7 @@ public class RTLSpecialExpression extends AbstractRTLExpression implements RTLEx
 		this.operation = operation;
 		if (operation.equals(TICKCOUNT)) bitWidth = 64;
 		else if (operation.equals(GETPROCADDRESS)) bitWidth = 32;
+		else if (operation.equals(DBG_PRINTF)) bitWidth = 32;
 		else {
 			// Everything else is floating point stuff anyway
 			bitWidth = 80;

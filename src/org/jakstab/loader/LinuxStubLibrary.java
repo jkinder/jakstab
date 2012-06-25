@@ -27,6 +27,7 @@ import org.jakstab.asm.SymbolFinder;
 import org.jakstab.cfa.Location;
 import org.jakstab.rtl.expressions.ExpressionFactory;
 import org.jakstab.rtl.expressions.RTLExpression;
+import org.jakstab.rtl.expressions.RTLSpecialExpression;
 import org.jakstab.rtl.statements.*;
 import org.jakstab.rtl.statements.RTLGoto.Type;
 import org.jakstab.ssl.Architecture;
@@ -72,6 +73,11 @@ public class LinuxStubLibrary implements StubProvider {
 		// start_main is special
 		if (function.equals("__libc_start_main")) {
 			seq.addLast(new RTLGoto(arg0, Type.CALL));
+		} else if (function.equals("printf")) {
+			seq.addLast(new RTLDebugPrint("Call to printf, format @ %esp =", 
+					ExpressionFactory.createSpecialExpression(RTLSpecialExpression.DBG_PRINTF, 
+							ExpressionFactory.createPlus(arch.stackPointer(),
+									ExpressionFactory.createNumber(4, arch.getAddressBitWidth())))));
 		} else {
 			seq.addLast(new RTLVariableAssignment(32, ExpressionFactory.createVariable("%eax"), ExpressionFactory.nondet(32)));
 			seq.addLast(new RTLVariableAssignment(32, ExpressionFactory.createVariable("%ecx"), ExpressionFactory.nondet(32)));
@@ -80,7 +86,7 @@ public class LinuxStubLibrary implements StubProvider {
 		
 		// store return address in retaddr
 		if (returns) {
-			seq.addLast(new RTLVariableAssignment(32, Program.getProgram().getArchitecture().returnAddressVariable(), 
+			seq.addLast(new RTLVariableAssignment(32, arch.returnAddressVariable(), 
 					ExpressionFactory.createMemoryLocation(arch.stackPointer(), 
 							arch.stackPointer().getBitWidth())
 			));
