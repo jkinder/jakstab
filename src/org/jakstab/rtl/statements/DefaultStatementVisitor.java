@@ -96,6 +96,11 @@ public abstract class DefaultStatementVisitor<T> implements StatementVisitor<T> 
 		return visitDefault(stmt);
 	}
 
+	@Override
+	public T visit(RTLDebugPrint stmt) {
+		return visitDefault(stmt);
+	}
+
 	/**
 	 * Called by the default implementations of the visit methods. Override this 
 	 * to provide a default implementation for statements.

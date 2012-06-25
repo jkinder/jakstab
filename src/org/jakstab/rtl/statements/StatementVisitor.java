@@ -39,5 +39,6 @@ public interface StatementVisitor<T> {
 	T visit(RTLHavoc stmt);
 	T visit(RTLMemset stmt);
 	T visit(RTLMemcpy stmt);
+	T visit(RTLDebugPrint stmt);
 
 }

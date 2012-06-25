@@ -253,11 +253,6 @@ public final class NumberValuation implements AbstractState {
 			}
 			
 			@Override
-			public NumberValuation visit(RTLSkip stmt) {
-				return fallThroughState();
-			}
-
-			@Override
 			public NumberValuation visit(RTLAssume stmt) {
 				NumberElement truthValue = abstractEval(stmt.getAssumption());
 				if (truthValue.equals(NumberElement.FALSE)) {
@@ -288,22 +283,12 @@ public final class NumberValuation implements AbstractState {
 			}
 
 			@Override
-			public NumberValuation visit(RTLAssert stmt) {
-				return fallThroughState();
-			}
-
-			@Override
 			public NumberValuation visit(RTLAlloc stmt) {
 				NumberValuation post = new NumberValuation(NumberValuation.this);
 				// Clobber value in pointer, overwritten by allocated address
 				post.setValue(stmt.getPointer(), NumberElement.getTop(stmt.getPointer().getBitWidth()));
 				if (post.aVarVal.isEmpty() && post.aMemVal.isEmpty() && post.dataIsTop) return TOP;
 				return post;
-			}
-
-			@Override
-			public NumberValuation visit(RTLDealloc stmt) {
-				return fallThroughState();
 			}
 
 			@Override
@@ -316,6 +301,11 @@ public final class NumberValuation implements AbstractState {
 				}
 				post.clearMemory();
 				return post;
+			}
+
+			@Override
+			public NumberValuation visitDefault(RTLStatement stmt) {
+				return fallThroughState();
 			}
 
 		});

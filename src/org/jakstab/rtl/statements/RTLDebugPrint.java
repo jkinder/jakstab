@@ -17,15 +17,21 @@
  */
 package org.jakstab.rtl.statements;
 
+import java.util.Collections;
+import java.util.Set;
+
+import org.jakstab.rtl.Context;
 import org.jakstab.rtl.expressions.RTLExpression;
+import org.jakstab.rtl.expressions.RTLMemoryLocation;
+import org.jakstab.rtl.expressions.SetOfVariables;
 import org.jakstab.util.Logger;
 
 /**
- * Skip statement that causes Jakstab to print debug messages.
+ * Statement that causes Jakstab to print debug messages.
  * 
  * @author Johannes Kinder
  */
-public class RTLDebugPrint extends RTLSkip {
+public class RTLDebugPrint extends AbstractRTLStatement implements RTLStatement {
 
 	@SuppressWarnings("unused")
 	private static final Logger logger = Logger.getLogger(RTLDebugPrint.class);
@@ -38,6 +44,25 @@ public class RTLDebugPrint extends RTLSkip {
 		this.expression = expression;
 	}
 	
+	@Override
+	public RTLStatement evaluate(Context context) {
+		return this;
+	}
+
+	@Override
+	protected SetOfVariables initDefinedVariables() {
+		return SetOfVariables.EMPTY_SET;
+	}
+
+	@Override
+	protected SetOfVariables initUsedVariables() {
+		return expression.getUsedVariables();
+	}
+	
+	protected Set<RTLMemoryLocation> initUsedMemoryLocations() {
+		return Collections.emptySet();
+	}
+
 	public String getMessage() {
 		return message;
 	}
@@ -49,5 +74,10 @@ public class RTLDebugPrint extends RTLSkip {
 	@Override
 	public String toString() {
 		return "DebugPrint(" + message + ", " + expression + ")";
+	}
+
+	@Override
+	public <T> T accept(StatementVisitor<T> visitor) {
+		return visitor.visit(this);
 	}
 }

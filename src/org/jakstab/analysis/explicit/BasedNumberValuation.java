@@ -624,16 +624,6 @@ public final class BasedNumberValuation implements AbstractState {
 			}
 			
 			@Override
-			public Set<AbstractState> visit(RTLAssert stmt) {
-				return thisState();
-			}
-
-			@Override
-			public Set<AbstractState> visit(RTLSkip stmt) {
-				return thisState();
-			}
-
-			@Override
 			public Set<AbstractState> visit(RTLAlloc stmt) {
 				BasedNumberValuation post = copyThisState();
 				Writable lhs = stmt.getPointer();
@@ -802,6 +792,12 @@ public final class BasedNumberValuation implements AbstractState {
 				
 				return Collections.singleton((AbstractState)post);
 			}
+			
+			@Override
+			public Set<AbstractState> visitDefault(RTLStatement stmt) {
+				return thisState();
+			}
+
 		});
 	}
 
