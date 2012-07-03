@@ -48,7 +48,12 @@ public class DefaultHarness implements Harness {
 		StatementSequence seq = new StatementSequence();
 		seq.addLast(new RTLVariableAssignment(1, ExpressionFactory.createVariable("%DF", 1), ExpressionFactory.FALSE));
 		seq.addLast(new RTLAlloc(esp, MemoryRegion.STACK.toString()));
-		seq.addLast(new RTLAlloc(ExpressionFactory.createVariable("%fs", 16), "FS"));
+		
+		// Allocate TLS depending on OS type
+		if (program.getTargetOS() == Program.TargetOS.WINDOWS)
+			seq.addLast(new RTLAlloc(ExpressionFactory.createVariable("%fs", 16), "FS"));
+		else if (program.getTargetOS() == Program.TargetOS.LINUX)
+			seq.addLast(new RTLAlloc(ExpressionFactory.createVariable("%gs", 16), "GS"));
 		
 		// Pseudo-stackframe for in-procedure entry points during debugging
 		//seq.addLast(new RTLVariableAssignment(32, program.getArchitecture().framePointer(), program.getArchitecture().stackPointer()));

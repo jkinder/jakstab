@@ -85,8 +85,12 @@ public final class Program {
 	private StubProvider stubLibrary;
 	private Harness harness;
 	
+	public enum TargetOS {WINDOWS, LINUX, UNKNOWN};
+	private TargetOS targetOS;
+	
 	private Program(Architecture arch) {
 		this.arch = arch;
+		this.targetOS = TargetOS.UNKNOWN;
 
 		modules = new LinkedList<ExecutableImage>();
 		assemblyMap = new TreeMap<AbsoluteAddress, Instruction>();
@@ -125,16 +129,20 @@ public final class Program {
 	 * @throws BinaryParseException
 	 */
 	public ExecutableImage loadModule(File moduleFile) throws IOException, BinaryParseException {
-		// First try to load it as a PE file, if it fails, try object file.
+		// First try to load it as a PE file, then object file, ELF and finally raw binary code
+		// The right thing to do would be some smart IDing of the file type, but 
+		// this exception chaining works for now...		
 		ExecutableImage module = null;
 		try {
 			module = new PEModule(moduleFile, getArchitecture());
+			targetOS = TargetOS.WINDOWS;
 		} catch (BinaryParseException e) {
 			try {
 				module = new ObjectFile(moduleFile, getArchitecture());
 			} catch (BinaryParseException e2) {
 				try {
 					module = new ELFModule(moduleFile, getArchitecture());
+					targetOS = TargetOS.LINUX;
 				} catch (BinaryParseException e3) {
 					module = new RawModule(moduleFile, getArchitecture());
 				}
@@ -450,6 +458,10 @@ public final class Program {
 	 */
 	public final Map<AbsoluteAddress, Instruction> getAssemblyMap() {
 		return assemblyMap;
+	}
+
+	public TargetOS getTargetOS() {
+		return targetOS;
 	}
 
 	/**
