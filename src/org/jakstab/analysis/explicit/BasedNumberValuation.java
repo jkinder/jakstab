@@ -41,18 +41,7 @@ import org.jakstab.util.*;
 public final class BasedNumberValuation implements AbstractState {
 
 	public static BasedNumberValuation createInitialState() {
-		//Architecture arch = Program.getProgram().getArchitecture();
-		// set up initial value
-		//ExpressionFactory factory = ExpressionFactory.getInstance();
 		BasedNumberValuation initial = new BasedNumberValuation();
-		// init stack pointer
-/*		int bitWidth = arch.stackPointer().getBitWidth();
-		BasedNumberElement espStartValue = new BasedNumberElement(MemoryRegion.STACK, factory.createNumber(0x0, bitWidth));
-		initial.setValue(arch.stackPointer(), espStartValue);
-		// init fs register
-		RTLVariable fs = factory.createVariable("fs");
-		BasedNumberElement fsStartValue = new BasedNumberElement(MemoryRegion.create("FS"), factory.createNumber(0, fs.getBitWidth()));
-		initial.setValue(fs, fsStartValue);*/
 		return initial;
 	}
 	
@@ -300,6 +289,9 @@ public final class BasedNumberValuation implements AbstractState {
 				
 				// Handle arithmetic operations
 				for (int i=0; i<aOperands.length; i++) {
+					
+					assert region != MemoryRegion.TOP : "Temporary region cannot become TOP during arithmetic evaluation.";
+					
 					BasedNumberElement aOperand = aOperands[i];
 					// Handle top operands
 					if (aOperand.isTop()) {
@@ -318,18 +310,42 @@ public final class BasedNumberValuation implements AbstractState {
 								else 
 									cOperands[i] = aOperand.getNumber();
 							} else {
-								// we already have a base
-								return BasedNumberElement.getTop(e.getBitWidth()); 
+								// we already have a region
+								return BasedNumberElement.getTop(e.getBitWidth());
 							}
 						} else {
 							// No addition, just return nondet
 							cOperands[i] = ExpressionFactory.nondet(e.getOperands()[i].getBitWidth());
 						}
 					} else /* operand has no base */ {
-						if (aOperand.isNumberTop())
-							cOperands[i] = ExpressionFactory.nondet(e.getOperands()[i].getBitWidth());
-						else 
+						if (!aOperand.isNumberTop()) {
 							cOperands[i] = aOperand.getNumber();
+						} else {
+							// Check if this was a negation, to support subtraction of two pointers of same base
+							RTLExpression eOperand = e.getOperands()[i];
+							if (e.getOperator() == Operator.PLUS && eOperand instanceof RTLOperation && ((RTLOperation)eOperand).getOperator() == Operator.NEG) {
+								RTLExpression negOp = ((RTLOperation)eOperand).getOperands()[0];
+								BasedNumberElement aNegOp = negOp.accept(this);
+								if (aNegOp.getRegion() == region) {
+									logger.debug("Subtracting pointer from another one to the same region (" + region + ").");
+									// We are subtracting the same region, so reset region to global 
+									// since just the offset difference remains										
+									region = MemoryRegion.GLOBAL;
+									// If the operand being negated is (region + TOP), we still treat the region as annihilated 
+									// and the result is most likely (global + TOP) unless there are more terms in the addition 
+									if (aNegOp.isNumberTop())
+										cOperands[i] = ExpressionFactory.nondet(e.getOperands()[i].getBitWidth());
+									else 
+										cOperands[i] = aNegOp.getNumber();
+								} else {
+									// This will also trigger when the negation is processed before the other term (e.g., (-x) + y)
+									cOperands[i] = ExpressionFactory.nondet(e.getOperands()[i].getBitWidth());
+								}
+							} else {
+								cOperands[i] = ExpressionFactory.nondet(e.getOperands()[i].getBitWidth());
+							}
+						} 
+
 					}
 				}
 				RTLExpression result = ExpressionFactory.createOperation(e.getOperator(), cOperands).evaluate(new Context());
@@ -462,10 +478,13 @@ public final class BasedNumberValuation implements AbstractState {
 				}
 
 				post.setValue(lhs, evaledRhs, eprec);
-				// If the stack pointer was increased, forget stack below to save state space
-				if (lhs.equals(Program.getProgram().getArchitecture().stackPointer())) {
-					if (!evaledRhs.isTop() && !evaledRhs.isNumberTop()) {
-						post.aStore.forgetStackBelow(evaledRhs.getNumber().longValue());
+				
+				if (!BoundedAddressTracking.keepDeadStack.getValue()) {
+					// If the stack pointer was increased, forget stack below to save state space
+					if (lhs.equals(Program.getProgram().getArchitecture().stackPointer())) {
+						if (!evaledRhs.isTop() && !evaledRhs.isNumberTop()) {
+							post.aStore.forgetStackBelow(evaledRhs.getNumber().longValue());
+						}
 					}
 				}
 

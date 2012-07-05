@@ -55,6 +55,7 @@ public class BoundedAddressTracking implements ConfigurableProgramAnalysis {
 	public static JOption<Integer> varThreshold = JOption.create("explicit-threshold", "k", 5, "Set the maximum number of values tracked per variable per location.");
 	public static JOption<Integer> heapThreshold = JOption.create("heap-threshold", "k", 5, "Explicit threshold for data stored on the heap.");
 	public static JOption<Boolean> repPrecBoost = JOption.create("rep-prec-boost", "Increase precision for rep-prefixed instructions.");
+	public static JOption<Boolean> keepDeadStack = JOption.create("keep-dead-stack", "Do not discard stack contents below current stack pointer.");
 	
 	public BoundedAddressTracking() {
 	}
