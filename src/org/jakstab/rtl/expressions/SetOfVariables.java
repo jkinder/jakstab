@@ -143,7 +143,7 @@ public class SetOfVariables extends AbstractSet<RTLVariable> implements Set<RTLV
 			}
 			@Override
 			public void remove() {
-				throw new UnsupportedOperationException();
+				bitSet.clear(index - 1);
 			}
 		};
 	}

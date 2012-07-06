@@ -133,8 +133,22 @@ public class DeadCodeElimination implements CFATransformation {
 				for (CFAEdge outEdge : outEdges.get(node)) {
 					RTLStatement stmt = (RTLStatement)outEdge.getTransformer();
 					SetOfVariables sLVin = new SetOfVariables(liveVars.get(outEdge.getTarget()));
+
+					// Fast remove with bitsets
 					sLVin.removeAll(stmt.getDefinedVariables());
+					
+					// Remove also al for eax etc.
+					for (RTLVariable v : stmt.getDefinedVariables()) {
+						sLVin.removeAll(ExpressionFactory.coveredRegisters(v));
+					}
+
 					sLVin.addAll(stmt.getUsedVariables());
+					
+					// Add also eax for al, etc.
+					for (RTLVariable v : stmt.getUsedVariables()) {
+						sLVin.addAll(ExpressionFactory.coveringRegisters(v));
+					}
+					
 					// Registers might be used inside an unknown procedure call
 					if (outEdge.getTransformer() instanceof RTLUnknownProcedureCall) {
 						sLVin.addAll(program.getArchitecture().getRegisters());
