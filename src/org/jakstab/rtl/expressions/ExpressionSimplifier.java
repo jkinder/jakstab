@@ -73,7 +73,7 @@ public class ExpressionSimplifier {
 		//registers = prep.getRegisters();
 		//registers.removeAll(statusFlags);
 
-		logger.info("-- Got " + instrPrototypes.size() + " instructions.");
+		logger.debug("-- Got " + instrPrototypes.size() + " simplification groups.");
 		
 		Map<RTLExpression, RTLExpression> wholeMapping = new LinkedHashMap<RTLExpression, RTLExpression>();
 
@@ -85,9 +85,9 @@ public class ExpressionSimplifier {
 		patterns = wholeMapping.keySet().toArray(new RTLExpression[0]);
 		results = wholeMapping.values().toArray(new RTLExpression[0]);
 		
-		logger.info("Substitution rules:");
+		logger.debug("Substitution rules:");
 		for (int i=0; i<patterns.length; i++)
-			logger.info("  " + patterns[i] + " ----> " + results[i]);
+			logger.debug("  " + patterns[i] + " ----> " + results[i]);
 	}
 	
 	/**
@@ -219,7 +219,7 @@ public class ExpressionSimplifier {
 				for (Map.Entry<RTLVariable, RTLExpression> binding : bindings.entrySet())
 					context.substitute(binding.getKey(), binding.getValue());
 				RTLExpression result = results[i].evaluate(context);
-				logger.info("Simplified " + e + " to " + result);
+				//logger.debug("Simplified " + e + " to " + result);
 				e = result;
 			}
 			bindings.clear();
