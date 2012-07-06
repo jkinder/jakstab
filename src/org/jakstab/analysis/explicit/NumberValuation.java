@@ -166,7 +166,7 @@ public final class NumberValuation implements AbstractState {
 
 			@Override
 			public NumberElement visit(RTLSpecialExpression e) {
-				if (e.getOperation().equals(RTLSpecialExpression.GETPROCADDRESS)) {
+				if (e.getOperator().equals(RTLSpecialExpression.GETPROCADDRESS)) {
 					NumberElement aLibNameAddr = e.getOperands()[0].accept(this);
 					NumberElement aProcNameAddr = e.getOperands()[1].accept(this);
 					if (!aLibNameAddr.isTop() && !aProcNameAddr.isTop()) {

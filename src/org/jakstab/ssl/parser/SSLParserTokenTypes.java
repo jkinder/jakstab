@@ -1,4 +1,4 @@
-// $ANTLR 2.7.7 (20060930): "SSL.g" -> "SSLLexer.java"$
+// $ANTLR : "SSL.g" -> "SSLLexer.java"$
 
 	package org.jakstab.ssl.parser;
 

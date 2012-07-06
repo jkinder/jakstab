@@ -157,7 +157,11 @@ public final class SubstitutionState implements AbstractState {
 			
 		};
 		
-		return e.accept(visitor);
+		SubstitutionElement result = e.accept(visitor);
+		RTLExpression simplified = ExpressionSimplifier.getInstance().simplify(result.getExpression());
+		if (simplified != result.getExpression())
+			result = new SubstitutionElement(simplified);
+		return result;
 	}
 	
 	

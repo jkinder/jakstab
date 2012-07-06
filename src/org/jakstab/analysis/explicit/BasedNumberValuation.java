@@ -357,7 +357,7 @@ public final class BasedNumberValuation implements AbstractState {
 
 			@Override
 			public BasedNumberElement visit(RTLSpecialExpression e) {
-				if (e.getOperation().equals(RTLSpecialExpression.GETPROCADDRESS)) {
+				if (e.getOperator().equals(RTLSpecialExpression.GETPROCADDRESS)) {
 					BasedNumberElement aLibNameAddr = e.getOperands()[0].accept(this);
 					BasedNumberElement aProcNameAddr = e.getOperands()[1].accept(this);
 					if (aLibNameAddr.hasUniqueConcretization() && aProcNameAddr.hasUniqueConcretization()) {
@@ -376,7 +376,7 @@ public final class BasedNumberValuation implements AbstractState {
 					} else {
 						logger.info("Could not determine parameters of GetProcAddress!");
 					}
-				} else if (e.getOperation().equals(RTLSpecialExpression.DBG_PRINTF)) {
+				} else if (e.getOperator().equals(RTLSpecialExpression.DBG_PRINTF)) {
 					BasedNumberElement firstArg = e.getOperands()[0].accept(this);
 					// Dereference
 					BasedNumberElement stringAddress = getMemoryValue(firstArg, 32);

@@ -228,7 +228,7 @@ param_list
 	;
 
 assign_rt
-	: ASSIGNTYPE^ var EQUATE! expr
+	: ASSIGNTYPE^ expr EQUATE! expr
 	| "MEMSET"^ expr COMMA! expr COMMA! expr
 	| "MEMCPY"^ expr COMMA! expr COMMA! expr
 //	| ASSIGNTYPE^ expr THEN var EQUATE! expr
@@ -853,7 +853,7 @@ rtl_expand
 //   AST to RTL Converter. Called from SSL Library after initial parsing.
 ////////////////////////////////////////////////////////////////////////////////
 
-	
+
 convertToRTL returns [ StatementSequence statements = new StatementSequence(); ]
 { 
 	RTLExpression lhs = null; 
@@ -906,6 +906,22 @@ convertToRTL returns [ StatementSequence statements = new StatementSequence(); ]
 	Missing suffix:		PRIME^ // prime suffix (whatever that means))
 */
 		
+convertSimplificationTemplates returns [ Map<RTLExpression,RTLExpression> mapping = new HashMap<RTLExpression,RTLExpression>()]
+{
+	RTLExpression lhs = null; 
+	RTLExpression rhs = null;
+	int bitWidth = -1;
+	Map<RTLExpression,RTLExpression> subMap = null;
+}
+	:
+	/* Combine everything under an RTL node*/
+	  ! #( RTL (subMap=convertSimplificationTemplates { mapping.putAll(subMap); } )* )	
+	/* Almost all statements are assignments */ 
+    | ! #( type:ASSIGNTYPE lhs=rtlExpr[RTLVariable.UNKNOWN_BITWIDTH] rhs=rtlExpr[RTLVariable.UNKNOWN_BITWIDTH] ) {
+		mapping.put(lhs, rhs);
+	}
+;
+
 
 rtlExpr[int bw] returns [ RTLExpression ret = null;]
 {   

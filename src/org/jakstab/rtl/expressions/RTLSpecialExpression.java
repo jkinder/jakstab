@@ -83,7 +83,7 @@ public class RTLSpecialExpression extends AbstractRTLExpression implements RTLEx
 	/**
 	 * @return the operation
 	 */
-	public String getOperation() {
+	public String getOperator() {
 		return operation;
 	}
 	
@@ -167,10 +167,6 @@ public class RTLSpecialExpression extends AbstractRTLExpression implements RTLEx
 		return size;
 	}
 	
-	public String getOperator() {
-		return operation;
-	}
-
 	@Override
 	public int getBitWidth() {
 		return bitWidth;

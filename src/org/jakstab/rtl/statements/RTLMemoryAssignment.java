@@ -52,6 +52,9 @@ public class RTLMemoryAssignment extends AbstractRTLStatement implements RTLStat
 
 		if (evaldRHS == null) logger.warn("No more RHS after evaluation of " + this.toString());
 
+		ExpressionSimplifier simplifier = ExpressionSimplifier.getInstance();
+		evaldRHS = simplifier.simplify(evaldRHS);
+
 		// remove all killed assignments from the context
 		context.removeAssignment(leftHandSide.getDefinedVariablesOnWrite());
 

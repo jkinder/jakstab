@@ -46,25 +46,16 @@ public class RTLAssume extends AbstractRTLStatement implements RTLStatement {
 		this.source = source;
 	}
 	
-	/*
-	 * @see org.jakstab.rtl.AbstractRTLStatement#initDefinedVariables()
-	 */
 	@Override
 	protected SetOfVariables initDefinedVariables() {
 		return SetOfVariables.EMPTY_SET;
 	}
 
-	/*
-	 * @see org.jakstab.rtl.AbstractRTLStatement#initUsedMemoryLocations()
-	 */
 	@Override
 	protected Set<RTLMemoryLocation> initUsedMemoryLocations() {
 		return assumption.getUsedMemoryLocations();
 	}
 
-	/*
-	 * @see org.jakstab.rtl.AbstractRTLStatement#initUsedVariables()
-	 */
 	@Override
 	protected SetOfVariables initUsedVariables() {
 		return assumption.getUsedVariables();
@@ -74,29 +65,23 @@ public class RTLAssume extends AbstractRTLStatement implements RTLStatement {
 		return assumption;
 	}
 
-	/*
-	 * @see org.jakstab.rtl.RTLStatement#accept(org.jakstab.rtl.StatementVisitor)
-	 */
 	@Override
 	public <T> T accept(StatementVisitor<T> visitor) {
 		return visitor.visit(this);
 	}
 
-	/*
-	 * @see org.jakstab.rtl.RTLStatement#evaluate(org.jakstab.rtl.Context)
-	 */
 	@Override
 	public RTLStatement evaluate(Context context) {
 		invalidateCache();
 		assumption = assumption.evaluate(context);
+		ExpressionSimplifier simplifier = ExpressionSimplifier.getInstance();
+		assumption = simplifier.simplify(assumption);
+
 		/*if (assumption.equals(ExpressionFactory.getInstance().TRUE)) 
 			return null;*/
 		return this;
 	}
 
-	/*
-	 * @see java.lang.Object#toString()
-	 */
 	@Override
 	public String toString() {
 		return "assume " + assumption.toString();
