@@ -102,7 +102,7 @@ public class PessimisticBasicBlockFactory extends ResolvingTransformerFactory im
 				// assume (condition = false), and set next statement to fallthrough
 				nextLabel = stmt.getNextLabel();
 			} else {
-				if (targetValue == RTLNumber.ALL_NUMBERS) {
+				if (targetValue == null) {
 					// if target could not be resolved, just leave the edge out for now
 					logger.info(stmt.getLabel() + ": Cannot resolve target expression " + 
 							stmt.getTargetExpression() + ". Continuing with unsound underapproximation.");
