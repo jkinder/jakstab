@@ -261,9 +261,9 @@ public class Main {
 			logger.fatal(baseFileName.substring(slashIdx) + "\t" + program.getInstructionCount() + "\t" + program.getStatementCount() + "\t" + 
 					program.getCFA().size() + "\t" + indirectBranches + "\t" + program.getUnresolvedBranches().size() +  "\t" +
 					cfr.getNumberOfStatesVisited() + "\t" + stateCount + "\t" + 
-					Math.round((overallEndTime - overallStartTime)/1000.0) + "s\t" + cfr.getStatus() + "\t" + 
+					Math.round((overallEndTime - overallStartTime)/1000.0) + "\t" + cfr.getStatus() + "\t" + 
 					version + "\t" + BoundedAddressTracking.varThreshold.getValue() + "\t" + BoundedAddressTracking.heapThreshold.getValue() + "\t" + 
-					(Options.basicBlocks.getValue() ? "y" : "n" )+ "\t" + (Options.summarizeRep.getValue() ? "y" : "n" ));
+					(Options.basicBlocks.getValue() ? "y" : "n" )+ "\t" + (Options.summarizeRep.getValue() ? "y" : "n" ) + "\t" + Options.cpas.getValue());
 
 			ProgramGraphWriter graphWriter = new ProgramGraphWriter(program);
 			
