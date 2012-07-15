@@ -188,7 +188,7 @@ public class CPAAlgorithm implements Algorithm {
 				lastTime = now;
 				
 				if (Options.timeout.getValue() > 0 && (System.currentTimeMillis() - startTime > Options.timeout.getValue() * 1000)) {
-					logger.error("Timeout after " + Options.timeout + "s!");
+					logger.error("Timeout after " + Options.timeout.getValue() + "s!");
 					stop = true;
 				}
 			}
