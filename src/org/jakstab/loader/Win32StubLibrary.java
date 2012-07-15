@@ -157,60 +157,48 @@ public class Win32StubLibrary implements StubProvider {
 					}
 					if (!inExports) continue;
 					// parse exported function:
-					int state = 0;
 					
 					int callingConvention = STDCALL;
 					boolean returns = true;
-					StringBuilder name = new StringBuilder();
 					int stackIncrement = 0;
 
-					for (int i=0; i<line.length(); i++) {
-						char c = line.charAt(i);
-						switch (state) {
-						case 0:
-							switch (c) {
-							case '@':
-								callingConvention = FASTCALL;
-								break;
-							case '!':
-								returns = false;
-								break;
-							default:
-								state = 1; i--;
-							}
-							break;
-						case 1:
-							switch (c) {
-							case '@':
-								state = 2;
-								break;
-							case ' ':
-								state = 3;
-								break;
-							default:
-								name.append(c);
-							}
-							break;
-						case 2:
-							if (c == ' ') state = 3; else {
-								stackIncrement *= 10;
-								stackIncrement += Integer.parseInt(Character.toString(c));
-							}
-							break;
-						case 3:
-							if (c != ' ') {
-								if (line.substring(i, i + 4).equals("DATA")) {
-									callingConvention = EXTERNAL_VARIABLE;
-									i += 3;
-								} else {
-									throw new RuntimeException("Parse error");
-								}
-							}
+					int i = line.length();
+					if (line.length() > 4 && line.substring(i - 4, i).equals("DATA")) {
+						callingConvention = EXTERNAL_VARIABLE;
+						i -= 4;
+						while (i >= 1 && line.charAt(i - 1) == ' ')
+							i--;
+					}
+					int finalAt = line.lastIndexOf('@');
+					if (finalAt >= 0 && finalAt < i - 1) {
+						try {
+							stackIncrement = Integer.parseInt(line.substring(finalAt + 1, i));
+							i = finalAt;
+						} catch (NumberFormatException e) {
+							// Failed to parse, the last @ is still within the function name, so leave i at where it is							
 						}
 					}
 					
+					// Parse prefixes
+					int start = 0;
+					prefixParse: for (; start <= i; start++) {
+						char c = line.charAt(start);
+						switch (c) {
+						case '@':
+							callingConvention = FASTCALL;
+							break;
+						case '!':
+							returns = false;
+							break;
+						default:
+							break prefixParse; 
+						}
+					}
+					
+					String name = line.substring(start, i);
+					
 					//logger.debug("Registering " + name.toString() + "@" + library + " " + callingConvention + " " + stackIncrement + " " + returns);
-					registerStub(library, callingConvention, name.toString(), stackIncrement, returns);
+					registerStub(library, callingConvention, name, stackIncrement, returns);
 					
 				} /* end file reading while */
 				
