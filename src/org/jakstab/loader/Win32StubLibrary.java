@@ -149,6 +149,11 @@ public class Win32StubLibrary implements StubProvider {
 				String line;
 				while ((line = in.readLine()) != null) {
 					line = line.trim();
+
+					// Skip empty lines
+					if (line.length() == 0)
+						continue;
+					
 					// ignore comments and preprocessor directives
 					if (line.startsWith(";") || line.startsWith("#")) continue;
 					if (line.startsWith("EXPORTS")) {
