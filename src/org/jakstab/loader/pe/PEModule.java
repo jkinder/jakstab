@@ -279,11 +279,9 @@ public class PEModule extends AbstractCOFFModule {
 		}
 		
 		if (exportEntries != null) for (ExportEntry ee : exportEntries) {
-			exportedSymbols.add(new ExportedSymbol(
-					this,
-					ee.getName(),
-					ee.getAddress()
-					));
+			String name = ee.getName();
+			if (name == null) name = "ord(" + ee.getOrdinal() + ")";
+			exportedSymbols.add(new ExportedSymbol(this, name, ee.getAddress()));
 		}
 		return exportedSymbols;
 	}
