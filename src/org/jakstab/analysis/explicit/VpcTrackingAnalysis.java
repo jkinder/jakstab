@@ -5,6 +5,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.jakstab.AnalysisProperties;
+import org.jakstab.JOption;
 import org.jakstab.analysis.AbstractState;
 import org.jakstab.analysis.CPAOperators;
 import org.jakstab.analysis.ConfigurableProgramAnalysis;
@@ -35,9 +36,15 @@ public class VpcTrackingAnalysis implements ConfigurableProgramAnalysis {
 		p.setDescription("VPC Version of BAT.");
 		p.setExplicit(true);
 	}
+	public static JOption<String> vpcName = JOption.create("vpc", "r", "esi", "Register to be used as virtual program counter.");
 	
-	private static RTLVariable vpc = ExpressionFactory.createVariable("%ebx", 32);
-
+	private RTLVariable vpc;
+	
+	public VpcTrackingAnalysis() {
+		vpc = ExpressionFactory.createVariable(vpcName.getValue().toLowerCase());
+		logger.debug("Using VPC " + vpc);
+	}
+	
 	@Override
 	public AbstractState merge(AbstractState s1, AbstractState s2, Precision precision) {
 		// Reduces states, but makes it harder to reconstruct the trace that lead to a certain state
