@@ -262,8 +262,10 @@ public class Main {
 					program.getCFA().size() + "\t" + indirectBranches + "\t" + program.getUnresolvedBranches().size() +  "\t" +
 					cfr.getNumberOfStatesVisited() + "\t" + stateCount + "\t" + 
 					Math.round((overallEndTime - overallStartTime)/1000.0) + "\t" + cfr.getStatus() + "\t" + 
-					version + "\t" + BoundedAddressTracking.varThreshold.getValue() + "\t" + BoundedAddressTracking.heapThreshold.getValue() + "\t" + 
-					(Options.basicBlocks.getValue() ? "y" : "n" )+ "\t" + (Options.summarizeRep.getValue() ? "y" : "n" ) + "\t" + Options.cpas.getValue());
+					version  + "\t" + Options.cpas.getValue()+ "\t" + BoundedAddressTracking.varThreshold.getValue() + "\t" + 
+					BoundedAddressTracking.heapThreshold.getValue() + "\t" + (Options.basicBlocks.getValue() ? "y" : "n" ) + 
+					"\t" + (Options.summarizeRep.getValue() ? "y" : "n" ) + "\t" + 
+					BoundedAddressTracking.ExplicitPrintfArgs + "\t" + BoundedAddressTracking.OverAppPrintfArgs);
 
 			ProgramGraphWriter graphWriter = new ProgramGraphWriter(program);
 			

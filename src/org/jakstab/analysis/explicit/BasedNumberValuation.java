@@ -143,17 +143,14 @@ public final class BasedNumberValuation implements AbstractState {
 	*/
 		
 	private static final Logger logger = Logger.getLogger(BasedNumberValuation.class);
-	//private static long maxStateId = 0;
 	
 	private final VariableValuation<BasedNumberElement> aVarVal;
 	private final PartitionedMemory<BasedNumberElement> aStore;
-	//private final long stateId;
 	private final AllocationCounter allocCounters;
 	
 	private BasedNumberValuation(VariableValuation<BasedNumberElement> aVarVal, 
 			PartitionedMemory<BasedNumberElement> aStore,
 			AllocationCounter allocCounters) {
-		//stateId = ++maxStateId;
 		this.aVarVal = aVarVal;
 		this.aStore = aStore;
 		this.allocCounters = allocCounters;
@@ -399,7 +396,13 @@ public final class BasedNumberValuation implements AbstractState {
 							switch (formatString.charAt(i + 1)) {
 							case 'i':
 								logger.debug("  Integer argument: " + curVarArg);
-								sb.append(curVarArg.hasUniqueConcretization() ? curVarArg.getNumber().intValue() : curVarArg);
+								if (curVarArg.hasUniqueConcretization()) {
+									sb.append(curVarArg.getNumber().intValue());
+									BoundedAddressTracking.ExplicitPrintfArgs++;
+								} else {
+									sb.append(curVarArg);
+									BoundedAddressTracking.OverAppPrintfArgs++;
+								}
 								break;
 							case 's':
 								BasedNumberElement argStrAddr = getMemoryValue(curVarArg, 32);
