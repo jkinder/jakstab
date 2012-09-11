@@ -1,5 +1,5 @@
 #!/bin/bash
-JS_HOME=`pwd`/${0%/*}
+JS_HOME="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 JSCLASSPATH=${JS_HOME}/lib/antlr.jar:${JS_HOME}/lib/google-collect-1.0.jar:lib/javabdd-1.0b2.jar:${JS_HOME}/bin
 case `uname` in
     CYGWIN*)
@@ -8,10 +8,8 @@ case `uname` in
         ;;
     *)
 esac
-if [ `uname -m` = "x86_64" ]; then
-    JMEM_OPTS="-Xms1g -Xmx3g"
-else
-    JMEM_OPTS="-Xms512m -Xmx1000m"
-fi
+
+# Adapt this to your needs
+JMEM_OPTS="-Xms1g -Xmx3g"
 
 java ${JMEM_OPTS} -ea -cp "${JSCLASSPATH}" org.jakstab.Main $*
