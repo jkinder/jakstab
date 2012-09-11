@@ -23,6 +23,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import org.jakstab.Options;
 import org.jakstab.rtl.Context;
 import org.jakstab.ssl.parser.SSLFunction;
 import org.jakstab.ssl.parser.SSLLexer;
@@ -59,7 +60,7 @@ public class ExpressionSimplifier {
 	
 	private ExpressionSimplifier() throws Exception {
 		// (x < y) | (x = y)   <->   x <= y
-		File specFile = new File("ssl/simplifications.ssl");
+		File specFile = new File(Options.jakstabHome + "/ssl/simplifications.ssl");
 		logger.info("Reading simplifications from " + specFile.getName() + ".");
 
 		SSLLexer lex = new SSLLexer(new FileInputStream(specFile));
