@@ -33,7 +33,7 @@ public class VpcTrackingAnalysis implements ConfigurableProgramAnalysis {
 	public static void register(AnalysisProperties p) {
 		p.setShortHand('v');
 		p.setName("BAT-VPC");
-		p.setDescription("VPC Version of BAT.");
+		p.setDescription("VPC-sensitive version of Bounded Address Tracking.");
 		p.setExplicit(true);
 	}
 	public static JOption<String> vpcName = JOption.create("vpc", "r", "esi", "Register to be used as virtual program counter.");

@@ -27,6 +27,7 @@ import org.jakstab.util.*;
 import org.jakstab.analysis.*;
 import org.jakstab.analysis.composite.CompositeState;
 import org.jakstab.analysis.explicit.BoundedAddressTracking;
+import org.jakstab.analysis.explicit.VpcTrackingAnalysis;
 import org.jakstab.analysis.procedures.ProcedureAnalysis;
 import org.jakstab.analysis.procedures.ProcedureState;
 import org.jakstab.asm.*;
@@ -264,7 +265,7 @@ public class Main {
 					Math.round((overallEndTime - overallStartTime)/1000.0) + "\t" + cfr.getStatus() + "\t" + 
 					version  + "\t" + Options.cpas.getValue()+ "\t" + BoundedAddressTracking.varThreshold.getValue() + "\t" + 
 					BoundedAddressTracking.heapThreshold.getValue() + "\t" + (Options.basicBlocks.getValue() ? "y" : "n" ) + 
-					"\t" + (Options.summarizeRep.getValue() ? "y" : "n" ) + "\t" + 
+					"\t" + (Options.summarizeRep.getValue() ? "y" : "n" ) + "\t" + VpcTrackingAnalysis.vpcName.getValue() + "\t" +
 					BoundedAddressTracking.ExplicitPrintfArgs + "\t" + BoundedAddressTracking.OverAppPrintfArgs);
 
 			ProgramGraphWriter graphWriter = new ProgramGraphWriter(program);
