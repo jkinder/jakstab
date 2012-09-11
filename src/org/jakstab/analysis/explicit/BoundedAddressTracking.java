@@ -57,9 +57,6 @@ public class BoundedAddressTracking implements ConfigurableProgramAnalysis {
 	public static JOption<Boolean> repPrecBoost = JOption.create("rep-prec-boost", "Increase precision for rep-prefixed instructions.");
 	public static JOption<Boolean> keepDeadStack = JOption.create("keep-dead-stack", "Do not discard stack contents below current stack pointer.");
 	
-	public static long OverAppPrintfArgs = 0;
-	public static long ExplicitPrintfArgs = 0;
-	
 	public BoundedAddressTracking() {
 	}
 

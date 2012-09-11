@@ -6,6 +6,7 @@ import java.util.Set;
 
 import org.jakstab.AnalysisProperties;
 import org.jakstab.JOption;
+import org.jakstab.StatsTracker;
 import org.jakstab.analysis.AbstractState;
 import org.jakstab.analysis.CPAOperators;
 import org.jakstab.analysis.ConfigurableProgramAnalysis;
@@ -42,6 +43,7 @@ public class VpcTrackingAnalysis implements ConfigurableProgramAnalysis {
 	
 	public VpcTrackingAnalysis() {
 		vpc = ExpressionFactory.createVariable(vpcName.getValue().toLowerCase());
+		StatsTracker.getInstance().record("VPC", VpcTrackingAnalysis.vpcName.getValue());
 		logger.debug("Using VPC " + vpc);
 	}
 	

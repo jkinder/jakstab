@@ -45,6 +45,8 @@ public final class BasedNumberValuation implements AbstractState {
 		return initial;
 	}
 	
+	public static long OverAppPrintfArgs = 0;
+	public static long ExplicitPrintfArgs = 0;	
 	
 	/**
 	 * Counts allocs at allocation sites 
@@ -398,10 +400,10 @@ public final class BasedNumberValuation implements AbstractState {
 								logger.debug("  Integer argument: " + curVarArg);
 								if (curVarArg.hasUniqueConcretization()) {
 									sb.append(curVarArg.getNumber().intValue());
-									BoundedAddressTracking.ExplicitPrintfArgs++;
+									ExplicitPrintfArgs++;
 								} else {
 									sb.append(curVarArg);
-									BoundedAddressTracking.OverAppPrintfArgs++;
+									OverAppPrintfArgs++;
 								}
 								break;
 							case 's':

@@ -26,8 +26,8 @@ import org.jakstab.transformation.ExpressionSubstitution;
 import org.jakstab.util.*;
 import org.jakstab.analysis.*;
 import org.jakstab.analysis.composite.CompositeState;
+import org.jakstab.analysis.explicit.BasedNumberValuation;
 import org.jakstab.analysis.explicit.BoundedAddressTracking;
-import org.jakstab.analysis.explicit.VpcTrackingAnalysis;
 import org.jakstab.analysis.procedures.ProcedureAnalysis;
 import org.jakstab.analysis.procedures.ProcedureState;
 import org.jakstab.asm.*;
@@ -49,10 +49,11 @@ public class Main {
 
 	private static volatile Algorithm activeAlgorithm;
 	private static volatile Thread mainThread;
-
+	
 	public static void main(String[] args) {
 
 		mainThread = Thread.currentThread();
+		StatsTracker stats = StatsTracker.getInstance();
 
 		// Parse command line
 		Options.parseOptions(args);
@@ -134,6 +135,14 @@ public class Main {
 
 		// Add surrounding "%DF := 1; call entrypoint; halt;" 
 		program.installHarness(Options.heuristicEntryPoints.getValue() ? new HeuristicHarness() : new DefaultHarness());
+
+		int slashIdx = baseFileName.lastIndexOf('\\');
+		if (slashIdx < 0) slashIdx = baseFileName.lastIndexOf('/');
+		if (slashIdx < 0) slashIdx = -1;
+		slashIdx++;
+		stats.record(baseFileName.substring(slashIdx));
+		stats.record(version);
+
 
 		//StatsPlotter.create(baseFileName + "_states.dat");
 		//StatsPlotter.plot("#Time(ms)\tStates\tInstructions\tGC Time\tSpeed(st/s)");		
@@ -255,18 +264,25 @@ public class Main {
 			logger.debug("   Variable count:                      " + String.format("%8d", ExpressionFactory.getVariableCount()));
 			logger.error(Characters.DOUBLE_LINE_FULL_WIDTH);
 
-			int slashIdx = baseFileName.lastIndexOf('\\');
-			if (slashIdx < 0) slashIdx = baseFileName.lastIndexOf('/');
-			if (slashIdx < 0) slashIdx = -1;
-			slashIdx++;
-			logger.fatal(baseFileName.substring(slashIdx) + "\t" + program.getInstructionCount() + "\t" + program.getStatementCount() + "\t" + 
-					program.getCFA().size() + "\t" + indirectBranches + "\t" + program.getUnresolvedBranches().size() +  "\t" +
-					cfr.getNumberOfStatesVisited() + "\t" + stateCount + "\t" + 
-					Math.round((overallEndTime - overallStartTime)/1000.0) + "\t" + cfr.getStatus() + "\t" + 
-					version  + "\t" + Options.cpas.getValue()+ "\t" + BoundedAddressTracking.varThreshold.getValue() + "\t" + 
-					BoundedAddressTracking.heapThreshold.getValue() + "\t" + (Options.basicBlocks.getValue() ? "y" : "n" ) + 
-					"\t" + (Options.summarizeRep.getValue() ? "y" : "n" ) + "\t" + VpcTrackingAnalysis.vpcName.getValue() + "\t" +
-					BoundedAddressTracking.ExplicitPrintfArgs + "\t" + BoundedAddressTracking.OverAppPrintfArgs);
+			
+			stats.record(program.getInstructionCount());
+			stats.record(program.getStatementCount());
+			stats.record(program.getCFA().size());
+			stats.record(indirectBranches);
+			stats.record(program.getUnresolvedBranches().size());
+			stats.record(cfr.getNumberOfStatesVisited());
+			stats.record(stateCount);
+			stats.record(Math.round((overallEndTime - overallStartTime)/1000.0));
+			stats.record(cfr.getStatus());
+			stats.record(Options.cpas.getValue());
+			stats.record(BoundedAddressTracking.varThreshold.getValue());
+			stats.record(BoundedAddressTracking.heapThreshold.getValue());
+			stats.record(Options.basicBlocks.getValue() ? "y" : "n");
+			stats.record(Options.summarizeRep.getValue() ? "y" : "n" );
+			stats.record(BasedNumberValuation.ExplicitPrintfArgs);
+			stats.record(BasedNumberValuation.OverAppPrintfArgs);
+			
+			stats.print();
 
 			ProgramGraphWriter graphWriter = new ProgramGraphWriter(program);
 			
