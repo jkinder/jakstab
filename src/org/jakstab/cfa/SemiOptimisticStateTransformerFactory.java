@@ -1,6 +1,6 @@
 /*
  * SemiOptimisticStateTransformerFactory.java - This file is part of the Jakstab project.
- * Copyright 2009-2011 Johannes Kinder <jk@jakstab.org>
+ * Copyright 2007-2012 Johannes Kinder <jk@jakstab.org>
  *
  * This code is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 2 only, as
@@ -22,7 +22,7 @@ import java.util.Set;
 import org.jakstab.analysis.AbstractState;
 import org.jakstab.asm.AbsoluteAddress;
 import org.jakstab.rtl.Context;
-import org.jakstab.rtl.RTLLabel;
+import org.jakstab.cfa.Location;
 import org.jakstab.rtl.expressions.ExpressionFactory;
 import org.jakstab.rtl.expressions.RTLExpression;
 import org.jakstab.rtl.expressions.RTLNumber;
@@ -47,7 +47,7 @@ public class SemiOptimisticStateTransformerFactory extends ResolvingTransformerF
 	public Set<CFAEdge> resolveGoto(final AbstractState a, final RTLGoto stmt) {
 
 		assert stmt.getCondition() != null;
-		ExpressionFactory factory = ExpressionFactory.getInstance();
+
 		Set<CFAEdge> results = new FastSet<CFAEdge>();
 
 		Set<Tuple<RTLNumber>> valuePairs = a.projectionFromConcretization(
@@ -55,12 +55,12 @@ public class SemiOptimisticStateTransformerFactory extends ResolvingTransformerF
 		for (Tuple<RTLNumber> pair : valuePairs) {
 			RTLNumber conditionValue = pair.get(0);
 			RTLNumber targetValue = pair.get(1);
-			RTLLabel nextLabel;
+			Location nextLabel;
 			// assume correct condition case 
 			assert conditionValue != null;
 			RTLExpression assumption = 
-				factory.createEqual(stmt.getCondition(), conditionValue);
-			if (conditionValue.equals(factory.FALSE)) {
+					ExpressionFactory.createEqual(stmt.getCondition(), conditionValue);
+			if (conditionValue.equals(ExpressionFactory.FALSE)) {
 				// assume (condition = false), and set next statement to fallthrough
 				nextLabel = stmt.getNextLabel();
 			} else {
@@ -87,14 +87,14 @@ public class SemiOptimisticStateTransformerFactory extends ResolvingTransformerF
 					continue;
 				} else {
 					// assume (condition = true AND targetExpression = targetValue)
-					assumption = factory.createAnd(
+					assumption = ExpressionFactory.createAnd(
 							assumption,
-							factory.createEqual(
+							ExpressionFactory.createEqual(
 									stmt.getTargetExpression(),
 									targetValue)
 					);
 					// set next label to jump target
-					nextLabel = new RTLLabel(new AbsoluteAddress(targetValue));
+					nextLabel = new Location(new AbsoluteAddress(targetValue));
 				}
 			}
 			assumption = assumption.evaluate(new Context());

@@ -1,7 +1,7 @@
 /*
  * ByteBuffer.java - This file is part of the Jakstab project.
  * 
- * Copyright 2007-2011 Johannes Kinder <jk@jakstab.org>
+ * Copyright 2007-2012 Johannes Kinder <jk@jakstab.org>
  * Copyright (C) 2003 The University of Arizona
  *
  * The original code for this class was taken from "MBEL: The Microsoft 

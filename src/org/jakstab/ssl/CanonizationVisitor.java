@@ -1,6 +1,6 @@
 /*
  * CanonizationVisitor.java - This file is part of the Jakstab project.
- * Copyright 2008-2011 Johannes Kinder <jk@jakstab.org>
+ * Copyright 2007-2012 Johannes Kinder <jk@jakstab.org>
  *
  * This code is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 2 only, as
@@ -28,8 +28,6 @@ public class CanonizationVisitor implements ExpressionVisitor<RTLExpression> {
 	@SuppressWarnings("unused")
 	private static final Logger logger = Logger.getLogger(CanonizationVisitor.class);
 	
-	private ExpressionFactory factory = ExpressionFactory.getInstance();
-	
 	public CanonizationVisitor() {
 		super();
 	}
@@ -39,7 +37,7 @@ public class CanonizationVisitor implements ExpressionVisitor<RTLExpression> {
 	 */
 	@Override
 	public RTLExpression visit(RTLBitRange e) {
-		return factory.createBitRange(e.getOperand().accept(this), 
+		return ExpressionFactory.createBitRange(e.getOperand().accept(this), 
 				e.getFirstBitIndex().accept(this), 
 				e.getLastBitIndex().accept(this));
 	}
@@ -59,7 +57,7 @@ public class CanonizationVisitor implements ExpressionVisitor<RTLExpression> {
 				//logger.debug("Collapsing conditional expression to TRUE-branch.");
 				return e.getTrueExpression().accept(this); 
 			}
-		} else return factory.createConditionalExpression(cond, 
+		} else return ExpressionFactory.createConditionalExpression(cond, 
 				e.getTrueExpression().accept(this), 
 				e.getFalseExpression().accept(this));
 	}
@@ -69,7 +67,7 @@ public class CanonizationVisitor implements ExpressionVisitor<RTLExpression> {
 	 */
 	@Override
 	public RTLExpression visit(RTLMemoryLocation e) {
-		return factory.createMemoryLocation(
+		return ExpressionFactory.createMemoryLocation(
 				e.getSegmentRegister(), e.getAddress().accept(this), e.getBitWidth());
 	}
 
@@ -105,9 +103,9 @@ public class CanonizationVisitor implements ExpressionVisitor<RTLExpression> {
 				RTLExpression[] falseOperands = operands.clone();
 				trueOperands[i] = cExpr.getTrueExpression();
 				falseOperands[i] = cExpr.getFalseExpression();
-				return factory.createConditionalExpression(cExpr.getCondition(),
-						factory.createOperation(e.getOperator(), trueOperands).accept(this),
-						factory.createOperation(e.getOperator(), falseOperands).accept(this));
+				return ExpressionFactory.createConditionalExpression(cExpr.getCondition(),
+						ExpressionFactory.createOperation(e.getOperator(), trueOperands).accept(this),
+						ExpressionFactory.createOperation(e.getOperator(), falseOperands).accept(this));
 			}
 		}
 		// if no conditionals as operands, just recurse all parameters
@@ -115,7 +113,7 @@ public class CanonizationVisitor implements ExpressionVisitor<RTLExpression> {
 		for(int i=0; i<e.getOperandCount(); i++) {
 			evaldOperands[i] = operands[i].accept(this); 
 		}
-		return factory.createOperation(e.getOperator(), evaldOperands);
+		return ExpressionFactory.createOperation(e.getOperator(), evaldOperands);
 	}
 
 	/*
@@ -134,9 +132,9 @@ public class CanonizationVisitor implements ExpressionVisitor<RTLExpression> {
 				RTLExpression[] falseOperands = operands.clone();
 				trueOperands[i] = cExpr.getTrueExpression();
 				falseOperands[i] = cExpr.getFalseExpression();
-				return factory.createConditionalExpression(cExpr.getCondition(),
-						factory.createSpecialExpression(e.getOperator(), trueOperands).accept(this),
-						factory.createSpecialExpression(e.getOperator(), falseOperands).accept(this));
+				return ExpressionFactory.createConditionalExpression(cExpr.getCondition(),
+						ExpressionFactory.createSpecialExpression(e.getOperator(), trueOperands).accept(this),
+						ExpressionFactory.createSpecialExpression(e.getOperator(), falseOperands).accept(this));
 			}
 		}
 		// if no conditionals as operands, just recurse all parameters
@@ -144,7 +142,7 @@ public class CanonizationVisitor implements ExpressionVisitor<RTLExpression> {
 		for(int i=0; i<e.getOperandCount(); i++) {
 			evaldOperands[i] = operands[i].accept(this); 
 		}
-		return factory.createSpecialExpression(e.getOperator(), evaldOperands);
+		return ExpressionFactory.createSpecialExpression(e.getOperator(), evaldOperands);
 	}
 
 	/*

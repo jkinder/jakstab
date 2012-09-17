@@ -1,6 +1,6 @@
 /*
  * RTLSpecialExpression.java - This file is part of the Jakstab project.
- * Copyright 2007-2011 Johannes Kinder <jk@jakstab.org>
+ * Copyright 2007-2012 Johannes Kinder <jk@jakstab.org>
  *
  * This code is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 2 only, as
@@ -37,6 +37,7 @@ public class RTLSpecialExpression extends AbstractRTLExpression implements RTLEx
 	public static final String LOG2 = "log2";
 	public static final String TICKCOUNT = "tickcount";
 	public static final String GETPROCADDRESS = "getProcAddress";
+	public static final String DBG_PRINTF = "dbgPrintf";
 	
 	@SuppressWarnings("unused")
 	private static final Logger logger = Logger.getLogger(RTLSpecialExpression.class);
@@ -53,6 +54,7 @@ public class RTLSpecialExpression extends AbstractRTLExpression implements RTLEx
 		this.operation = operation;
 		if (operation.equals(TICKCOUNT)) bitWidth = 64;
 		else if (operation.equals(GETPROCADDRESS)) bitWidth = 32;
+		else if (operation.equals(DBG_PRINTF)) bitWidth = 32;
 		else {
 			// Everything else is floating point stuff anyway
 			bitWidth = 80;
@@ -81,7 +83,7 @@ public class RTLSpecialExpression extends AbstractRTLExpression implements RTLEx
 	/**
 	 * @return the operation
 	 */
-	public String getOperation() {
+	public String getOperator() {
 		return operation;
 	}
 	
@@ -135,7 +137,7 @@ public class RTLSpecialExpression extends AbstractRTLExpression implements RTLEx
 		for(int i=0; i<operandCount; i++)
 			evaledOperands[i] = operands[i].evaluate(context);
 
-		return ExpressionFactory.getInstance().createSpecialExpression(operation, evaledOperands);
+		return ExpressionFactory.createSpecialExpression(operation, evaledOperands);
 	}
 	
 	@Override
@@ -165,10 +167,6 @@ public class RTLSpecialExpression extends AbstractRTLExpression implements RTLEx
 		return size;
 	}
 	
-	public String getOperator() {
-		return operation;
-	}
-
 	@Override
 	public int getBitWidth() {
 		return bitWidth;

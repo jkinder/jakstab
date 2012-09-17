@@ -1,6 +1,6 @@
 /*
  * BoundedAddressTracking.java - This file is part of the Jakstab project.
- * Copyright 2007-2011 Johannes Kinder <jk@jakstab.org>
+ * Copyright 2007-2012 Johannes Kinder <jk@jakstab.org>
  *
  * This code is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 2 only, as
@@ -21,7 +21,7 @@ package org.jakstab.analysis.explicit;
 import java.util.*;
 
 import org.jakstab.AnalysisProperties;
-import org.jakstab.Option;
+import org.jakstab.JOption;
 import org.jakstab.Program;
 import org.jakstab.analysis.*;
 import org.jakstab.asm.AbsoluteAddress;
@@ -29,7 +29,6 @@ import org.jakstab.asm.x86.X86Instruction;
 import org.jakstab.cfa.CFAEdge;
 import org.jakstab.cfa.Location;
 import org.jakstab.cfa.StateTransformer;
-import org.jakstab.rtl.RTLLabel;
 import org.jakstab.rtl.expressions.ExpressionFactory;
 import org.jakstab.rtl.expressions.RTLVariable;
 import org.jakstab.rtl.statements.RTLStatement;
@@ -53,9 +52,10 @@ public class BoundedAddressTracking implements ConfigurableProgramAnalysis {
 		p.setExplicit(true);
 	}
 	
-	public static Option<Integer> varThreshold = Option.create("explicit-threshold", "k", 5, "Set the maximum number of values tracked per variable per location.");
-	public static Option<Integer> heapThreshold = Option.create("heap-threshold", "k", 5, "Explicit threshold for data stored on the heap.");
-	public static Option<Boolean> repPrecBoost = Option.create("rep-prec-boost", "Increase precision for rep-prefixed instructions.");
+	public static JOption<Integer> varThreshold = JOption.create("explicit-threshold", "k", 5, "Set the maximum number of values tracked per variable per location.");
+	public static JOption<Integer> heapThreshold = JOption.create("heap-threshold", "k", 5, "Explicit threshold for data stored on the heap.");
+	public static JOption<Boolean> repPrecBoost = JOption.create("rep-prec-boost", "Increase precision for rep-prefixed instructions.");
+	public static JOption<Boolean> keepDeadStack = JOption.create("keep-dead-stack", "Do not discard stack contents below current stack pointer.");
 	
 	public BoundedAddressTracking() {
 	}
@@ -196,14 +196,13 @@ public class BoundedAddressTracking implements ConfigurableProgramAnalysis {
 		// Increase precision of ecx, esi, edi for REP prefixed instructions
 		Program program = Program.getProgram();
 		if (BoundedAddressTracking.repPrecBoost.getValue()) {
-			AbsoluteAddress addr = ((RTLLabel)location).getAddress();
+			AbsoluteAddress addr = location.getAddress();
 			X86Instruction instr = (X86Instruction)program.getInstruction(addr);
 			if (instr != null && (instr.hasPrefixREPZ() || instr.hasPrefixREPNZ())) {
 				logger.debug("boost-rep: REP instruction at " + location + ", increasing precision of loop registers.");
-				ExpressionFactory factory = ExpressionFactory.getInstance();
-				p.setThreshold(factory.createVariable("%ecx"), 1000);
-				p.setThreshold(factory.createVariable("%esi"), 1000);
-				p.setThreshold(factory.createVariable("%edi"), 1000);
+				p.setThreshold(ExpressionFactory.createVariable("%ecx"), 1000);
+				p.setThreshold(ExpressionFactory.createVariable("%esi"), 1000);
+				p.setThreshold(ExpressionFactory.createVariable("%edi"), 1000);
 			}
 		}
 		

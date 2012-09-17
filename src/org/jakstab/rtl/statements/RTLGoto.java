@@ -1,6 +1,6 @@
 /*
  * RTLGoto.java - This file is part of the Jakstab project.
- * Copyright 2007-2011 Johannes Kinder <jk@jakstab.org>
+ * Copyright 2007-2012 Johannes Kinder <jk@jakstab.org>
  *
  * This code is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 2 only, as
@@ -47,7 +47,7 @@ public class RTLGoto extends AbstractRTLStatement implements RTLStatement {
 	private Type type;
 	
 	public RTLGoto(RTLExpression targetExpr, Type type) {
-		this(targetExpr, ExpressionFactory.getInstance().TRUE, type);
+		this(targetExpr, ExpressionFactory.TRUE, type);
 	}
 	
 	public RTLGoto(RTLExpression targetExpr, RTLExpression condition, Type type) {
@@ -101,7 +101,7 @@ public class RTLGoto extends AbstractRTLStatement implements RTLStatement {
 	@Override
 	public String toString() {
 		StringBuilder res = new StringBuilder();
-		if (!condition.equals(ExpressionFactory.getInstance().TRUE)) { 
+		if (!condition.equals(ExpressionFactory.TRUE)) { 
 			res.append("if ");
 			res.append(condition);
 			res.append(" ");
@@ -146,7 +146,7 @@ public class RTLGoto extends AbstractRTLStatement implements RTLStatement {
 	public void setLabel(AbsoluteAddress addr, int rtlId) {
 		super.setLabel(addr, rtlId);
 		if (targetExpression == null)
-			targetExpression = ExpressionFactory.getInstance().createNumber(addr.getValue(), addr.getBitWidth());
+			targetExpression = ExpressionFactory.createNumber(addr.getValue(), addr.getBitWidth());
 	}
 	
 	@Override

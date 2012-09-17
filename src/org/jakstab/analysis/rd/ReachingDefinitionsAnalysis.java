@@ -7,10 +7,8 @@ import org.jakstab.AnalysisProperties;
 import org.jakstab.analysis.*;
 import org.jakstab.cfa.CFAEdge;
 import org.jakstab.cfa.Location;
-import org.jakstab.cfa.StateTransformer;
 import org.jakstab.rtl.statements.*;
 import org.jakstab.util.Logger;
-import org.jakstab.util.Pair;
 
 /**
  * Demo analysis for classroom use.
@@ -18,12 +16,13 @@ import org.jakstab.util.Pair;
  * Template for a reaching definitions analysis based on the CPA framework. All methods that need to
  * be implemented are marked with TODO.  
  */
-public class ReachingDefinitionsAnalysis implements ConfigurableProgramAnalysis {
+public class ReachingDefinitionsAnalysis extends SimpleCPA implements ConfigurableProgramAnalysis {
 
 	@SuppressWarnings("unused")
 	private static final Logger logger = Logger.getLogger(ReachingDefinitionsAnalysis.class);
 	
 	public static void register(AnalysisProperties p) {
+		// This registers the analysis with the framework
 		p.setShortHand('r');
 		p.setName("Reaching definitions analysis");
 		p.setDescription("For each program point, calculate the set of variable definitions that reach it.");
@@ -37,17 +36,14 @@ public class ReachingDefinitionsAnalysis implements ConfigurableProgramAnalysis 
 	}
 
 	@Override
-	public AbstractState merge(AbstractState s1, AbstractState s2,
-			Precision precision) {
+	public AbstractState merge(AbstractState s1, AbstractState s2) {
 		// TODO Implement the merge operator
 		return s2; // Dummy
 	}
 
 	@Override
-	public Set<AbstractState> post(AbstractState state, CFAEdge edge,
-			Precision precision) {
-		// TODO Implement the abstract transfer relation. You can ignore the precision
-		// parameter for now
+	public Set<AbstractState> post(AbstractState state, CFAEdge edge) {
+		// TODO Implement the abstract transfer relation.
 		
 		// Read statement from control flow edge
 		RTLStatement statement = (RTLStatement)edge.getTransformer();
@@ -78,42 +74,24 @@ public class ReachingDefinitionsAnalysis implements ConfigurableProgramAnalysis 
 				return Collections.singleton((AbstractState)curState); // Dummy
 			}
 
-			@Override
-			public Set<AbstractState> visit(RTLSkip stmt) {
-				// TODO Implement transfer function for skip
-				logger.info("Processing skip at " + stmt.getLabel() + ": " + stmt.toString());
-				return Collections.singleton((AbstractState)curState); // Dummy
-			}
-
 		});
 		
 		return abstractSuccessors;
 	}
 
 	@Override
-	public AbstractState strengthen(AbstractState s, Iterable<AbstractState> otherStates,
-			CFAEdge cfaEdge, Precision precision) {
-		// No strengthening for this analysis
-		return s;
-	}
-
-	@Override
-	public boolean stop(AbstractState s, ReachedSet reached, Precision precision) {
+	public boolean stop(AbstractState s, ReachedSet reached) {
 		// TODO Implement stop operator
+		// You can use the following template, but since
+		// lessOrEqual in RDState currently always returns
+		// false, the analysis would never terminate.
+//		for (AbstractState a : reached) {
+//			if (s.lessOrEqual(a)) {
+//				return true;
+//			}
+//		}
+//		return false;
+
 		return true; // Dummy
 	}
-
-	@Override
-	public Precision initPrecision(Location location, StateTransformer transformer) {
-		// No precision information for this analysis
-		return null;
-	}
-
-	@Override
-	public Pair<AbstractState, Precision> prec(AbstractState s,
-			Precision precision, ReachedSet reached) {
-		// No precision refinement for this analysis
-		return Pair.create(s, precision);
-	}
-
 }

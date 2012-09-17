@@ -1,6 +1,6 @@
 /*
  * Program.java - This file is part of the Jakstab project.
- * Copyright 2007-2011 Johannes Kinder <jk@jakstab.org>
+ * Copyright 2007-2012 Johannes Kinder <jk@jakstab.org>
  *
  * This code is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 2 only, as
@@ -30,7 +30,6 @@ import org.jakstab.disasm.DisassemblyException;
 import org.jakstab.loader.*;
 import org.jakstab.loader.elf.ELFModule;
 import org.jakstab.loader.pe.*;
-import org.jakstab.rtl.*;
 import org.jakstab.rtl.expressions.SetOfVariables;
 import org.jakstab.rtl.statements.RTLHalt;
 import org.jakstab.rtl.statements.RTLStatement;
@@ -74,8 +73,8 @@ public final class Program {
 	}
 
 	private final Architecture arch;
-	private RTLLabel start;
-	private Map<RTLLabel, RTLStatement> statementMap;
+	private Location start;
+	private Map<Location, RTLStatement> statementMap;
 	private Map<AbsoluteAddress, Instruction> assemblyMap;
 	private ExecutableImage mainModule;
 	private List<ExecutableImage> modules;
@@ -86,12 +85,16 @@ public final class Program {
 	private StubProvider stubLibrary;
 	private Harness harness;
 	
+	public enum TargetOS {WINDOWS, LINUX, UNKNOWN};
+	private TargetOS targetOS;
+	
 	private Program(Architecture arch) {
 		this.arch = arch;
+		this.targetOS = TargetOS.UNKNOWN;
 
 		modules = new LinkedList<ExecutableImage>();
 		assemblyMap = new TreeMap<AbsoluteAddress, Instruction>();
-		statementMap = new HashMap<RTLLabel, RTLStatement>(2000);
+		statementMap = new HashMap<Location, RTLStatement>(2000);
 		cfa = new FastSet<CFAEdge>();
 		exportedSymbols = new HashMap<String, ExportedSymbol>();
 		unresolvedSymbols = new FastSet<UnresolvedSymbol>();
@@ -126,16 +129,20 @@ public final class Program {
 	 * @throws BinaryParseException
 	 */
 	public ExecutableImage loadModule(File moduleFile) throws IOException, BinaryParseException {
-		// First try to load it as a PE file, if it fails, try object file.
+		// First try to load it as a PE file, then object file, ELF and finally raw binary code
+		// The right thing to do would be some smart IDing of the file type, but 
+		// this exception chaining works for now...		
 		ExecutableImage module = null;
 		try {
 			module = new PEModule(moduleFile, getArchitecture());
+			targetOS = TargetOS.WINDOWS;
 		} catch (BinaryParseException e) {
 			try {
 				module = new ObjectFile(moduleFile, getArchitecture());
 			} catch (BinaryParseException e2) {
 				try {
 					module = new ELFModule(moduleFile, getArchitecture());
+					targetOS = TargetOS.LINUX;
 				} catch (BinaryParseException e3) {
 					module = new RawModule(moduleFile, getArchitecture());
 				}
@@ -242,7 +249,7 @@ public final class Program {
 	 * Set the program entry point to the given label.
 	 * @param label the new entry point
 	 */
-	public void setStart(RTLLabel label) {
+	public void setStart(Location label) {
 		this.start = label;
 	}
 
@@ -251,7 +258,7 @@ public final class Program {
 	 * @param entryAddress the new entry address
 	 */
 	public void setEntryAddress(AbsoluteAddress entryAddress) {
-		setStart(new RTLLabel(entryAddress));
+		setStart(new Location(entryAddress));
 	}
 	
 	/**
@@ -296,7 +303,7 @@ public final class Program {
 	 * @param label The label for which to get the statement
 	 * @return The statement object at label.
 	 */
-	public final RTLStatement getStatement(RTLLabel label) {
+	public final RTLStatement getStatement(Location label) {
 		if (!statementMap.containsKey(label)) {
 			AbsoluteAddress address = label.getAddress();
 			Instruction instr = getInstruction(address);
@@ -334,7 +341,7 @@ public final class Program {
 		statementMap.put(stmt.getLabel(), stmt);
 	}
 	
-	public boolean containsLabel(RTLLabel label) {
+	public boolean containsLabel(Location label) {
 		return statementMap.containsKey(label);
 	}
 
@@ -417,7 +424,7 @@ public final class Program {
 		return instr.toString(addr.getValue(), symbolFinder(addr));
 	}
 	
-	public String getSymbolFor(RTLLabel label) {
+	public String getSymbolFor(Location label) {
 		SymbolFinder symFinder = symbolFinder(label.getAddress());
 		if (symFinder.hasSymbolFor(label.getAddress())) {
 			return symFinder.getSymbolFor(label.getAddress());
@@ -453,6 +460,10 @@ public final class Program {
 		return assemblyMap;
 	}
 
+	public TargetOS getTargetOS() {
+		return targetOS;
+	}
+
 	/**
 	 * Returns all variables used in the program. At the current state of
 	 * the implementation, this includes only registers and flags.
@@ -483,7 +494,7 @@ public final class Program {
 		this.cfa = cfa;
 	}
 
-	public RTLLabel getStart() {
+	public Location getStart() {
 		return start;
 	}
 	

@@ -1,6 +1,6 @@
 /*
  * CallStackStateTest.java - This file is part of the Jakstab project.
- * Copyright 2009-2011 Johannes Kinder <jk@jakstab.org>
+ * Copyright 2007-2012 Johannes Kinder <jk@jakstab.org>
  *
  * This code is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 2 only, as
@@ -26,7 +26,6 @@ import org.jakstab.Program;
 import org.jakstab.analysis.callstack.CallStackState;
 import org.jakstab.asm.AbsoluteAddress;
 import org.jakstab.cfa.Location;
-import org.jakstab.rtl.RTLLabel;
 import org.jakstab.ssl.Architecture;
 import org.jakstab.util.Logger;
 import org.junit.After;
@@ -52,10 +51,10 @@ public class CallStackStateTest {
 	public void setUp() throws Exception {
 		Program.createProgram(new Architecture("ssl/pentium.ssl"));
 
-		l1 = new RTLLabel(new AbsoluteAddress(0x12345678));
-		l2 = new RTLLabel(new AbsoluteAddress(0xFF241111));
-		l3 = new RTLLabel(new AbsoluteAddress(0xEE345678));
-		l4 = new RTLLabel(new AbsoluteAddress(0xDD345678));
+		l1 = new Location(new AbsoluteAddress(0x12345678));
+		l2 = new Location(new AbsoluteAddress(0xFF241111));
+		l3 = new Location(new AbsoluteAddress(0xEE345678));
+		l4 = new Location(new AbsoluteAddress(0xDD345678));
 		
 		s1 = new CallStackState(new LinkedList<Location>(Arrays.asList(l1, l2, l3, l4)));
 		s2 = new CallStackState(new LinkedList<Location>(Arrays.asList(l1, l2, l3, l4)));

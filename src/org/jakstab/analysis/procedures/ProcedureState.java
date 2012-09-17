@@ -1,6 +1,6 @@
 /*
  * ProcedureState.java - This file is part of the Jakstab project.
- * Copyright 2009-2011 Johannes Kinder <jk@jakstab.org>
+ * Copyright 2007-2012 Johannes Kinder <jk@jakstab.org>
  *
  * This code is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 2 only, as
@@ -22,7 +22,6 @@ import java.util.Set;
 import org.jakstab.analysis.AbstractState;
 import org.jakstab.analysis.LatticeElement;
 import org.jakstab.cfa.Location;
-import org.jakstab.rtl.RTLLabel;
 import org.jakstab.rtl.expressions.RTLExpression;
 import org.jakstab.rtl.expressions.RTLNumber;
 import org.jakstab.util.FastSet;
@@ -37,13 +36,13 @@ public class ProcedureState implements AbstractState {
 	@SuppressWarnings("unused")
 	private static final Logger logger = Logger.getLogger(ProcedureState.class);
 	
-	private FastSet<RTLLabel> procedureEntries;
+	private FastSet<Location> procedureEntries;
 
-	public ProcedureState(FastSet<RTLLabel> procedureEntries) {
+	public ProcedureState(FastSet<Location> procedureEntries) {
 		this.procedureEntries = procedureEntries;
 	}
 	
-	public Set<RTLLabel> getProcedureEntries() {
+	public Set<Location> getProcedureEntries() {
 		return procedureEntries;
 	}
 

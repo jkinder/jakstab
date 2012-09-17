@@ -1,6 +1,6 @@
 /*
  * ProcedureAnalysis.java - This file is part of the Jakstab project.
- * Copyright 2009-2011 Johannes Kinder <jk@jakstab.org>
+ * Copyright 2007-2012 Johannes Kinder <jk@jakstab.org>
  *
  * This code is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 2 only, as
@@ -26,7 +26,6 @@ import org.jakstab.analysis.*;
 import org.jakstab.cfa.CFAEdge;
 import org.jakstab.cfa.Location;
 import org.jakstab.cfa.StateTransformer;
-import org.jakstab.rtl.RTLLabel;
 import org.jakstab.rtl.statements.RTLAssume;
 import org.jakstab.util.FastSet;
 import org.jakstab.util.Logger;
@@ -45,12 +44,12 @@ public class ProcedureAnalysis implements ConfigurableProgramAnalysis {
 	@SuppressWarnings("unused")
 	private static final Logger logger = Logger.getLogger(ProcedureAnalysis.class);
 	
-	private final Set<Pair<RTLLabel, RTLLabel>> callSites;
-	private final Set<RTLLabel> callees;
+	private final Set<Pair<Location, Location>> callSites;
+	private final Set<Location> callees;
 
 	public ProcedureAnalysis() {
-		callSites = new HashSet<Pair<RTLLabel, RTLLabel>>();
-		callees = new HashSet<RTLLabel>();
+		callSites = new HashSet<Pair<Location, Location>>();
+		callees = new HashSet<Location>();
 	}
 
 	@Override
@@ -60,7 +59,7 @@ public class ProcedureAnalysis implements ConfigurableProgramAnalysis {
 
 	@Override
 	public AbstractState initStartState(Location label) {
-		return new ProcedureState(new FastSet<RTLLabel>((RTLLabel)label));
+		return new ProcedureState(new FastSet<Location>(label));
 	}
 
 	@Override
@@ -79,12 +78,12 @@ public class ProcedureAnalysis implements ConfigurableProgramAnalysis {
 				AbstractState post;
 				switch (assume.getSource().getType()) {
 				case CALL:
-					callSites.add(Pair.create((RTLLabel)edge.getSource(), (RTLLabel)edge.getTarget()));
-					callees.add(((RTLLabel)edge.getTarget()));
-					post = new ProcedureState(new FastSet<RTLLabel>(((RTLLabel)edge.getTarget())));
+					callSites.add(Pair.create(edge.getSource(), edge.getTarget()));
+					callees.add(edge.getTarget());
+					post = new ProcedureState(new FastSet<Location>(edge.getTarget()));
 					return Collections.singleton(post);
 				case RETURN:
-					//post = new ProcedureState(new FastSet<RTLLabel>(((RTLLabel)edge.getTarget())));
+					//post = new ProcedureState(new FastSet<Location>(((Location)edge.getTarget())));
 					// FIXME: We need to have a callstack to determine the procedure we are returning to
 					// So currently this works only with OptimisticTransformerFactory
 					// post = getProcedureState((getCallStackElement().getLabel()))
@@ -110,11 +109,11 @@ public class ProcedureAnalysis implements ConfigurableProgramAnalysis {
 		return Pair.create(s, precision);
 	}
 	
-	public Set<RTLLabel> getCallees() {
+	public Set<Location> getCallees() {
 		return callees;
 	}
 	
-	public Set<Pair<RTLLabel,RTLLabel>> getCallSites() {
+	public Set<Pair<Location,Location>> getCallSites() {
 		return callSites;
 	}
 	

@@ -1,6 +1,6 @@
 /*
  * Context.java - This file is part of the Jakstab project.
- * Copyright 2007-2011 Johannes Kinder <jk@jakstab.org>
+ * Copyright 2007-2012 Johannes Kinder <jk@jakstab.org>
  *
  * This code is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 2 only, as
@@ -83,9 +83,11 @@ public class Context {
 	 * @return the substitute of w in this context
 	 */
 	public RTLExpression getSubstitution(Writable w) {
-		if (substitutions.containsKey(w))
-			return substitutions.get(w);
-		else return w;
+		RTLExpression result = substitutions.get(w);
+		if (result != null)
+			return result;
+		else
+			return w;
 	}
 	
 	/**
@@ -96,9 +98,11 @@ public class Context {
 	 * @return the assigned value for w, or null if there is no value assigned
 	 */
 	public RTLExpression getAssignment(Writable w) {
-		if (assignments.containsKey(w))
-			return assignments.get(w);
-		else return null;
+		RTLExpression result = assignments.get(w);
+		if (result != null)
+			return result;
+		else
+			return w;
 	}
 	
 	public Map<Writable, RTLExpression> getAssignments() {

@@ -1,6 +1,6 @@
 /*
  * LinuxStubLibrary.java - This file is part of the Jakstab project.
- * Copyright 2009-2011 Johannes Kinder <jk@jakstab.org>
+ * Copyright 2007-2012 Johannes Kinder <jk@jakstab.org>
  *
  * This code is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 2 only, as
@@ -24,9 +24,10 @@ import org.jakstab.Program;
 import org.jakstab.asm.AbsoluteAddress;
 import org.jakstab.asm.DummySymbolFinder;
 import org.jakstab.asm.SymbolFinder;
-import org.jakstab.rtl.RTLLabel;
+import org.jakstab.cfa.Location;
 import org.jakstab.rtl.expressions.ExpressionFactory;
 import org.jakstab.rtl.expressions.RTLExpression;
+import org.jakstab.rtl.expressions.RTLSpecialExpression;
 import org.jakstab.rtl.statements.*;
 import org.jakstab.rtl.statements.RTLGoto.Type;
 import org.jakstab.ssl.Architecture;
@@ -42,18 +43,16 @@ public class LinuxStubLibrary implements StubProvider {
 	
 	private Map<String,AbsoluteAddress> activeStubs;
 	private int impId;
-	private ExpressionFactory factory;
 	private Architecture arch;
 	private RTLExpression arg0;
 	//private RTLExpression arg1;
 
 	public LinuxStubLibrary(Architecture arch) {
-		factory = ExpressionFactory.getInstance();
 		this.arch = arch;
 		activeStubs = new HashMap<String, AbsoluteAddress>();
 		impId = 0;
-		arg0 = factory.createMemoryLocation(factory.createPlus(arch.stackPointer(), factory.createNumber(4, 32)), 32);
-		//arg1 = factory.createMemoryLocation(factory.createPlus(arch.stackPointer(), factory.createNumber(8, 32)), 32);
+		arg0 = ExpressionFactory.createMemoryLocation(ExpressionFactory.createPlus(arch.stackPointer(), ExpressionFactory.createNumber(4, 32)), 32);
+		//arg1 = ExpressionFactory.createMemoryLocation(ExpressionFactory.createPlus(arch.stackPointer(), ExpressionFactory.createNumber(8, 32)), 32);
 	}
 	
 	private AbsoluteAddress createStubInstance(String library, String function) {
@@ -74,16 +73,21 @@ public class LinuxStubLibrary implements StubProvider {
 		// start_main is special
 		if (function.equals("__libc_start_main")) {
 			seq.addLast(new RTLGoto(arg0, Type.CALL));
+		} else if (function.equals("printf")) {
+			seq.addLast(new RTLDebugPrint("Call to printf, format @ %esp =", 
+					ExpressionFactory.createSpecialExpression(RTLSpecialExpression.DBG_PRINTF, 
+							ExpressionFactory.createPlus(arch.stackPointer(),
+									ExpressionFactory.createNumber(4, arch.getAddressBitWidth())))));
 		} else {
-			seq.addLast(new RTLVariableAssignment(32, factory.createVariable("%eax"), factory.nondet(32)));
-			seq.addLast(new RTLVariableAssignment(32, factory.createVariable("%ecx"), factory.nondet(32)));
-			seq.addLast(new RTLVariableAssignment(32, factory.createVariable("%edx"), factory.nondet(32)));
+			seq.addLast(new RTLVariableAssignment(32, ExpressionFactory.createVariable("%eax"), ExpressionFactory.nondet(32)));
+			seq.addLast(new RTLVariableAssignment(32, ExpressionFactory.createVariable("%ecx"), ExpressionFactory.nondet(32)));
+			seq.addLast(new RTLVariableAssignment(32, ExpressionFactory.createVariable("%edx"), ExpressionFactory.nondet(32)));
 		}
 		
 		// store return address in retaddr
 		if (returns) {
-			seq.addLast(new RTLVariableAssignment(32, Program.getProgram().getArchitecture().returnAddressVariable(), 
-					factory.createMemoryLocation(arch.stackPointer(), 
+			seq.addLast(new RTLVariableAssignment(32, arch.returnAddressVariable(), 
+					ExpressionFactory.createMemoryLocation(arch.stackPointer(), 
 							arch.stackPointer().getBitWidth())
 			));
 		}
@@ -92,9 +96,9 @@ public class LinuxStubLibrary implements StubProvider {
 		// adjust stack pointer
 		seq.addLast(new RTLVariableAssignment(arch.stackPointer().getBitWidth(), 
 				arch.stackPointer(), 
-				factory.createPlus( 
+				ExpressionFactory.createPlus( 
 						arch.stackPointer(), 
-						factory.createNumber(stackIncrement, arch.stackPointer().getBitWidth())
+						ExpressionFactory.createNumber(stackIncrement, arch.stackPointer().getBitWidth())
 				)
 		));
 
@@ -109,7 +113,7 @@ public class LinuxStubLibrary implements StubProvider {
 		int rtlId = 0;
 		for (RTLStatement stmt : seq) {
 			stmt.setLabel(address, rtlId++);
-			stmt.setNextLabel(new RTLLabel(address, rtlId));
+			stmt.setNextLabel(new Location(address, rtlId));
 		}
 		seq.getLast().setNextLabel(null);
 

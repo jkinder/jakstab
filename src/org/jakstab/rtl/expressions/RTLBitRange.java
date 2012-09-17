@@ -1,6 +1,6 @@
 /*
  * RTLBitrange.java - This file is part of the Jakstab project.
- * Copyright 2007-2011 Johannes Kinder <jk@jakstab.org>
+ * Copyright 2007-2012 Johannes Kinder <jk@jakstab.org>
  *
  * This code is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 2 only, as
@@ -53,7 +53,7 @@ public class RTLBitRange extends AbstractRTLExpression implements RTLExpression,
 	
 	public static final RTLNumber calculate(int firstBit, int lastBit, RTLNumber operand) {
 		long value = operand.longValue();
-		return ExpressionFactory.getInstance().createNumber((bitMask(firstBit, lastBit) & value) >> firstBit, 
+		return ExpressionFactory.createNumber((bitMask(firstBit, lastBit) & value) >> firstBit, 
 				lastBit - firstBit + 1);
 	}
 
@@ -75,7 +75,6 @@ public class RTLBitRange extends AbstractRTLExpression implements RTLExpression,
 	
 	@Override
 	public RTLExpression evaluate(Context context) {
-		ExpressionFactory factory = ExpressionFactory.getInstance();
 		RTLExpression evaldOperand = operand.evaluate(context);
 		RTLExpression evaldFirstBit = firstBit.evaluate(context);
 		RTLExpression evaldLastBit = lastBit.evaluate(context);
@@ -91,12 +90,12 @@ public class RTLBitRange extends AbstractRTLExpression implements RTLExpression,
 			}
 			if (evaldOperand instanceof RTLNumber) {
 				//long value = ((RTLNumber)evaldOperand).longValue();
-				//return factory.createNumber((bitMask(firstBit, lastBit) & value) >> firstBit, 
+				//return ExpressionFactory.createNumber((bitMask(firstBit, lastBit) & value) >> firstBit, 
 				//		lastBit - firstBit + 1);
 				return calculate((RTLNumber)evaldFirstBit, (RTLNumber)evaldLastBit, (RTLNumber)evaldOperand);
 			}
 		}
-		return factory.createBitRange(evaldOperand, evaldFirstBit, evaldLastBit);
+		return ExpressionFactory.createBitRange(evaldOperand, evaldFirstBit, evaldLastBit);
 	}
 
 	@Override
@@ -139,16 +138,15 @@ public class RTLBitRange extends AbstractRTLExpression implements RTLExpression,
 	 * @return The inverse of this bitrange applied to the parameter
 	 */
 	public RTLExpression applyInverse(RTLExpression rhs) {
-		ExpressionFactory factory = ExpressionFactory.getInstance();
 		int firstBit = ((RTLNumber)getFirstBitIndex()).intValue();
 		int lastBit = ((RTLNumber)getLastBitIndex()).intValue();
 		long bitMask = RTLBitRange.bitMask(0, firstBit - 1) | 
 			RTLBitRange.bitMask(lastBit + 1, operand.getBitWidth());
 
 		// Bring rhs up to the size of the operand
-		RTLExpression castToOpSize = factory.createZeroFill( 
-				factory.createNumber(rhs.getBitWidth(), 8),
-				factory.createNumber(getOperand().getBitWidth() - 1, 8),
+		RTLExpression castToOpSize = ExpressionFactory.createZeroFill( 
+				ExpressionFactory.createNumber(rhs.getBitWidth(), 8),
+				ExpressionFactory.createNumber(getOperand().getBitWidth() - 1, 8),
 				rhs
 		);
 
@@ -157,17 +155,17 @@ public class RTLBitRange extends AbstractRTLExpression implements RTLExpression,
 		if (firstBit == 0) {
 			maskedRhs = castToOpSize;
 		} else {
-			maskedRhs =	factory.createShiftLeft(
+			maskedRhs =	ExpressionFactory.createShiftLeft(
 					castToOpSize,
 					getFirstBitIndex()
 			);
 		}
 
 		// Create the mask
-		RTLExpression ret = factory.createOr(
-				factory.createAnd(
+		RTLExpression ret = ExpressionFactory.createOr(
+				ExpressionFactory.createAnd(
 						getOperand(), 
-						factory.createNumber(bitMask, getOperand().getBitWidth())
+						ExpressionFactory.createNumber(bitMask, getOperand().getBitWidth())
 				), maskedRhs
 		);
 		
@@ -301,7 +299,7 @@ public class RTLBitRange extends AbstractRTLExpression implements RTLExpression,
 			logger.warn("Exception on inferring type of last bit index " + lastBit);
 			typedLastBit = lastBit;
 		}
-		return ExpressionFactory.getInstance().createBitRange(operand, typedFirstBit, typedLastBit);
+		return ExpressionFactory.createBitRange(operand, typedFirstBit, typedLastBit);
 	}
 	
 	

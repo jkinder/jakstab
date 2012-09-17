@@ -1,6 +1,6 @@
 /*
  * ELFModule.java - This file is part of the Jakstab project.
- * Copyright 2009-2011 Johannes Kinder <jk@jakstab.org>
+ * Copyright 2007-2012 Johannes Kinder <jk@jakstab.org>
  *
  * This code is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 2 only, as
@@ -162,7 +162,7 @@ public class ELFModule implements ExecutableImage {
 			// r_offset is at 0, r_info at 4. r_info is an integer containing the symbol index
 			int ri = symbolTableOff + 4;
 			// little endian only
-			int r_info = (int)((pltRelocs[ri + 3] << 24) + (pltRelocs[ri + 2] << 16) + (pltRelocs[ri + 1] << 8) + pltRelocs[ri]);
+			int r_info = ((pltRelocs[ri + 3] << 24) + (pltRelocs[ri + 2] << 16) + (pltRelocs[ri + 1] << 8) + pltRelocs[ri]);
 			int type = (byte)r_info;
 			int symIdx = r_info >> 8;
 			// type must be R_386_JMP_SLOT
@@ -314,7 +314,15 @@ public class ELFModule implements ExecutableImage {
 	 */
 	@Override
 	public boolean isCodeArea(AbsoluteAddress va) {
-		throw new UnsupportedOperationException();
+		long a = va.getValue();
+		for (Elf.Section section : elf.sections) {
+			if (a >= section.sh_addr.getValue().longValue() && 
+					a <= section.sh_addr.getValue().longValue() + section.sh_size) {
+				return (section.sh_type == Elf.Section.SHT_PROGBITS); 
+			}
+		}
+		// Section not found
+		return false;
 	}
 	
 	public Map<AbsoluteAddress, String> getSymbolMap() {
@@ -348,7 +356,7 @@ public class ELFModule implements ExecutableImage {
 			// do not mask the MSB with 0xFF, so we get sign extension for free
 			val = val | (((long)inBuf.readINT8()) << (bytes - 1) * 8);
 			//logger.debug("Read constant value " + val + " from address " + m + " (file offset: " + Long.toHexString(fp) + ") in image.");
-			return ExpressionFactory.getInstance().createNumber(val, m.getBitWidth());
+			return ExpressionFactory.createNumber(val, m.getBitWidth());
 
 		} 
 
@@ -359,5 +367,10 @@ public class ELFModule implements ExecutableImage {
 	@Override
 	public Iterator<AbsoluteAddress> codeBytesIterator() {
 		throw new UnsupportedOperationException("Code iteration not yet implemented for " + this.getClass().getSimpleName() + "!");
+	}
+
+	@Override
+	public byte[] getByteArray() {
+		return inBuf.getByteArray();
 	}
 }

@@ -1,6 +1,6 @@
 /*
  * NumberValuation.java - This file is part of the Jakstab project.
- * Copyright 2008-2011 Johannes Kinder <jk@jakstab.org>
+ * Copyright 2007-2012 Johannes Kinder <jk@jakstab.org>
  *
  * This code is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 2 only, as
@@ -49,14 +49,13 @@ public final class NumberValuation implements AbstractState {
 
 	
 	public static NumberValuation createInitialState() {
-		ExpressionFactory factory = ExpressionFactory.getInstance();
 		NumberValuation initial = new NumberValuation();
 		// init stack pointer
 		//RTLNumber espStartValue = factory.createNumber(0x1000, 32);
 		//initial.setValue(Program.getProgram().getArchitecture().stackPointer(), new NumberElement(espStartValue));
 		// push the address of a halt instruction on the stack
 		//initial.setValue(factory.createMemoryLocation(espStartValue, 32), new NumberElement(factory.createNumber(0, 32)));
-		initial.setValue(factory.createVariable("%DF", 1), new NumberElement(factory.createNumber(0, 1)));
+		initial.setValue(ExpressionFactory.createVariable("%DF", 1), new NumberElement(ExpressionFactory.createNumber(0, 1)));
 		return initial;
 	}
 	
@@ -103,8 +102,6 @@ public final class NumberValuation implements AbstractState {
 		
 		ExpressionVisitor<NumberElement> visitor = new ExpressionVisitor<NumberElement>() {
 			
-			private ExpressionFactory factory = ExpressionFactory.getInstance();
-
 			@Override
 			public NumberElement visit(RTLBitRange e) {
 				NumberElement aFirstBit = e.getFirstBitIndex().accept(this);
@@ -139,7 +136,7 @@ public final class NumberValuation implements AbstractState {
 				if (abstractAddress.isTop()) return NumberElement.getTop(m.getBitWidth());
 				// create constant memory location
 				RTLNumber constantAddress = abstractAddress.getNumber();
-				m = factory.createMemoryLocation(m.getSegmentRegister(), constantAddress, m.getBitWidth());
+				m = ExpressionFactory.createMemoryLocation(m.getSegmentRegister(), constantAddress, m.getBitWidth());
 				// check value of the constant memory location in this state 
 				return getValue(m);
 			}
@@ -159,17 +156,17 @@ public final class NumberValuation implements AbstractState {
 				RTLExpression[] aOperands = new RTLExpression[e.getOperandCount()];
 				for (int i=0; i<e.getOperandCount(); i++) {
 					NumberElement aOperand = e.getOperands()[i].accept(this);
-					if (aOperand.isTop()) aOperands[i] = factory.nondet(e.getOperands()[i].getBitWidth());
+					if (aOperand.isTop()) aOperands[i] = ExpressionFactory.nondet(e.getOperands()[i].getBitWidth());
 					else aOperands[i] = aOperand.getNumber();
 				}
-				RTLExpression result = factory.createOperation(e.getOperator(), aOperands).evaluate(new Context());
+				RTLExpression result = ExpressionFactory.createOperation(e.getOperator(), aOperands).evaluate(new Context());
 				if (result instanceof RTLNumber) return new NumberElement((RTLNumber)result);
 				else return NumberElement.getTop(e.getBitWidth());
 			}
 
 			@Override
 			public NumberElement visit(RTLSpecialExpression e) {
-				if (e.getOperation().equals(RTLSpecialExpression.GETPROCADDRESS)) {
+				if (e.getOperator().equals(RTLSpecialExpression.GETPROCADDRESS)) {
 					NumberElement aLibNameAddr = e.getOperands()[0].accept(this);
 					NumberElement aProcNameAddr = e.getOperands()[1].accept(this);
 					if (!aLibNameAddr.isTop() && !aProcNameAddr.isTop()) {
@@ -183,7 +180,7 @@ public final class NumberValuation implements AbstractState {
 						String procName = getCString(procNameAddr);
 						logger.info("GetProcAddress for " + procName + " from module " + libName);
 						long procAddress = Program.getProgram().getProcAddress(libName, procName).getValue();
-						return new NumberElement(factory.createNumber(procAddress, 32));
+						return new NumberElement(ExpressionFactory.createNumber(procAddress, 32));
 						
 					} else {
 						logger.info("Could not determine parameters of GetProcAddress!");
@@ -239,7 +236,7 @@ public final class NumberValuation implements AbstractState {
 				// if it's a constant address, store the assigned value
 				else {
 					RTLNumber constantAddress = abstractAddress.getNumber();
-					m = ExpressionFactory.getInstance().createMemoryLocation(m.getSegmentRegister(), constantAddress, m.getBitWidth());
+					m = ExpressionFactory.createMemoryLocation(m.getSegmentRegister(), constantAddress, m.getBitWidth());
 					post.setValue(m, evaledRhs);
 				}
 				if (post.aVarVal.isEmpty() && post.aMemVal.isEmpty() && post.dataIsTop) return TOP;
@@ -255,11 +252,6 @@ public final class NumberValuation implements AbstractState {
 				return post;
 			}
 			
-			@Override
-			public NumberValuation visit(RTLSkip stmt) {
-				return fallThroughState();
-			}
-
 			@Override
 			public NumberValuation visit(RTLAssume stmt) {
 				NumberElement truthValue = abstractEval(stmt.getAssumption());
@@ -291,22 +283,12 @@ public final class NumberValuation implements AbstractState {
 			}
 
 			@Override
-			public NumberValuation visit(RTLAssert stmt) {
-				return fallThroughState();
-			}
-
-			@Override
 			public NumberValuation visit(RTLAlloc stmt) {
 				NumberValuation post = new NumberValuation(NumberValuation.this);
 				// Clobber value in pointer, overwritten by allocated address
 				post.setValue(stmt.getPointer(), NumberElement.getTop(stmt.getPointer().getBitWidth()));
 				if (post.aVarVal.isEmpty() && post.aMemVal.isEmpty() && post.dataIsTop) return TOP;
 				return post;
-			}
-
-			@Override
-			public NumberValuation visit(RTLDealloc stmt) {
-				return fallThroughState();
 			}
 
 			@Override
@@ -319,6 +301,11 @@ public final class NumberValuation implements AbstractState {
 				}
 				post.clearMemory();
 				return post;
+			}
+
+			@Override
+			public NumberValuation visitDefault(RTLStatement stmt) {
+				return fallThroughState();
 			}
 
 		});
@@ -351,7 +338,7 @@ public final class NumberValuation implements AbstractState {
 			setValue((RTLMemoryLocation)w, v);
 	}
 	
-	public RTLLabel getProgramCounter() {
+	public Location getProgramCounter() {
 		return null;
 	}
 
@@ -397,11 +384,11 @@ public final class NumberValuation implements AbstractState {
 	}
 	
 	private String getCString(long offset) {
-		ExpressionFactory factory = ExpressionFactory.getInstance();
 		StringBuilder res = new StringBuilder();
 		int length = 0;
 		while (true) {
-			NumberElement v = getValue((factory.createMemoryLocation(factory.createNumber(offset + length), 8)));
+			NumberElement v = getValue((ExpressionFactory.createMemoryLocation(
+					ExpressionFactory.createNumber(offset + length), 8)));
 			if (v.isBot() || v.isTop()) return null;
 			int newChar = v.getNumber().intValue();
 			if (newChar == 0) break;
@@ -415,12 +402,12 @@ public final class NumberValuation implements AbstractState {
 	 * Just a hack, not really a unicode implementation.
 	 */
 	private String getWString(long offset) {
-		ExpressionFactory factory = ExpressionFactory.getInstance();
 		StringBuilder res = new StringBuilder();
 		int length = 0;
 		boolean firstByte = true;
 		while (true) {
-			NumberElement v = getValue((factory.createMemoryLocation(factory.createNumber(offset + length), 8)));
+			NumberElement v = getValue((ExpressionFactory.createMemoryLocation(
+					ExpressionFactory.createNumber(offset + length), 8)));
 			length++;
 			if (v.isBot() || v.isTop()) return null;
 			int newChar = v.getNumber().intValue();

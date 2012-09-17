@@ -1,6 +1,6 @@
 /*
  * ResolvingTransformerFactory.java - This file is part of the Jakstab project.
- * Copyright 2009-2011 Johannes Kinder <jk@jakstab.org>
+ * Copyright 2007-2012 Johannes Kinder <jk@jakstab.org>
  *
  * This code is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 2 only, as
@@ -21,7 +21,7 @@ import java.util.*;
 
 import org.jakstab.Program;
 import org.jakstab.analysis.AbstractState;
-import org.jakstab.rtl.RTLLabel;
+import org.jakstab.cfa.Location;
 import org.jakstab.rtl.statements.*;
 import org.jakstab.util.FastSet;
 import org.jakstab.util.Logger;
@@ -55,7 +55,7 @@ public abstract class ResolvingTransformerFactory implements StateTransformerFac
 
 	@Override
 	public Set<CFAEdge> getTransformers(final AbstractState a) {
-		RTLStatement stmt = Program.getProgram().getStatement((RTLLabel)a.getLocation());
+		RTLStatement stmt = Program.getProgram().getStatement(a.getLocation());
 
 		Set<CFAEdge> transformers = stmt.accept(new DefaultStatementVisitor<Set<CFAEdge>>() {
 

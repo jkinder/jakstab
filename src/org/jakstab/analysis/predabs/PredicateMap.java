@@ -1,6 +1,6 @@
 /*
  * PredicateMap.java - This file is part of the Jakstab project.
- * Copyright 2009-2011 Johannes Kinder <jk@jakstab.org>
+ * Copyright 2007-2012 Johannes Kinder <jk@jakstab.org>
  *
  * This code is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 2 only, as
@@ -42,29 +42,28 @@ public class PredicateMap {
 	}*/
 	
 	static {
-		ExpressionFactory factory = ExpressionFactory.getInstance();
-		addPredicate(factory.createGreaterOrEqual(
-				factory.createVariable("eax", 32),
-				factory.createNumber(0, 32)
+		addPredicate(ExpressionFactory.createGreaterOrEqual(
+				ExpressionFactory.createVariable("eax", 32),
+				ExpressionFactory.createNumber(0, 32)
 				));
-		addPredicate(factory.createLessThan(
-				factory.createVariable("ecx", 32),
-				factory.createNumber(0, 32)
+		addPredicate(ExpressionFactory.createLessThan(
+				ExpressionFactory.createVariable("ecx", 32),
+				ExpressionFactory.createNumber(0, 32)
 				));
-		addPredicate(factory.createEqual(
-				factory.createVariable("eax", 32),
-				factory.createNumber(0, 32)
+		addPredicate(ExpressionFactory.createEqual(
+				ExpressionFactory.createVariable("eax", 32),
+				ExpressionFactory.createNumber(0, 32)
 				));
-		addPredicate(factory.createEqual(
-				factory.createVariable("ebx", 32),
-				factory.createNumber(0, 32)
+		addPredicate(ExpressionFactory.createEqual(
+				ExpressionFactory.createVariable("ebx", 32),
+				ExpressionFactory.createNumber(0, 32)
 				));
-		addPredicate(factory.createEqual(
-				factory.createVariable("eax", 32),
-				factory.createVariable("ebx", 32)
+		addPredicate(ExpressionFactory.createEqual(
+				ExpressionFactory.createVariable("eax", 32),
+				ExpressionFactory.createVariable("ebx", 32)
 				));
-		//addPredicate(factory.createEqual(
-		//		factory.createMemoryLocation(Program.getProgram().getArchitecture().stackPointer(), 32),
+		//addPredicate(ExpressionFactory.createEqual(
+		//		ExpressionFactory.createMemoryLocation(Program.getProgram().getArchitecture().stackPointer(), 32),
 		//		Program.getProgram().getArchitecture().returnAddressVariable()
 		//		));
 	}

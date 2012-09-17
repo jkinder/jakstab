@@ -1,6 +1,6 @@
 /*
  * Options.java - This file is part of the Jakstab project.
- * Copyright 2009-2011 Johannes Kinder <jk@jakstab.org>
+ * Copyright 2007-2012 Johannes Kinder <jk@jakstab.org>
  *
  * This code is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 2 only, as
@@ -51,7 +51,7 @@ public class Options {
 		jakstabHome = (new File(classFileName)).getParentFile().getParentFile().getParentFile().getParent();
 	}
 	
-	private static Map<String,Option<?>> options = new TreeMap<String,Option<?>>(new Comparator<String>() {
+	private static Map<String,JOption<?>> options = new TreeMap<String,JOption<?>>(new Comparator<String>() {
 		public int compare(String s1, String s2) {
 			if (s1.length() != 2 && s2.length() == 2) return 1;
 			if (s1.length() == 2 && s2.length() != 2) return -1;
@@ -59,7 +59,7 @@ public class Options {
 		}
 	});
 	
-	static void addOption(Option<?> o) {
+	static void addOption(JOption<?> o) {
 		String name = o.getName().toLowerCase();
 		if (options.containsKey(name)) {
 			logger.fatal("Option " + name + " already present!");
@@ -69,42 +69,42 @@ public class Options {
 		}
 	}
 	
-	private static AnalysisManager mgr = AnalysisManager.getInstance();
 
 	
 	public static String mainFilename = null;
 	public static List<String> moduleFilenames = new LinkedList<String>();
 
-	public static Option<String> cpas = Option.create("cpa", "{" + mgr.getShorthandsString() + "}", "x", "Configure which analyses to use for control flow reconstruction.");
-	public static Option<String> secondaryCPAs = Option.create("cpa2", "{" + mgr.getShorthandsString() + "}", "", "Secondary analyses to be performed after the initial CFG reconstruction and dead code elimination are completed.");
-	
-	public static Option<String> sslFilename = Option.create("ssl", "file", jakstabHome + "/ssl/pentium.ssl", "Use <file> instead of pentium.ssl.");
-	public static Option<Long> startAddress = Option.create("a", "address", -1L, "Start analysis at given virtual address.");
-	public static Option<Boolean> wdm = Option.create("wdm", "WDM mode, export main function as DriverMain.");
-	public static Option<Boolean> allEdges = Option.create("all-edges", "Generate a true over-approximation and add edges to all possible addresses when over-approximating a jump (very slow!).");
-	public static Option<Boolean> dumpStates = Option.create("s", "Output all reached states after analysis.");	
-	public static Option<Boolean> outputLocationsWithMostStates = Option.create("toplocs", "Output the 10 locations with the highest state count.");
-	public static Option<Boolean> failFast = Option.create("fail-fast", "Stop when unsound assumptions are necessary to continue.");
-	public static Option<Boolean> debug = Option.create("debug", "Stop on failed assertions or weak updates to the complete stack or all store regions.");
-	public static Option<Boolean> asmTrace = Option.create("asm-trace", "Output any error trace as a list of assembly instructions instead of IL statements.");
-	public static Option<Boolean> errorTrace = Option.create("error-trace", "Build an abstract error trace for failed assertions and debug stops.");
-	public static Option<Boolean> backward = Option.create("backward", "Perform secondary cpa as a backward analysis.");
-	public static Option<Boolean> background = Option.create("b", "Background mode, i.e., disable shutdown hook on enter.");
-	public static Option<Boolean> graphML = Option.create("graphML", "Produce graphML output instead of GraphViz .dot files.");
-	public static Option<Boolean> noGraphs = Option.create("no-graphs", "Do not generate output graphs");
-	public static Option<Boolean> heuristicEntryPoints = Option.create("h", "Use heuristics to determine additional procedures and add pseudo-calls to include them in disassembly.");
-	public static Option<Boolean> ignoreWeakUpdates = Option.create("ignore-weak-updates", "Do not perform weak store updates (unsound).");
-	public static Option<Boolean> initHeapToBot = Option.create("bot-heap", "Initialize heap cells to BOT to force strong updates.");
-	public static Option<Boolean> summarizeRep = Option.create("summarize-rep", "Use summarizing transformer for string instructions.");
-	public static Option<Boolean> basicBlocks = Option.create("basicblocks", "Build CFA from basic-blocks instead of single statements.");
-	public static Option<Integer> verbosity = Option.create("v", "level", 3, "Set verbosity to value. Default is 3.");
-	public static Option<Integer> timeout = Option.create("timeout", "t", -1, "Set timeout in seconds for the analysis.");
-	public static Option<Integer> procedureAbstraction = Option.create("procedures", "n", 0, "Level of procedure assumptions: " +
+	public static JOption<String> sslFilename = JOption.create("ssl", "file", jakstabHome + "/ssl/pentium.ssl", "Use <file> instead of pentium.ssl.");
+	public static JOption<Long> startAddress = JOption.create("a", "address", -1L, "Start analysis at given virtual address.");
+	public static JOption<Boolean> wdm = JOption.create("wdm", "WDM mode, export main function as DriverMain.");
+	public static JOption<Boolean> allEdges = JOption.create("all-edges", "Generate a true over-approximation and add edges to all possible addresses when over-approximating a jump (very slow!).");
+	public static JOption<Boolean> dumpStates = JOption.create("s", "Output all reached states after analysis.");	
+	public static JOption<Boolean> outputLocationsWithMostStates = JOption.create("toplocs", "Output the 10 locations with the highest state count.");
+	public static JOption<Boolean> failFast = JOption.create("fail-fast", "Stop when unsound assumptions are necessary to continue.");
+	public static JOption<Boolean> debug = JOption.create("debug", "Stop on failed assertions or weak updates to the complete stack or all store regions.");
+	public static JOption<Boolean> asmTrace = JOption.create("asm-trace", "Output any error trace as a list of assembly instructions instead of IL statements.");
+	public static JOption<Boolean> errorTrace = JOption.create("error-trace", "Build an abstract error trace for failed assertions and debug stops.");
+	public static JOption<Boolean> backward = JOption.create("backward", "Perform secondary cpa as a backward analysis.");
+	public static JOption<Boolean> background = JOption.create("b", "Background mode, i.e., disable shutdown hook on enter.");
+	public static JOption<Boolean> graphML = JOption.create("graphML", "Produce graphML output instead of GraphViz .dot files.");
+	public static JOption<Boolean> noGraphs = JOption.create("no-graphs", "Do not generate output graphs");
+	public static JOption<Boolean> heuristicEntryPoints = JOption.create("h", "Use heuristics to determine additional procedures and add pseudo-calls to include them in disassembly.");
+	public static JOption<Boolean> ignoreWeakUpdates = JOption.create("ignore-weak-updates", "Do not perform weak store updates (unsound).");
+	public static JOption<Boolean> initHeapToBot = JOption.create("bot-heap", "Initialize heap cells to BOT to force strong updates.");
+	public static JOption<Boolean> summarizeRep = JOption.create("summarize-rep", "Use summarizing transformer for string instructions.");
+	public static JOption<Boolean> basicBlocks = JOption.create("basicblocks", "Build CFA from basic-blocks instead of single statements.");
+	public static JOption<Integer> verbosity = JOption.create("v", "level", 3, "Set verbosity to value. Default is 3.");
+	public static JOption<Integer> timeout = JOption.create("timeout", "t", -1, "Set timeout in seconds for the analysis.");
+	public static JOption<Integer> procedureAbstraction = JOption.create("procedures", "n", 0, "Level of procedure assumptions: " +
 			"0: Pessimistic: No assumptions, treat calls and returns as jumps (default). " + 
 			"1: Semi-optimistic: Abstract unknown calls according to ABI contract. " + 
 			"2: Optimistic: Abstract all calls to ABI contract (fastest).");
-	public static Option<Integer> getProcAddress = Option.create("getprocaddress", "n", 2, "How to resolve GetProcAddress: 0: Always succeed, 1: Split success/fail, 2: Merge success/fail (default)");
+	public static JOption<Integer> getProcAddress = JOption.create("getprocaddress", "n", 2, "How to resolve GetProcAddress: 0: Always succeed, 1: Split success/fail, 2: Merge success/fail (default)");
 
+	private static AnalysisManager mgr = AnalysisManager.getInstance();
+	public static JOption<String> cpas = JOption.create("cpa", "{" + mgr.getShorthandsString() + "}", "x", "Configure which analyses to use for control flow reconstruction.");
+	public static JOption<String> secondaryCPAs = JOption.create("cpa2", "{" + mgr.getShorthandsString() + "}", "", "Secondary analyses to be performed after the initial CFG reconstruction and dead code elimination are completed.");
+	
 	/**
 	 * Handle command line options.
 	 * 
@@ -120,7 +120,7 @@ public class Options {
 			// Dash (-) arguments
 			if (arg.startsWith("-")) {
 				
-				Option<?> opt = options.get(arg);
+				JOption<?> opt = options.get(arg);
 				if (opt != null) {
 					if (opt.getDefaultValue() instanceof Boolean) {
 						opt.setValue(Boolean.TRUE);
@@ -169,7 +169,7 @@ public class Options {
 		logger.fatal("");
 		logger.fatal("Options:");
 		
-		for (Option<?> o : options.values()) {
+		for (JOption<?> o : options.values()) {
 			StringBuilder os = new StringBuilder(lineLength);
 			os.append("  ").append(o.getName());
 			if (o.getParamName() != null)

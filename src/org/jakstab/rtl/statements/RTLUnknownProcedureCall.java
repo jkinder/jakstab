@@ -1,6 +1,6 @@
 /*
  * RTLUnknownProcedureCall.java - This file is part of the Jakstab project.
- * Copyright 2009-2011 Johannes Kinder <jk@jakstab.org>
+ * Copyright 2007-2012 Johannes Kinder <jk@jakstab.org>
  *
  * This code is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 2 only, as
@@ -39,15 +39,14 @@ public class RTLUnknownProcedureCall extends AbstractRTLStatement implements
 	private static final SetOfVariables FASTCALL_USED;
 	private static final SetOfVariables INTEL_ABI_DEFINED;
 	static {
-		ExpressionFactory factory = ExpressionFactory.getInstance();
 		FASTCALL_USED = new SetOfVariables();
-		FASTCALL_USED.add(factory.createVariable("%eax"));
-		FASTCALL_USED.add(factory.createVariable("%ecx"));
-		FASTCALL_USED.add(factory.createVariable("%edx"));
+		FASTCALL_USED.add(ExpressionFactory.createVariable("%eax"));
+		FASTCALL_USED.add(ExpressionFactory.createVariable("%ecx"));
+		FASTCALL_USED.add(ExpressionFactory.createVariable("%edx"));
 		INTEL_ABI_DEFINED = new SetOfVariables();
-		INTEL_ABI_DEFINED.add(factory.createVariable("%eax"));
-		INTEL_ABI_DEFINED.add(factory.createVariable("%ecx"));
-		INTEL_ABI_DEFINED.add(factory.createVariable("%edx"));
+		INTEL_ABI_DEFINED.add(ExpressionFactory.createVariable("%eax"));
+		INTEL_ABI_DEFINED.add(ExpressionFactory.createVariable("%ecx"));
+		INTEL_ABI_DEFINED.add(ExpressionFactory.createVariable("%edx"));
 	}
 	
 	private final RTLGoto source;

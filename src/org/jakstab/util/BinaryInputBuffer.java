@@ -1,7 +1,7 @@
 /*
  * BinaryInputBuffer.java - This file is part of the Jakstab project.
  * 
- * Copyright 2007-2011 Johannes Kinder <jk@jakstab.org>
+ * Copyright 2007-2012 Johannes Kinder <jk@jakstab.org>
  * Copyright (C) 2003 The University of Arizona
  *
  * The original code for this class was taken from "MBEL: The Microsoft 
@@ -151,7 +151,7 @@ public abstract class BinaryInputBuffer {
 
 		int b1 = readBYTE();
 		int b2 = readBYTE();
-		int result = (int)((b1 & 0xFF) | ((b2 & 0xFF) << 8));
+		int result = ((b1 & 0xFF) | ((b2 & 0xFF) << 8));
 		return result;
 	}
 
@@ -167,7 +167,7 @@ public abstract class BinaryInputBuffer {
 		int b3 = readBYTE();
 		int b4 = readBYTE();
 
-		long result = (long)((b1 & 0xFFL) | ((b2 & 0xFFL) << 8) 
+		long result = ((b1 & 0xFFL) | ((b2 & 0xFFL) << 8) 
 				| ((b3 & 0xFFL) << 16) | ((b4 & 0xFFL) << 24));
 		return result;
 	}
@@ -189,7 +189,7 @@ public abstract class BinaryInputBuffer {
 		int b7 = readBYTE();
 		int b8 = readBYTE();
 
-		long result = (long)((b1 & 0xFFl) | ((b2 & 0xFFl) << 8) 
+		long result = ((b1 & 0xFFl) | ((b2 & 0xFFl) << 8) 
 				| ((b3 & 0xFFl) << 16) | ((b4 & 0xFFl) << 24) 
 				| ((b5 & 0xFFl) << 32) | ((b6 & 0xFFl) << 40) 
 				| ((b7 & 0xFFl) << 48) | ((b8 & 0xFFl) << 56));
@@ -234,7 +234,7 @@ public abstract class BinaryInputBuffer {
 		int b2 = readBYTE();
 
 		shorty = (short)(((b1 & 0xFF) | (b2 & 0xFF)<<8) & 0xFFFF);
-		return (int)shorty;
+		return shorty;
 	}
 
 	/**
@@ -244,7 +244,7 @@ public abstract class BinaryInputBuffer {
 	public int readINT8() throws java.io.IOException {
 		if (current>=getSize())
 			throw new java.io.IOException("BinaryInputBuffer.readINT8: Premature EOF");
-		return (int)((byte)readBYTE());
+		return ((byte)readBYTE());
 	}
 
 	/**

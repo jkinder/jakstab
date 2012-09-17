@@ -1,6 +1,6 @@
 /*
  * DefaultHarness.java - This file is part of the Jakstab project.
- * Copyright 2009-2011 Johannes Kinder <jk@jakstab.org>
+ * Copyright 2007-2012 Johannes Kinder <jk@jakstab.org>
  *
  * This code is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 2 only, as
@@ -20,7 +20,7 @@ package org.jakstab.loader;
 import org.jakstab.Program;
 import org.jakstab.analysis.MemoryRegion;
 import org.jakstab.asm.AbsoluteAddress;
-import org.jakstab.rtl.RTLLabel;
+import org.jakstab.cfa.Location;
 import org.jakstab.rtl.expressions.ExpressionFactory;
 import org.jakstab.rtl.expressions.RTLExpression;
 import org.jakstab.rtl.expressions.RTLVariable;
@@ -40,23 +40,27 @@ public class DefaultHarness implements Harness {
 	private AbsoluteAddress prologueAddress = new AbsoluteAddress(PROLOGUE_BASE);
 	private AbsoluteAddress epilogueAddress = new AbsoluteAddress(EPILOGUE_BASE);
 
-	private ExpressionFactory factory = ExpressionFactory.getInstance();
 	private RTLVariable esp = Program.getProgram().getArchitecture().stackPointer(); 
 	
 	@Override
 	public void install(Program program) {
 
 		StatementSequence seq = new StatementSequence();
-		seq.addLast(new RTLVariableAssignment(1, factory.createVariable("%DF", 1), factory.FALSE));
+		seq.addLast(new RTLVariableAssignment(1, ExpressionFactory.createVariable("%DF", 1), ExpressionFactory.FALSE));
 		seq.addLast(new RTLAlloc(esp, MemoryRegion.STACK.toString()));
-		seq.addLast(new RTLAlloc(factory.createVariable("%fs", 16), "FS"));
+		
+		// Allocate TLS depending on OS type
+		if (program.getTargetOS() == Program.TargetOS.WINDOWS)
+			seq.addLast(new RTLAlloc(ExpressionFactory.createVariable("%fs", 16), "FS"));
+		else if (program.getTargetOS() == Program.TargetOS.LINUX)
+			seq.addLast(new RTLAlloc(ExpressionFactory.createVariable("%gs", 16), "GS"));
 		
 		// Pseudo-stackframe for in-procedure entry points during debugging
 		//seq.addLast(new RTLVariableAssignment(32, program.getArchitecture().framePointer(), program.getArchitecture().stackPointer()));
-		//seq.addLast(new RTLVariableAssignment(32, factory.createVariable("%ebx"), program.getArchitecture().stackPointer()));
+		//seq.addLast(new RTLVariableAssignment(32, ExpressionFactory.createVariable("%ebx"), program.getArchitecture().stackPointer()));
 
-		push32(seq, factory.createNumber(epilogueAddress.getValue(), 32));
-		seq.addLast(new RTLGoto(factory.createNumber(program.getStart().getAddress().getValue(), 32), RTLGoto.Type.CALL));
+		push32(seq, ExpressionFactory.createNumber(epilogueAddress.getValue(), 32));
+		seq.addLast(new RTLGoto(ExpressionFactory.createNumber(program.getStart().getAddress().getValue(), 32), RTLGoto.Type.CALL));
 		putSequence(program, seq, prologueAddress);
 		
 		program.setEntryAddress(prologueAddress);
@@ -70,10 +74,10 @@ public class DefaultHarness implements Harness {
 	
 	private void push32(StatementSequence seq, RTLExpression value) {
 		seq.addLast(new RTLVariableAssignment(esp.getBitWidth(), esp, 
-				factory.createPlus(esp, factory.createNumber(-4, esp.getBitWidth()))
+				ExpressionFactory.createPlus(esp, ExpressionFactory.createNumber(-4, esp.getBitWidth()))
 		));
 		if (value != null) {
-			seq.addLast(new RTLMemoryAssignment(factory.createMemoryLocation(esp, 32), value));
+			seq.addLast(new RTLMemoryAssignment(ExpressionFactory.createMemoryLocation(esp, 32), value));
 		}
 	}
 	
@@ -81,7 +85,7 @@ public class DefaultHarness implements Harness {
 		int rtlId = 0;
 		for (RTLStatement stmt : seq) {
 			stmt.setLabel(address, rtlId++);
-			stmt.setNextLabel(new RTLLabel(address, rtlId));
+			stmt.setNextLabel(new Location(address, rtlId));
 		}
 		seq.getLast().setNextLabel(null);
 

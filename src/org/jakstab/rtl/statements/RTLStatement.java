@@ -1,6 +1,6 @@
 /*
  * RTLStatement.java - This file is part of the Jakstab project.
- * Copyright 2007-2011 Johannes Kinder <jk@jakstab.org>
+ * Copyright 2007-2012 Johannes Kinder <jk@jakstab.org>
  *
  * This code is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 2 only, as
@@ -21,6 +21,7 @@ package org.jakstab.rtl.statements;
 import java.util.Set;
 
 import org.jakstab.asm.AbsoluteAddress;
+import org.jakstab.cfa.Location;
 import org.jakstab.cfa.StateTransformer;
 import org.jakstab.rtl.*;
 import org.jakstab.rtl.expressions.RTLMemoryLocation;
@@ -29,9 +30,9 @@ import org.jakstab.ssl.Architecture;
 
 public interface RTLStatement extends Comparable<RTLStatement>, StateTransformer {
 
-	public void setNextLabel(RTLLabel nextLabel);
+	public void setNextLabel(Location nextLabel);
 
-	public RTLLabel getNextLabel();
+	public Location getNextLabel();
 	
 	/**
 	 * Generic accept method for an statement visitor to support the
@@ -96,7 +97,7 @@ public interface RTLStatement extends Comparable<RTLStatement>, StateTransformer
 	 * 
 	 * @return the label of this statement.
 	 */
-	public RTLLabel getLabel();
+	public Location getLabel();
 
 	/**
 	 * Creates a label for this statement based on address and RTL-index.
@@ -111,7 +112,7 @@ public interface RTLStatement extends Comparable<RTLStatement>, StateTransformer
 	 * 
 	 * @param label the label for this statement.
 	 */
-	public void setLabel(RTLLabel label);
+	public void setLabel(Location label);
 
 	/**
 	 * Returns the virtual address of this statement.

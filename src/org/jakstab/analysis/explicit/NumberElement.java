@@ -1,6 +1,6 @@
 /*
  * NumberElement.java - This file is part of the Jakstab project.
- * Copyright 2008-2011 Johannes Kinder <jk@jakstab.org>
+ * Copyright 2007-2012 Johannes Kinder <jk@jakstab.org>
  *
  * This code is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 2 only, as
@@ -35,14 +35,13 @@ public class NumberElement implements AbstractValue, BitVectorType {
 	@SuppressWarnings("unused")
 	private static final Logger logger = Logger.getLogger(NumberElement.class);
 	
-	public static final NumberElement TRUE = new NumberElement(ExpressionFactory.getInstance().TRUE);
-	public static final NumberElement FALSE = new NumberElement(ExpressionFactory.getInstance().FALSE);
+	public static final NumberElement TRUE = new NumberElement(ExpressionFactory.TRUE);
+	public static final NumberElement FALSE = new NumberElement(ExpressionFactory.FALSE);
 	
 	private static NumberElement[] TOPS = new NumberElement[128];
 	static {
-		ExpressionFactory factory = ExpressionFactory.getInstance();
 		for (int bitWidth = 1; bitWidth <= 128; bitWidth++) {
-			TOPS[bitWidth - 1] = new NumberElement(factory.createNumber(bitWidth - 1, bitWidth)); 
+			TOPS[bitWidth - 1] = new NumberElement(ExpressionFactory.createNumber(bitWidth - 1, bitWidth)); 
 		}
 	}
 	
@@ -68,10 +67,9 @@ public class NumberElement implements AbstractValue, BitVectorType {
 		if (isTop()) {
 			// Enumerate small bitwidths
 			if (getBitWidth() == 1) {
-				ExpressionFactory factory = ExpressionFactory.getInstance();
 				Set<RTLNumber> result = new FastSet<RTLNumber>();
-				result.add(factory.TRUE);
-				result.add(factory.FALSE);
+				result.add(ExpressionFactory.TRUE);
+				result.add(ExpressionFactory.FALSE);
 				return result;
 			} else {
 				return RTLNumber.ALL_NUMBERS;

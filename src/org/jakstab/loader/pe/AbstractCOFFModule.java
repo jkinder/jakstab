@@ -1,6 +1,6 @@
 /*
  * AbstractCOFFModule.java - This file is part of the Jakstab project.
- * Copyright 2009-2011 Johannes Kinder <jk@jakstab.org>
+ * Copyright 2007-2012 Johannes Kinder <jk@jakstab.org>
  *
  * This code is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 2 only, as
@@ -174,7 +174,7 @@ public abstract class AbstractCOFFModule implements ExecutableImage {
 			// do not mask the MSB with 0xFF, so we get sign extension for free
 			val = val | (((long)inBuf.readINT8()) << (bytes - 1) * 8);
 			//logger.debug("Read constant value " + val + " from address " + m + " (file offset: " + Long.toHexString(fp) + ") in image.");
-			return ExpressionFactory.getInstance().createNumber(val, m.getBitWidth());
+			return ExpressionFactory.createNumber(val, m.getBitWidth());
 		}
 		logger.debug("No value can be read from image for address " + m);
 		return null;

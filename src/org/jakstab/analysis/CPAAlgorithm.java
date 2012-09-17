@@ -1,6 +1,6 @@
 /*
  * CPAAlgorithm.java - This file is part of the Jakstab project.
- * Copyright 2009-2011 Johannes Kinder <jk@jakstab.org>
+ * Copyright 2007-2012 Johannes Kinder <jk@jakstab.org>
  *
  * This code is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 2 only, as
@@ -140,6 +140,8 @@ public class CPAAlgorithm implements Algorithm {
 	@Override
 	public void run() {
 		logger.debug("Starting CPA algorithm.");
+		
+		Runtime runtime = Runtime.getRuntime();
 
 		AbstractState start = cpa.initStartState(transformerFactory.getInitialLocation()); 
 		worklist.add(start);
@@ -180,6 +182,8 @@ public class CPAAlgorithm implements Algorithm {
 								", " + program.getInstructionCount() + " instructions."
 								: "."));
 				
+				logger.info(String.format("    Allocated heap memory: %.2f MByte", (runtime.totalMemory() - runtime.freeMemory())/(1024.0*1024.0)));
+				
 				steps = 0;
 
 				//StatsPlotter.plot((now - startTime) + "\t" + statesVisited  +"\t" + program.getInstructionCount() + "\t" + gcTime + "\t" + speed);
@@ -188,7 +192,7 @@ public class CPAAlgorithm implements Algorithm {
 				lastTime = now;
 				
 				if (Options.timeout.getValue() > 0 && (System.currentTimeMillis() - startTime > Options.timeout.getValue() * 1000)) {
-					logger.error("Timeout after " + Options.timeout + "s!");
+					logger.error("Timeout after " + Options.timeout.getValue() + "s!");
 					stop = true;
 				}
 			}
@@ -284,6 +288,7 @@ public class CPAAlgorithm implements Algorithm {
 		long endTime = System.currentTimeMillis();
 		if (endTime - startTime > 0) {
 			logger.info("Processed " + statesVisited + " states at " + (1000L*statesVisited / (endTime - startTime)) + " states/second");
+			logger.info(String.format("Allocated heap memory: %.2f MByte", (runtime.totalMemory() - runtime.freeMemory())/(1024.0*1024.0)));
 		}
 
 		completed = worklist.isEmpty(); 

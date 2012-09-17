@@ -1,6 +1,6 @@
 /*
  * SubstitutionState.java - This file is part of the Jakstab project.
- * Copyright 2008-2011 Johannes Kinder <jk@jakstab.org>
+ * Copyright 2007-2012 Johannes Kinder <jk@jakstab.org>
  *
  * This code is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 2 only, as
@@ -42,8 +42,8 @@ public final class SubstitutionState implements AbstractState {
 	private static final Logger logger = Logger.getLogger(SubstitutionState.class);
 	private static long maxStateId = 0;
 	
-	static final SubstitutionState TOP = new SubstitutionState();
-	static final SubstitutionState BOT = new SubstitutionState();
+	public static final SubstitutionState TOP = new SubstitutionState();
+	public static final SubstitutionState BOT = new SubstitutionState();
 
 	private Map<Writable,SubstitutionElement> aVarVal;
 	private final long stateId;
@@ -78,8 +78,6 @@ public final class SubstitutionState implements AbstractState {
 	protected SubstitutionElement abstractEval(RTLExpression e) {
 		ExpressionVisitor<SubstitutionElement> visitor = new ExpressionVisitor<SubstitutionElement>() {
 			
-			private ExpressionFactory factory = ExpressionFactory.getInstance();
-
 			@Override
 			public SubstitutionElement visit(RTLBitRange e) {
 				SubstitutionElement aFirstBit = e.getFirstBitIndex().accept(this);
@@ -87,7 +85,7 @@ public final class SubstitutionState implements AbstractState {
 				SubstitutionElement aOperand = e.getOperand().accept(this);
 				
 				return new SubstitutionElement(
-						factory.createBitRange(aOperand.getExpression(), aFirstBit.getExpression(), aLastBit.getExpression())
+						ExpressionFactory.createBitRange(aOperand.getExpression(), aFirstBit.getExpression(), aLastBit.getExpression())
 				);
 			}
 
@@ -97,7 +95,7 @@ public final class SubstitutionState implements AbstractState {
 				SubstitutionElement aTrue = e.getTrueExpression().accept(this);
 				SubstitutionElement aFalse = e.getFalseExpression().accept(this);
 				return new SubstitutionElement(
-						factory.createConditionalExpression(aCondition.getExpression(), aTrue.getExpression(), aFalse.getExpression())
+						ExpressionFactory.createConditionalExpression(aCondition.getExpression(), aTrue.getExpression(), aFalse.getExpression())
 						);
 			}
 
@@ -105,7 +103,7 @@ public final class SubstitutionState implements AbstractState {
 			public SubstitutionElement visit(RTLMemoryLocation m) {
 				SubstitutionElement aAddress = m.getAddress().accept(this);
 				if (!aAddress.isTop()) {
-					m = factory.createMemoryLocation(m.getSegmentRegister(), aAddress.getExpression(), m.getBitWidth());
+					m = ExpressionFactory.createMemoryLocation(m.getSegmentRegister(), aAddress.getExpression(), m.getBitWidth());
 				}
 				SubstitutionElement s = getValue(m);
 				if (s.isTop()) {
@@ -132,7 +130,7 @@ public final class SubstitutionState implements AbstractState {
 					aOperands[i] = e.getOperands()[i].accept(this).getExpression();
 				}
 				return new SubstitutionElement(
-						factory.createOperation(e.getOperator(), aOperands).evaluate(new Context())
+						ExpressionFactory.createOperation(e.getOperator(), aOperands).evaluate(new Context())
 						);
 			}
 
@@ -143,7 +141,7 @@ public final class SubstitutionState implements AbstractState {
 					aOperands[i] = e.getOperands()[i].accept(this).getExpression();
 				}
 				return new SubstitutionElement(
-						factory.createSpecialExpression(e.getOperator(), aOperands)
+						ExpressionFactory.createSpecialExpression(e.getOperator(), aOperands)
 						);
 			}
 
@@ -159,7 +157,11 @@ public final class SubstitutionState implements AbstractState {
 			
 		};
 		
-		return e.accept(visitor);
+		SubstitutionElement result = e.accept(visitor);
+		RTLExpression simplified = ExpressionSimplifier.getInstance().simplify(result.getExpression());
+		if (simplified != result.getExpression())
+			result = new SubstitutionElement(simplified);
+		return result;
 	}
 	
 	
@@ -167,7 +169,6 @@ public final class SubstitutionState implements AbstractState {
 		if (isBot()) return BOT;
 		
 		final RTLStatement statement = (RTLStatement)transformer;
-		final ExpressionFactory factory = ExpressionFactory.getInstance();
 		
 		return statement.accept(new DefaultStatementVisitor<SubstitutionState>() {
 
@@ -218,8 +219,8 @@ public final class SubstitutionState implements AbstractState {
 				List<RTLVariable> aliasing = new LinkedList<RTLVariable>();
 				aliasing.add((RTLVariable)lhs);
 				// Remove mappings of all aliasing registers 
-				aliasing.addAll(factory.coveredRegisters((RTLVariable)lhs));
-				aliasing.addAll(factory.coveringRegisters((RTLVariable)lhs));
+				aliasing.addAll(ExpressionFactory.coveredRegisters((RTLVariable)lhs));
+				aliasing.addAll(ExpressionFactory.coveringRegisters((RTLVariable)lhs));
 
 				for (RTLVariable v : aliasing) {
 					for (Iterator<Map.Entry<Writable, SubstitutionElement>> iter = post.aVarVal.entrySet().iterator(); iter.hasNext();) {
@@ -251,7 +252,7 @@ public final class SubstitutionState implements AbstractState {
 				// Substitute address elements in a memory location LHS
 				SubstitutionElement aAddress = abstractEval(lhs.getAddress());
 				if (!aAddress.isTop())
-					lhs = factory.createMemoryLocation(lhs.getSegmentRegister(), aAddress.getExpression(), lhs.getBitWidth());
+					lhs = ExpressionFactory.createMemoryLocation(lhs.getSegmentRegister(), aAddress.getExpression(), lhs.getBitWidth());
 
 				// Remove existing substitution for the LHS
 				post.aVarVal.remove(lhs);
@@ -315,7 +316,7 @@ public final class SubstitutionState implements AbstractState {
 		}
 	}
 	
-	public RTLLabel getProgramCounter() {
+	public Location getProgramCounter() {
 		return null;
 	}
 

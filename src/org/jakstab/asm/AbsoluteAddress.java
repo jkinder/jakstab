@@ -1,6 +1,6 @@
 /*
  * AbsoluteAddress.java - This file is part of the Jakstab project.
- * Copyright 2007-2011 Johannes Kinder <jk@jakstab.org>
+ * Copyright 2007-2012 Johannes Kinder <jk@jakstab.org>
  *
  * This code is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 2 only, as
@@ -44,7 +44,7 @@ public class AbsoluteAddress extends Address implements Comparable<AbsoluteAddre
 	}
 	
 	public RTLNumber toNumericConstant() {
-		return ExpressionFactory.getInstance().createNumber(value, getBitWidth());
+		return ExpressionFactory.createNumber(value, getBitWidth());
 	}
 
 	@Override

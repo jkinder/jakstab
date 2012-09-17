@@ -1,6 +1,6 @@
 /*
  * ControlFlowReconstruction.java - This file is part of the Jakstab project.
- * Copyright 2009-2011 Johannes Kinder <jk@jakstab.org>
+ * Copyright 2007-2012 Johannes Kinder <jk@jakstab.org>
  *
  * This code is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 2 only, as
@@ -31,7 +31,6 @@ import org.jakstab.analysis.tracereplay.TraceReplayAnalysis;
 import org.jakstab.asm.*;
 import org.jakstab.asm.x86.X86Instruction;
 import org.jakstab.cfa.*;
-import org.jakstab.rtl.*;
 import org.jakstab.rtl.statements.BasicBlock;
 import org.jakstab.util.*;
 
@@ -59,7 +58,7 @@ public class ControlFlowReconstruction implements Algorithm {
 		
 		@Override
 		public boolean add(AbstractState a) {
-			if (!program.containsLabel(((RTLLabel)(a.getLocation())))) {
+			if (!program.containsLabel((a.getLocation()))) {
 				return priorityList.add(a);
 			} else {
 				if (priorityList.contains(a)) return false;
@@ -303,7 +302,7 @@ public class ControlFlowReconstruction implements Algorithm {
 /*
 					AbstractState p = cpaAlgorithm.getART().getParent(s);
 					while (p != null) {
-						//logger.warn(program.getStatement((RTLLabel)s.getLocation()));
+						//logger.warn(program.getStatement((Location)s.getLocation()));
 						//logger.warn(s);
 						//s = cpaAlgorithm.getART().getParent(s);
 						for (CFAEdge edge : transformerFactory.getExistingOutEdges(p.getLocation())) {
@@ -327,7 +326,7 @@ public class ControlFlowReconstruction implements Algorithm {
 					while (s != null) {
 						
 						lastAddr = addr;
-						addr = ((RTLLabel)s.getLocation()).getAddress();
+						addr = s.getLocation().getAddress();
 						if (!addr.equals(lastAddr) && program.getModule(addr) != null) {
 							StringBuilder sb = new StringBuilder();
 							SymbolFinder symFinder = program.getModule(addr).getSymbolFinder();
@@ -338,7 +337,7 @@ public class ControlFlowReconstruction implements Algorithm {
 								if (instr instanceof X86Instruction &&
 										((X86Instruction)instr).hasPrefixLOCK() &&
 										((X86Instruction)instr).hasPrefixREPZ()) {
-									sb.append(program.getStatement((RTLLabel)s.getLocation()));
+									sb.append(program.getStatement(s.getLocation()));
 								} else {
 									sb.append(instr.toString(addr.getValue(), symFinder));
 								}

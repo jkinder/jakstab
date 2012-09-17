@@ -1,6 +1,6 @@
 /*
  * LiveVariableAnalysis.java - This file is part of the Jakstab project.
- * Copyright 2007-2011 Johannes Kinder <jk@jakstab.org>
+ * Copyright 2007-2012 Johannes Kinder <jk@jakstab.org>
  *
  * This code is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 2 only, as
@@ -24,7 +24,6 @@ import org.jakstab.Program;
 import org.jakstab.cfa.CFAEdge;
 import org.jakstab.cfa.Location;
 import org.jakstab.cfa.StateTransformer;
-import org.jakstab.rtl.RTLLabel;
 import org.jakstab.rtl.expressions.*;
 import org.jakstab.rtl.statements.*;
 import org.jakstab.util.Characters;
@@ -47,7 +46,6 @@ public class DeadCodeElimination implements CFATransformation {
 	private SetOfVariables liveInSinks;
 	private Program program;
 	@SuppressWarnings("unused")
-	private ExpressionFactory factory = ExpressionFactory.getInstance();
 	private volatile boolean stop = false;
 	private long removalCount;
 	
@@ -135,8 +133,22 @@ public class DeadCodeElimination implements CFATransformation {
 				for (CFAEdge outEdge : outEdges.get(node)) {
 					RTLStatement stmt = (RTLStatement)outEdge.getTransformer();
 					SetOfVariables sLVin = new SetOfVariables(liveVars.get(outEdge.getTarget()));
+
+					// Fast remove with bitsets
 					sLVin.removeAll(stmt.getDefinedVariables());
+					
+					// Remove also al for eax etc.
+					for (RTLVariable v : stmt.getDefinedVariables()) {
+						sLVin.removeAll(ExpressionFactory.coveredRegisters(v));
+					}
+
 					sLVin.addAll(stmt.getUsedVariables());
+					
+					// Add also eax for al, etc.
+					for (RTLVariable v : stmt.getUsedVariables()) {
+						sLVin.addAll(ExpressionFactory.coveringRegisters(v));
+					}
+					
 					// Registers might be used inside an unknown procedure call
 					if (outEdge.getTransformer() instanceof RTLUnknownProcedureCall) {
 						sLVin.addAll(program.getArchitecture().getRegisters());
@@ -181,7 +193,7 @@ public class DeadCodeElimination implements CFATransformation {
 						
 					}
 					if (deadEdge.getSource().equals(program.getStart())) {
-						program.setStart((RTLLabel)deadEdge.getTarget());
+						program.setStart(deadEdge.getTarget());
 					}
 					removalCount++;
 				}

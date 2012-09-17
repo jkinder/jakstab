@@ -1,7 +1,7 @@
 /*
  * PEModule.java - This file is part of the Jakstab project.
  * 
- * Copyright 2007-2011 Johannes Kinder <jk@jakstab.org>
+ * Copyright 2007-2012 Johannes Kinder <jk@jakstab.org>
  * Copyright (C) 2003 The University of Arizona
  *
  * The original code for this class was taken from "MBEL: The Microsoft 
@@ -279,11 +279,9 @@ public class PEModule extends AbstractCOFFModule {
 		}
 		
 		if (exportEntries != null) for (ExportEntry ee : exportEntries) {
-			exportedSymbols.add(new ExportedSymbol(
-					this,
-					ee.getName(),
-					ee.getAddress()
-					));
+			String name = ee.getName();
+			if (name == null) name = "ord(" + ee.getOrdinal() + ")";
+			exportedSymbols.add(new ExportedSymbol(this, name, ee.getAddress()));
 		}
 		return exportedSymbols;
 	}

@@ -1,6 +1,6 @@
 /*
  * KSetAnalysis.java - This file is part of the Jakstab project.
- * Copyright 2007-2011 Johannes Kinder <jk@jakstab.org>
+ * Copyright 2007-2012 Johannes Kinder <jk@jakstab.org>
  *
  * This code is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 2 only, as
@@ -100,7 +100,7 @@ public class KSetAnalysis implements ConfigurableProgramAnalysis {
 				}
 				
 				KSet basePointer = new KSet(bound, new BasedNumberElement(newRegion, 
-						ExpressionFactory.getInstance().createNumber(0, 32)));
+						ExpressionFactory.createNumber(0, 32)));
 				
 				if (lhs instanceof RTLVariable) {
 					post.setVariableValue((RTLVariable)lhs, basePointer); 

@@ -1,6 +1,6 @@
 /*
  * Win32StubLibrary.java - This file is part of the Jakstab project.
- * Copyright 2007-2011 Johannes Kinder <jk@jakstab.org>
+ * Copyright 2007-2012 Johannes Kinder <jk@jakstab.org>
  *
  * This code is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 2 only, as
@@ -29,7 +29,7 @@ import org.jakstab.util.FastSet;
 import org.jakstab.util.Logger;
 import org.jakstab.asm.AbsoluteAddress;
 import org.jakstab.asm.SymbolFinder;
-import org.jakstab.rtl.*;
+import org.jakstab.cfa.Location;
 import org.jakstab.rtl.expressions.*;
 import org.jakstab.rtl.statements.*;
 import org.jakstab.ssl.Architecture;
@@ -110,7 +110,6 @@ public class Win32StubLibrary implements StubProvider {
 	private Set<String> loadedDefFiles = new FastSet<String>();
 	private RTLExpression arg0;
 	private RTLExpression arg1;
-	private ExpressionFactory factory;
 	private SymbolFinder symFinder;
 	
 	private final void registerStub(String library, int callingConvention, String name, int stackIncrement, boolean returns) {
@@ -124,14 +123,13 @@ public class Win32StubLibrary implements StubProvider {
 	}
 	
 	public Win32StubLibrary(Architecture arch) {
-		factory = ExpressionFactory.getInstance();
 		this.arch = arch;
 		activeStubs = new HashMap<String, Map<String, AbsoluteAddress>>();
 		stubMap = new HashMap<String, Map<String,Stub>>();
 		addressMap = new HashMap<AbsoluteAddress, String>();
 		impId = 0;
-		arg0 = factory.createMemoryLocation(factory.createPlus(arch.stackPointer(), factory.createNumber(4, 32)), 32);
-		arg1 = factory.createMemoryLocation(factory.createPlus(arch.stackPointer(), factory.createNumber(8, 32)), 32);
+		arg0 = ExpressionFactory.createMemoryLocation(ExpressionFactory.createPlus(arch.stackPointer(), ExpressionFactory.createNumber(4, 32)), 32);
+		arg1 = ExpressionFactory.createMemoryLocation(ExpressionFactory.createPlus(arch.stackPointer(), ExpressionFactory.createNumber(8, 32)), 32);
 	}
 	
 	private void loadDefFile(String library) {
@@ -151,6 +149,11 @@ public class Win32StubLibrary implements StubProvider {
 				String line;
 				while ((line = in.readLine()) != null) {
 					line = line.trim();
+
+					// Skip empty lines
+					if (line.length() == 0)
+						continue;
+					
 					// ignore comments and preprocessor directives
 					if (line.startsWith(";") || line.startsWith("#")) continue;
 					if (line.startsWith("EXPORTS")) {
@@ -159,60 +162,48 @@ public class Win32StubLibrary implements StubProvider {
 					}
 					if (!inExports) continue;
 					// parse exported function:
-					int state = 0;
 					
 					int callingConvention = STDCALL;
 					boolean returns = true;
-					StringBuilder name = new StringBuilder();
 					int stackIncrement = 0;
 
-					for (int i=0; i<line.length(); i++) {
-						char c = line.charAt(i);
-						switch (state) {
-						case 0:
-							switch (c) {
-							case '@':
-								callingConvention = FASTCALL;
-								break;
-							case '!':
-								returns = false;
-								break;
-							default:
-								state = 1; i--;
-							}
-							break;
-						case 1:
-							switch (c) {
-							case '@':
-								state = 2;
-								break;
-							case ' ':
-								state = 3;
-								break;
-							default:
-								name.append(c);
-							}
-							break;
-						case 2:
-							if (c == ' ') state = 3; else {
-								stackIncrement *= 10;
-								stackIncrement += Integer.parseInt(Character.toString(c));
-							}
-							break;
-						case 3:
-							if (c != ' ') {
-								if (line.substring(i, i + 4).equals("DATA")) {
-									callingConvention = EXTERNAL_VARIABLE;
-									i += 3;
-								} else {
-									throw new RuntimeException("Parse error");
-								}
-							}
+					int i = line.length();
+					if (line.length() > 4 && line.substring(i - 4, i).equals("DATA")) {
+						callingConvention = EXTERNAL_VARIABLE;
+						i -= 4;
+						while (i >= 1 && line.charAt(i - 1) == ' ')
+							i--;
+					}
+					int finalAt = line.lastIndexOf('@');
+					if (finalAt >= 0 && finalAt < i - 1) {
+						try {
+							stackIncrement = Integer.parseInt(line.substring(finalAt + 1, i));
+							i = finalAt;
+						} catch (NumberFormatException e) {
+							// Failed to parse, the last @ is still within the function name, so leave i at where it is							
 						}
 					}
 					
+					// Parse prefixes
+					int start = 0;
+					prefixParse: for (; start <= i; start++) {
+						char c = line.charAt(start);
+						switch (c) {
+						case '@':
+							callingConvention = FASTCALL;
+							break;
+						case '!':
+							returns = false;
+							break;
+						default:
+							break prefixParse; 
+						}
+					}
+					
+					String name = line.substring(start, i);
+					
 					//logger.debug("Registering " + name.toString() + "@" + library + " " + callingConvention + " " + stackIncrement + " " + returns);
-					registerStub(library, callingConvention, name.toString(), stackIncrement, returns);
+					registerStub(library, callingConvention, name, stackIncrement, returns);
 					
 				} /* end file reading while */
 				
@@ -245,20 +236,20 @@ public class Win32StubLibrary implements StubProvider {
 			if (function.equals("_jakstab_print_driver_object@4")) {
 				logger.debug("Intercepting " + function);
 				stackIncrement = 8;
-				RTLVariable driverObject = factory.createVariable("driverObject", 32);
+				RTLVariable driverObject = ExpressionFactory.createVariable("driverObject", 32);
 				int mjFunArray = 0x38;
-				seq.addLast(new RTLVariableAssignment(32, driverObject, factory.createMemoryLocation(
-						factory.createPlus(arch.stackPointer(), factory.createNumber(4)), 
+				seq.addLast(new RTLVariableAssignment(32, driverObject, ExpressionFactory.createMemoryLocation(
+						ExpressionFactory.createPlus(arch.stackPointer(), ExpressionFactory.createNumber(4)), 
 						arch.stackPointer().getBitWidth())));
 
 				for (mjFunctionCode mjFun : mjFunctionCode.values()) {
 					seq.addLast(new RTLDebugPrint(
 							"Driver registers " + mjFun.name() + "(DriverObject[0x" + 
 							Integer.toHexString(mjFunArray + mjFun.code * 4) + "])",
-							factory.createMemoryLocation(
-									factory.createPlus(
+							ExpressionFactory.createMemoryLocation(
+									ExpressionFactory.createPlus(
 											driverObject, 
-											factory.createNumber(mjFunArray + mjFun.code * 4, 32)
+											ExpressionFactory.createNumber(mjFunArray + mjFun.code * 4, 32)
 									),
 									32)
 					));
@@ -302,32 +293,32 @@ public class Win32StubLibrary implements StubProvider {
 			if (library.toUpperCase().startsWith("KERNEL32") && function.equals("GetProcAddress")) {
 				
 				if (Options.getProcAddress.getValue() == 0) {
-					RTLExpression loadExpression = factory.createSpecialExpression(RTLSpecialExpression.GETPROCADDRESS, arg0, arg1); 
-					seq.addLast(new RTLVariableAssignment(32, factory.createVariable("%eax"), loadExpression));
+					RTLExpression loadExpression = ExpressionFactory.createSpecialExpression(RTLSpecialExpression.GETPROCADDRESS, arg0, arg1); 
+					seq.addLast(new RTLVariableAssignment(32, ExpressionFactory.createVariable("%eax"), loadExpression));
 				} else if (Options.getProcAddress.getValue() == 1) {
 					logger.warn("Havocing GetProcAddress is not yet implemented!");
 					assert false;
-					seq.addLast(new RTLVariableAssignment(32, factory.createVariable("%eax"), factory.nondet(32)));
+					seq.addLast(new RTLVariableAssignment(32, ExpressionFactory.createVariable("%eax"), ExpressionFactory.nondet(32)));
 				} else if (Options.getProcAddress.getValue() == 2) {
-					seq.addLast(new RTLVariableAssignment(32, factory.createVariable("%eax"), factory.nondet(32)));
+					seq.addLast(new RTLVariableAssignment(32, ExpressionFactory.createVariable("%eax"), ExpressionFactory.nondet(32)));
 				}
 			} else if (library.toUpperCase().startsWith("KERNEL32") && function.startsWith("GetModuleHandle")) {
 				// This function returns either 0 or a valid handle to the given module
 				// This hack here uses the string as the handle value, not very nice
-				//seq.addLast(new RTLVariableAssignment(32, factory.createVariable("%eax"), arg0));
-				seq.addLast(new RTLVariableAssignment(32, factory.createVariable("%eax"), factory.nondet(32)));
+				//seq.addLast(new RTLVariableAssignment(32, ExpressionFactory.createVariable("%eax"), arg0));
+				seq.addLast(new RTLVariableAssignment(32, ExpressionFactory.createVariable("%eax"), ExpressionFactory.nondet(32)));
 			} else {
 				// overwrite registers according to ABI
-				seq.addLast(new RTLVariableAssignment(32, factory.createVariable("%eax"), factory.nondet(32)));
+				seq.addLast(new RTLVariableAssignment(32, ExpressionFactory.createVariable("%eax"), ExpressionFactory.nondet(32)));
 			}
-			seq.addLast(new RTLVariableAssignment(32, factory.createVariable("%ecx"), factory.nondet(32)));
-			seq.addLast(new RTLVariableAssignment(32, factory.createVariable("%edx"), factory.nondet(32)));
+			seq.addLast(new RTLVariableAssignment(32, ExpressionFactory.createVariable("%ecx"), ExpressionFactory.nondet(32)));
+			seq.addLast(new RTLVariableAssignment(32, ExpressionFactory.createVariable("%edx"), ExpressionFactory.nondet(32)));
 		}
 
 		// store return address in retaddr
 		if (returns) {
 			seq.addLast(new RTLVariableAssignment(32, Program.getProgram().getArchitecture().returnAddressVariable(), 
-					factory.createMemoryLocation(arch.stackPointer(), 
+					ExpressionFactory.createMemoryLocation(arch.stackPointer(), 
 							arch.stackPointer().getBitWidth())
 			));
 		}
@@ -336,9 +327,9 @@ public class Win32StubLibrary implements StubProvider {
 		// adjust stack pointer
 		seq.addLast(new RTLVariableAssignment(arch.stackPointer().getBitWidth(), 
 				arch.stackPointer(), 
-				factory.createPlus( 
+				ExpressionFactory.createPlus( 
 						arch.stackPointer(), 
-						factory.createNumber(stackIncrement, arch.stackPointer().getBitWidth())
+						ExpressionFactory.createNumber(stackIncrement, arch.stackPointer().getBitWidth())
 				)
 		));
 
@@ -353,7 +344,7 @@ public class Win32StubLibrary implements StubProvider {
 		int rtlId = 0;
 		for (RTLStatement stmt : seq) {
 			stmt.setLabel(address, rtlId++);
-			stmt.setNextLabel(new RTLLabel(address, rtlId));
+			stmt.setNextLabel(new Location(address, rtlId));
 		}
 		seq.getLast().setNextLabel(null);
 

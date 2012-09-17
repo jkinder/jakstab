@@ -1,6 +1,6 @@
 /*
  * TraceReplayAnalysis.java - This file is part of the Jakstab project.
- * Copyright 2011 Johannes Kinder <jk@jakstab.org>
+ * Copyright 2007-2012 Johannes Kinder <jk@jakstab.org>
  *
  * This code is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 2 only, as
@@ -26,7 +26,7 @@ import java.util.Collections;
 import java.util.Set;
 
 import org.jakstab.AnalysisProperties;
-import org.jakstab.Option;
+import org.jakstab.JOption;
 import org.jakstab.Program;
 import org.jakstab.analysis.AbstractState;
 import org.jakstab.analysis.CPAOperators;
@@ -37,7 +37,6 @@ import org.jakstab.asm.AbsoluteAddress;
 import org.jakstab.cfa.CFAEdge;
 import org.jakstab.cfa.Location;
 import org.jakstab.cfa.StateTransformer;
-import org.jakstab.rtl.RTLLabel;
 import org.jakstab.rtl.statements.RTLAssume;
 import org.jakstab.rtl.statements.RTLGoto;
 import org.jakstab.rtl.statements.RTLStatement;
@@ -58,7 +57,7 @@ public class TraceReplayAnalysis implements ConfigurableProgramAnalysis {
 		p.setDescription("Replays pre-recorded traces as an under-approximation of control flow.");
 	}
 	
-	public static Option<String> traceFiles = Option.create("trace-file", "f", "", "Comma separated list of trace files to use for tracereplay (default is <mainFile>.parsed)");
+	public static JOption<String> traceFiles = JOption.create("trace-file", "f", "", "Comma separated list of trace files to use for tracereplay (default is <mainFile>.parsed)");
 	
 	@SuppressWarnings("unused")
 	private static final Logger logger = Logger.getLogger(TraceReplayAnalysis.class);
@@ -126,7 +125,7 @@ public class TraceReplayAnalysis implements ConfigurableProgramAnalysis {
 	}
 
 	public AbstractState initStartState(Location label) {
-		//return new TraceReplayState(succ, ((RTLLabel)label).getAddress());
+		//return new TraceReplayState(succ, ((Location)label).getAddress());
 		return TraceReplayState.BOT;
 	}
 
@@ -144,7 +143,7 @@ public class TraceReplayAnalysis implements ConfigurableProgramAnalysis {
 	}
 
 	private static boolean isProgramAddress(Location l) {
-		return isProgramAddress(((RTLLabel)l).getAddress());
+		return isProgramAddress(l.getAddress());
 	}
 
 	@Override
@@ -156,8 +155,8 @@ public class TraceReplayAnalysis implements ConfigurableProgramAnalysis {
 	private AbstractState singlePost(AbstractState state, CFAEdge cfaEdge, Precision precision) {
 
 		
-		RTLLabel edgeTarget = (RTLLabel)cfaEdge.getTarget();
-		RTLLabel edgeSource = (RTLLabel)cfaEdge.getSource();
+		Location edgeTarget = cfaEdge.getTarget();
+		Location edgeSource = cfaEdge.getSource();
 		
 		// If the entire edge is outside the module, just wait and do nothing 
 		if (!isProgramAddress(edgeSource) && !isProgramAddress(edgeTarget)) {

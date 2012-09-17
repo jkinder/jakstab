@@ -1,6 +1,6 @@
 /*
  * ExecutableImage.java - This file is part of the Jakstab project.
- * Copyright 2007-2011 Johannes Kinder <jk@jakstab.org>
+ * Copyright 2007-2012 Johannes Kinder <jk@jakstab.org>
  *
  * This code is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 2 only, as
@@ -144,4 +144,11 @@ public interface ExecutableImage {
 	 * @return a set of exported symbols, or an empty set if it does not contain any.
 	 */
 	public Set<ExportedSymbol> getExportedSymbols();
+	
+	/**
+	 * Returns the file contents as an array of bytes.
+	 *  
+	 * @return the byte array.
+	 */
+	public byte[] getByteArray();
 }

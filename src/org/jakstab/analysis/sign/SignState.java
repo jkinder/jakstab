@@ -1,6 +1,6 @@
 /*
  * SignState.java - This file is part of the Jakstab project.
- * Copyright 2009-2011 Johannes Kinder <jk@jakstab.org>
+ * Copyright 2007-2012 Johannes Kinder <jk@jakstab.org>
  *
  * This code is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 2 only, as
@@ -68,7 +68,7 @@ public class SignState implements AbstractState {
 	protected SignElement abstractEval(RTLExpression e) {
 		ExpressionVisitor<SignElement> visitor = new ExpressionVisitor<SignElement>() {
 			
-			//private ExpressionFactory factory = ExpressionFactory.getInstance();
+			//private ExpressionFactory ExpressionFactory = ExpressionFactory.getInstance();
 
 			@Override
 			public SignElement visit(RTLBitRange e) {
@@ -269,15 +269,13 @@ public class SignState implements AbstractState {
 	public Set<Tuple<RTLNumber>> projectionFromConcretization(
 			RTLExpression... expressions) {
 
-		ExpressionFactory factory = ExpressionFactory.getInstance();
-		
 		Tuple<Set<RTLNumber>> cValues = new Tuple<Set<RTLNumber>>(expressions.length);
 		for (int i=0; i<expressions.length; i++) {
 			SignElement aValue = abstractEval(expressions[i]);
 			// Only ZERO elements can be concretized to numbers
 			cValues.set(i, Collections.singleton(
 					aValue.equals(SignElement.ZERO) ? 
-					factory.createNumber(0, expressions[i].getBitWidth()) : null));
+					ExpressionFactory.createNumber(0, expressions[i].getBitWidth()) : null));
 		}
 
 		return Sets.crossProduct(cValues);
@@ -290,7 +288,7 @@ public class SignState implements AbstractState {
 	}
 	
 	public RTLExpression getStateFormula() {
-		ExpressionFactory factory = ExpressionFactory.getInstance();
+
 		RTLExpression result = null;
 		
 		for (Map.Entry<RTLVariable, SignElement> entry : aVarVal.entrySet()) {
@@ -298,27 +296,27 @@ public class SignState implements AbstractState {
 			RTLExpression clause;
 			switch(entry.getValue()) {
 			case POSITIVE:
-				clause = factory.createGreaterThan(var, factory.createNumber(0, var.getBitWidth()));
+				clause = ExpressionFactory.createGreaterThan(var, ExpressionFactory.createNumber(0, var.getBitWidth()));
 				break;
 			case NEGATIVE:
-				clause = factory.createLessThan(var, factory.createNumber(0, var.getBitWidth()));
+				clause = ExpressionFactory.createLessThan(var, ExpressionFactory.createNumber(0, var.getBitWidth()));
 				break;
 			case ZERO:
-				clause = factory.createEqual(var, factory.createNumber(0, var.getBitWidth()));
+				clause = ExpressionFactory.createEqual(var, ExpressionFactory.createNumber(0, var.getBitWidth()));
 				break;
 			default:
 				clause = null;
 			}
 			if (clause != null) {
 				if (result != null) {
-					result = factory.createAnd(result, clause);
+					result = ExpressionFactory.createAnd(result, clause);
 				} else {
 					result = clause;
 				}
 			}
 		}
 		
-		if (result == null) result = factory.TRUE;
+		if (result == null) result = ExpressionFactory.TRUE;
 		
 		return result;
 	}

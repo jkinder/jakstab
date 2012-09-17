@@ -1,6 +1,6 @@
 /*
  * Main.java - This file is part of the Jakstab project.
- * Copyright 2007-2011 Johannes Kinder <jk@jakstab.org>
+ * Copyright 2007-2012 Johannes Kinder <jk@jakstab.org>
  *
  * This code is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 2 only, as
@@ -26,13 +26,13 @@ import org.jakstab.transformation.ExpressionSubstitution;
 import org.jakstab.util.*;
 import org.jakstab.analysis.*;
 import org.jakstab.analysis.composite.CompositeState;
+import org.jakstab.analysis.explicit.BasedNumberValuation;
 import org.jakstab.analysis.explicit.BoundedAddressTracking;
 import org.jakstab.analysis.procedures.ProcedureAnalysis;
 import org.jakstab.analysis.procedures.ProcedureState;
 import org.jakstab.asm.*;
 import org.jakstab.cfa.Location;
 import org.jakstab.loader.*;
-import org.jakstab.rtl.*;
 import org.jakstab.rtl.expressions.ExpressionFactory;
 import org.jakstab.ssl.Architecture;
 
@@ -45,21 +45,22 @@ public class Main {
 
 	private static Logger logger = Logger.getLogger(Main.class);;
 
-	private final static String version = "0.8.2";
+	private final static String version = "0.8.3";
 
 	private static volatile Algorithm activeAlgorithm;
 	private static volatile Thread mainThread;
-
+	
 	public static void main(String[] args) {
 
 		mainThread = Thread.currentThread();
+		StatsTracker stats = StatsTracker.getInstance();
 
 		// Parse command line
 		Options.parseOptions(args);
 
 		logger.error(Characters.DOUBLE_LINE_FULL_WIDTH);
 		logger.error("   Jakstab " + version);
-		logger.error("   Copyright 2007-2011  Johannes Kinder  <johannes.kinder@epfl.ch>");
+		logger.error("   Copyright 2007-2012  Johannes Kinder  <johannes.kinder@epfl.ch>");
 		logger.error("");
 		logger.error("   Jakstab comes with ABSOLUTELY NO WARRANTY. This is free software,");
 		logger.error("   and you are welcome to redistribute it under certain conditions.");
@@ -134,6 +135,14 @@ public class Main {
 
 		// Add surrounding "%DF := 1; call entrypoint; halt;" 
 		program.installHarness(Options.heuristicEntryPoints.getValue() ? new HeuristicHarness() : new DefaultHarness());
+
+		int slashIdx = baseFileName.lastIndexOf('\\');
+		if (slashIdx < 0) slashIdx = baseFileName.lastIndexOf('/');
+		if (slashIdx < 0) slashIdx = -1;
+		slashIdx++;
+		stats.record(baseFileName.substring(slashIdx));
+		stats.record(version);
+
 
 		//StatsPlotter.create(baseFileName + "_states.dat");
 		//StatsPlotter.plot("#Time(ms)\tStates\tInstructions\tGC Time\tSpeed(st/s)");		
@@ -227,9 +236,9 @@ public class Main {
 
 			/*logger.verbose("Unresolved locations: " + program.getUnresolvedBranches());
 			for (Location l : program.getUnresolvedBranches()) {
-				AbsoluteAddress a = ((RTLLabel)l).getAddress();
+				AbsoluteAddress a = ((Location)l).getAddress();
 				if (program.getInstruction(a) == null) {
-					logger.verbose(l + ": " + program.getStatement((RTLLabel)l));
+					logger.verbose(l + ": " + program.getStatement((Location)l));
 				} else {
 					logger.verbose(a + "\t" + program.getInstructionString(a));
 				}
@@ -252,19 +261,28 @@ public class Main {
 			logger.error( "   Indirect Branches (no import calls): " + String.format("%8d", indirectBranches));
 			logger.error( "   Unresolved Branches:                 " + String.format("%8d", program.getUnresolvedBranches().size()));
 			logger.debug("   FastSet conversions:                 " + String.format("%8d", FastSet.getConversionCount()));
-			logger.debug("   Variable count:                      " + String.format("%8d", ExpressionFactory.getInstance().getVariableCount()));
+			logger.debug("   Variable count:                      " + String.format("%8d", ExpressionFactory.getVariableCount()));
 			logger.error(Characters.DOUBLE_LINE_FULL_WIDTH);
 
-			int slashIdx = baseFileName.lastIndexOf('\\');
-			if (slashIdx < 0) slashIdx = baseFileName.lastIndexOf('/');
-			if (slashIdx < 0) slashIdx = -1;
-			slashIdx++;
-			logger.fatal(baseFileName.substring(slashIdx) + "\t" + program.getInstructionCount() + "\t" + program.getStatementCount() + "\t" + 
-					program.getCFA().size() + "\t" + indirectBranches + "\t" + program.getUnresolvedBranches().size() +  "\t" +
-					cfr.getNumberOfStatesVisited() + "\t" + stateCount + "\t" + 
-					Math.round((overallEndTime - overallStartTime)/1000.0) + "s\t" + cfr.getStatus() + "\t" + 
-					version + "\t" + BoundedAddressTracking.varThreshold.getValue() + "\t" + BoundedAddressTracking.heapThreshold.getValue() + "\t" + 
-					(Options.basicBlocks.getValue() ? "y" : "n" )+ "\t" + (Options.summarizeRep.getValue() ? "y" : "n" ));
+			
+			stats.record(program.getInstructionCount());
+			stats.record(program.getStatementCount());
+			stats.record(program.getCFA().size());
+			stats.record(indirectBranches);
+			stats.record(program.getUnresolvedBranches().size());
+			stats.record(cfr.getNumberOfStatesVisited());
+			stats.record(stateCount);
+			stats.record(Math.round((overallEndTime - overallStartTime)/1000.0));
+			stats.record(cfr.getStatus());
+			stats.record(Options.cpas.getValue());
+			stats.record(BoundedAddressTracking.varThreshold.getValue());
+			stats.record(BoundedAddressTracking.heapThreshold.getValue());
+			stats.record(Options.basicBlocks.getValue() ? "y" : "n");
+			stats.record(Options.summarizeRep.getValue() ? "y" : "n" );
+			stats.record(BasedNumberValuation.ExplicitPrintfArgs);
+			stats.record(BasedNumberValuation.OverAppPrintfArgs);
+			
+			stats.print();
 
 			ProgramGraphWriter graphWriter = new ProgramGraphWriter(program);
 			
@@ -338,16 +356,16 @@ public class Main {
 				CPAAlgorithm cpaAlg = CPAAlgorithm.createForwardAlgorithm(program, procedureAnalysis);
 				runAlgorithm(cpaAlg);
 				reached = cpaAlg.getReachedStates().select(1);
-				Set<RTLLabel> procedures = procedureAnalysis.getCallees();
+				Set<Location> procedures = procedureAnalysis.getCallees();
 
-				SetMultimap<RTLLabel, RTLLabel> callGraph = HashMultimap.create();
+				SetMultimap<Location, Location> callGraph = HashMultimap.create();
 
 				// Procedure analysis and thus this callgraph only works with --procedures 2
 				// A broken callgraph does not affect the safety checks, though, as all
 				// procedures are checked without any interprocedural abstraction anyway
-				for (Pair<RTLLabel,RTLLabel> callSite : procedureAnalysis.getCallSites()) {
+				for (Pair<Location,Location> callSite : procedureAnalysis.getCallSites()) {
 					ProcedureState procedureState = (ProcedureState)Lattices.joinAll(reached.where(callSite.getLeft()));
-					for (RTLLabel procedure : procedureState.getProcedureEntries()) {
+					for (Location procedure : procedureState.getProcedureEntries()) {
 						callGraph.put(procedure, callSite.getRight()); 
 					}
 				}

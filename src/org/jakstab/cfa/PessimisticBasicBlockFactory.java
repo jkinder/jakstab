@@ -1,6 +1,6 @@
 /*
  * PessimisticBasicBlockFactory.java - This file is part of the Jakstab project.
- * Copyright 2010 Johannes Kinder <jk@jakstab.org>
+ * Copyright 2007-2012 Johannes Kinder <jk@jakstab.org>
  *
  * This code is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 2 only, as
@@ -25,7 +25,7 @@ import org.jakstab.Program;
 import org.jakstab.analysis.AbstractState;
 import org.jakstab.asm.AbsoluteAddress;
 import org.jakstab.rtl.Context;
-import org.jakstab.rtl.RTLLabel;
+import org.jakstab.cfa.Location;
 import org.jakstab.rtl.expressions.ExpressionFactory;
 import org.jakstab.rtl.expressions.RTLExpression;
 import org.jakstab.rtl.expressions.RTLNumber;
@@ -46,8 +46,8 @@ public class PessimisticBasicBlockFactory extends ResolvingTransformerFactory im
 	public Set<CFAEdge> getTransformers(final AbstractState a) {
 		Program program = Program.getProgram();
 		// First statement
-		RTLStatement firstStmt = program.getStatement((RTLLabel)a.getLocation());
-		
+		RTLStatement firstStmt = program.getStatement(a.getLocation());
+
 		Set<RTLStatement> blockHeads = new FastSet<RTLStatement>();
 		if (firstStmt instanceof RTLGoto) {
 			// Multiple blocks
@@ -59,9 +59,9 @@ public class PessimisticBasicBlockFactory extends ResolvingTransformerFactory im
 			// Single Block
 			blockHeads = new FastSet<RTLStatement>(firstStmt);
 		}
-		
+
 		Set<CFAEdge> transformers = new FastSet<CFAEdge>();
-		
+
 		for (RTLStatement head : blockHeads) {
 
 			BasicBlock block = new BasicBlock();
@@ -77,15 +77,15 @@ public class PessimisticBasicBlockFactory extends ResolvingTransformerFactory im
 			}
 			transformers.add(new CFAEdge(head.getLabel(), stmt.getLabel(), block));
 		}
-		
+
 		saveNewEdges(transformers, a.getLocation());
-		
+
 		return transformers;
 	}
-	
+
 	public Set<RTLStatement> gotoToAssumes(final AbstractState a, final RTLGoto stmt) {
 		assert stmt.getCondition() != null;
-		ExpressionFactory factory = ExpressionFactory.getInstance();
+
 		Set<RTLStatement> results = new FastSet<RTLStatement>();
 
 		Set<Tuple<RTLNumber>> valuePairs = a.projectionFromConcretization(
@@ -93,16 +93,16 @@ public class PessimisticBasicBlockFactory extends ResolvingTransformerFactory im
 		for (Tuple<RTLNumber> pair : valuePairs) {
 			RTLNumber conditionValue = pair.get(0);
 			RTLNumber targetValue = pair.get(1);
-			RTLLabel nextLabel;
+			Location nextLabel;
 			// assume correct condition case 
 			assert conditionValue != null;
 			RTLExpression assumption = 
-				factory.createEqual(stmt.getCondition(), conditionValue);
-			if (conditionValue.equals(factory.FALSE)) {
+					ExpressionFactory.createEqual(stmt.getCondition(), conditionValue);
+			if (conditionValue.equals(ExpressionFactory.FALSE)) {
 				// assume (condition = false), and set next statement to fallthrough
 				nextLabel = stmt.getNextLabel();
 			} else {
-				if (targetValue == RTLNumber.ALL_NUMBERS) {
+				if (targetValue == null) {
 					// if target could not be resolved, just leave the edge out for now
 					logger.info(stmt.getLabel() + ": Cannot resolve target expression " + 
 							stmt.getTargetExpression() + ". Continuing with unsound underapproximation.");
@@ -114,14 +114,14 @@ public class PessimisticBasicBlockFactory extends ResolvingTransformerFactory im
 					continue;
 				} else {
 					// assume (condition = true AND targetExpression = targetValue)
-					assumption = factory.createAnd(
+					assumption = ExpressionFactory.createAnd(
 							assumption,
-							factory.createEqual(
+							ExpressionFactory.createEqual(
 									stmt.getTargetExpression(),
 									targetValue)
-					);
+							);
 					// set next label to jump target
-					nextLabel = new RTLLabel(new AbsoluteAddress(targetValue));
+					nextLabel = new Location(new AbsoluteAddress(targetValue));
 				}
 			}
 			assumption = assumption.evaluate(new Context());

@@ -1,6 +1,6 @@
 /*
  * TraceReplayState.java - This file is part of the Jakstab project.
- * Copyright 2011 Johannes Kinder <jk@jakstab.org>
+ * Copyright 2007-2012 Johannes Kinder <jk@jakstab.org>
  *
  * This code is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 2 only, as
@@ -93,7 +93,6 @@ public class TraceReplayState implements UnderApproximateState {
 	
 	@Override
 	public Set<Tuple<RTLNumber>> projectionFromConcretization(RTLExpression... expressions) {
-		ExpressionFactory factory = ExpressionFactory.getInstance();
 
 		// Only concretize expression requests from transformerFactory
 		// Warning: If this method is invoked with 2 parameters for other reasons, it will 
@@ -123,10 +122,10 @@ public class TraceReplayState implements UnderApproximateState {
 					cCondition = (RTLNumber)condition;
 				} else if (target.equals(nextPC)) {
 					// Conditional jump that is taken according to the trace
-					cCondition = factory.TRUE;
+					cCondition = ExpressionFactory.TRUE;
 				} else { 
 					// Conditional jump that is not taken
-					cCondition = factory.FALSE;
+					cCondition = ExpressionFactory.FALSE;
 				}
 
 			} else {

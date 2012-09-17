@@ -1,6 +1,6 @@
 /*
  * ConcretizationInputBuffer.java - This file is part of the Jakstab project.
- * Copyright 2010 Johannes Kinder <jk@jakstab.org>
+ * Copyright 2007-2012 Johannes Kinder <jk@jakstab.org>
  *
  * This code is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 2 only, as
@@ -45,9 +45,8 @@ public class ConcretizationInputBuffer extends BinaryInputBuffer {
 
 	@Override
 	public byte getByteAt(int fp) {
-		ExpressionFactory factory = ExpressionFactory.getInstance();
-		RTLNumber va = factory.createNumber(module.getVirtualAddress(fp).getValue(), 32);
-		RTLMemoryLocation m = factory.createMemoryLocation(va, 8);
+		RTLNumber va = ExpressionFactory.createNumber(module.getVirtualAddress(fp).getValue(), 32);
+		RTLMemoryLocation m = ExpressionFactory.createMemoryLocation(va, 8);
 		Set<Tuple<RTLNumber>> cValSet = state.projectionFromConcretization(m);
 		// Hooray for fragile code
 		return (byte)cValSet.iterator().next().get(0).intValue();
