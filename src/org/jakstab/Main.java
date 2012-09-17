@@ -1,6 +1,6 @@
 /*
  * Main.java - This file is part of the Jakstab project.
- * Copyright 2007-2011 Johannes Kinder <jk@jakstab.org>
+ * Copyright 2007-2012 Johannes Kinder <jk@jakstab.org>
  *
  * This code is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 2 only, as
@@ -45,7 +45,7 @@ public class Main {
 
 	private static Logger logger = Logger.getLogger(Main.class);;
 
-	private final static String version = "0.8.3-devel";
+	private final static String version = "0.8.3";
 
 	private static volatile Algorithm activeAlgorithm;
 	private static volatile Thread mainThread;
@@ -60,7 +60,7 @@ public class Main {
 
 		logger.error(Characters.DOUBLE_LINE_FULL_WIDTH);
 		logger.error("   Jakstab " + version);
-		logger.error("   Copyright 2007-2011  Johannes Kinder  <johannes.kinder@epfl.ch>");
+		logger.error("   Copyright 2007-2012  Johannes Kinder  <johannes.kinder@epfl.ch>");
 		logger.error("");
 		logger.error("   Jakstab comes with ABSOLUTELY NO WARRANTY. This is free software,");
 		logger.error("   and you are welcome to redistribute it under certain conditions.");
