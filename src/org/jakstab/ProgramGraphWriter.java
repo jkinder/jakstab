@@ -23,6 +23,10 @@ import java.io.IOException;
 import java.util.*;
 
 import org.jakstab.analysis.*;
+import org.jakstab.analysis.composite.CompositeState;
+import org.jakstab.analysis.explicit.BasedNumberElement;
+import org.jakstab.analysis.explicit.BasedNumberValuation;
+import org.jakstab.analysis.explicit.VpcTrackingAnalysis;
 import org.jakstab.asm.AbsoluteAddress;
 import org.jakstab.asm.BranchInstruction;
 import org.jakstab.asm.Instruction;
@@ -31,11 +35,13 @@ import org.jakstab.asm.SymbolFinder;
 import org.jakstab.cfa.CFAEdge;
 import org.jakstab.cfa.CFAEdge.Kind;
 import org.jakstab.cfa.Location;
+import org.jakstab.rtl.expressions.RTLVariable;
 import org.jakstab.rtl.statements.RTLHalt;
 import org.jakstab.rtl.statements.RTLStatement;
 import org.jakstab.util.*;
 
 import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Multimap;
 import com.google.common.collect.SetMultimap;
 
 /**
@@ -460,5 +466,103 @@ public class ProgramGraphWriter {
 		}
 
 	}
+	
+	private String vpcName(AbstractState s, VpcTrackingAnalysis vpcAnalysis, int vAnalysisPos) {
+		StringBuilder nodeLabel = new StringBuilder();
+		Location l = s.getLocation();				
+		RTLVariable vpcVar = vpcAnalysis.getVPC(l);
+		CompositeState cState = (CompositeState)s;
+		BasedNumberElement vpcVal = ((BasedNumberValuation)cState.getComponent(vAnalysisPos)).getValue(vpcVar);
+		nodeLabel.append("vpc");
+		nodeLabel.append(vpcVal.toString());
+		nodeLabel.append("_");
+		nodeLabel.append(l);
+		return nodeLabel.toString();
+	}
+	
+	public void writeVpcGraph(String filename, AbstractReachabilityTree art, ReachedSet reached) {
+		
+		AnalysisManager mgr = AnalysisManager.getInstance();
+		VpcTrackingAnalysis vpcAnalysis = (VpcTrackingAnalysis)mgr.getAnalysis(VpcTrackingAnalysis.class);
+		
+		int vAnalysisPos = 1 + Options.cpas.getValue().indexOf(mgr.getShorthand(VpcTrackingAnalysis.class));
+
+		/*
+		ReachedSet vpcStates = reached.select(vAnalysisPos);		
+		
+		Set<Location> cfgNodes = new HashSet<Location>();
+		for (CFAEdge e : program.getCFA()) {
+			cfgNodes.add(e.getTarget());
+			cfgNodes.add(e.getSource());
+		}
+		
+		Set<BasedNumberElement> vcfgNodes = new HashSet<BasedNumberElement>();
+		for (Location l : cfgNodes) {
+			RTLVariable vpcVar = vpcAnalysis.getVPC(l);
+			for (AbstractState s : reached.where(l)) {
+				BasedNumberElement vpcVal = ((BasedNumberValuation)s).getValue(vpcVar);
+				vcfgNodes.add(vpcVal);
+			}
+		}
+		*/
+		
+		Set<String> nodeNames = new HashSet<String>();
+		Multimap<String, String> outEdges = HashMultimap.create();
+		
+
+		Map<String,String> startNode = new HashMap<String, String>();
+		Map<String,String> endNode = new HashMap<String, String>();
+		startNode.put("color", "green");
+		startNode.put("style", "filled,bold");
+		endNode.put("color", "red");
+		endNode.put("style", "filled,bold");
+
+		// Create dot file
+		GraphWriter gwriter = createGraphWriter(filename);
+		if (gwriter == null) return;
+
+		logger.info("Writing VPC-CFG to " + gwriter.getFilename());
+		try {
+			Deque<AbstractState> worklist = new LinkedList<AbstractState>();
+			//Set<AbstractState> visited = new HashSet<AbstractState>();
+			worklist.add(art.getRoot());
+			//visited.addAll(worklist);
+			while (!worklist.isEmpty()) {
+				AbstractState curState = worklist.removeFirst();
+
+				Map<String, String> properties = null;
+				if (curState == art.getRoot())
+					properties = startNode;
+				if (Program.getProgram().getStatement(curState.getLocation()) instanceof RTLHalt)
+					properties = endNode;
+				
+				String nodeName = vpcName(curState, vpcAnalysis, vAnalysisPos);
+				StringBuilder nodeLabel = new StringBuilder();
+				nodeLabel.append(nodeName);
+				
+				for (AbstractState coverState : art.getCoveringStates(curState)) {
+					nodeLabel.append("Covered by ").append(coverState.getIdentifier()).append("\\n");
+				}
+
+				if (nodeNames.add(nodeName)) {
+					gwriter.writeNode(nodeName, nodeLabel.toString(), properties);
+				}
+
+				for (AbstractState nextState : art.getChildren(curState)) {
+					String nextName = vpcName(nextState, vpcAnalysis, vAnalysisPos);
+					worklist.add(nextState);
+					if (outEdges.put(nodeName, nextName)) {
+						gwriter.writeEdge(nodeName, nextName);
+						logger.info("Edge : " + nodeName + " -> " + nextName);
+					}
+				}
+			}			
+			gwriter.close();
+		} catch (IOException e) {
+			logger.error("Cannot write to output file", e);
+			return;
+		}
+	}
+	
 
 }

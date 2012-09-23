@@ -64,6 +64,10 @@ public class VpcTrackingAnalysis implements ConfigurableProgramAnalysis {
 		logger.debug("Using VPC " + vpc);
 	}
 	
+	public RTLVariable getVPC(Location l) {
+		return vpc;
+	}
+	
 	@Override
 	public AbstractState merge(AbstractState s1, AbstractState s2, Precision precision) {
 		// Reduces states, but makes it harder to reconstruct the trace that lead to a certain state

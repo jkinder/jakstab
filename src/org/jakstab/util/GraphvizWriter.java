@@ -132,6 +132,7 @@ public class GraphvizWriter implements GraphWriter {
 		id = id.replace('.', '_');
 		id = id.replace(':', '_');
 		id = id.replace('-', '_');
+		id = id.replace('$', '_');
 		if (!Character.isLetter(id.charAt(0)))
 			return "a" + id;
 		else return id;

@@ -31,19 +31,24 @@ import org.jakstab.util.Logger;
 public class AnalysisManager {
 
 	private static final Logger logger = Logger.getLogger(AnalysisManager.class);
-	private static final AnalysisManager instance = new AnalysisManager();
+	private static class SingletonHolder { 
+		public static final AnalysisManager INSTANCE = new AnalysisManager();
+	}
 
 	public static AnalysisManager getInstance() {
-		return instance;
+		return SingletonHolder.INSTANCE;
 	}
+
 	
 	private Map<Character, Class<? extends ConfigurableProgramAnalysis>> shortHandMap;
 	private Map<Class<? extends ConfigurableProgramAnalysis>, AnalysisProperties> analysisProperties;
+	private Map<Class<? extends ConfigurableProgramAnalysis>, ConfigurableProgramAnalysis> analysisInstances;
 	
 	private AnalysisManager() {
 		
 		shortHandMap = new HashMap<Character, Class<? extends ConfigurableProgramAnalysis>>();
 		analysisProperties = new HashMap<Class<? extends ConfigurableProgramAnalysis>, AnalysisProperties>();
+		analysisInstances = new HashMap<Class<? extends ConfigurableProgramAnalysis>, ConfigurableProgramAnalysis>();
 		
 		// Enumerate all analyses and register them
 		String pkg = "org.jakstab.analysis";
@@ -79,7 +84,9 @@ public class AnalysisManager {
 			return null;
 		
 		try {
-			return cpaClass.newInstance();
+			ConfigurableProgramAnalysis cpaInstance = cpaClass.newInstance();
+			analysisInstances.put(cpaClass, cpaInstance);
+			return cpaInstance;
 		} catch (InstantiationException e) {
 			e.printStackTrace();
 			throw new RuntimeException(e);
@@ -87,6 +94,22 @@ public class AnalysisManager {
 			e.printStackTrace();
 			throw new RuntimeException(e);
 		}
+	}
+	
+	public char getShorthand(Class<? extends ConfigurableProgramAnalysis> clazz) {
+		AnalysisProperties prop = analysisProperties.get(clazz);
+		assert prop != null : "Analysis not registered";
+		return prop.getShortHand();
+	}
+	
+	/**
+	 * Get a previously instantiated analysis instance.
+	 * 
+	 * @param clazz the class of the analysis to get
+	 * @return the instance of clazz most recently instantiated by this analysis manager
+	 */
+	public ConfigurableProgramAnalysis getAnalysis(Class<? extends ConfigurableProgramAnalysis> clazz) {
+		return analysisInstances.get(clazz);
 	}
 	
 	public String getName(char shortHand) {
