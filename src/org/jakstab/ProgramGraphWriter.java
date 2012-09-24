@@ -467,12 +467,18 @@ public class ProgramGraphWriter {
 
 	}
 	
-	private String vpcName(AbstractState s, VpcTrackingAnalysis vpcAnalysis, int vAnalysisPos) {
-		StringBuilder nodeLabel = new StringBuilder();
+	private BasedNumberElement getVPC(AbstractState s, VpcTrackingAnalysis vpcAnalysis, int vAnalysisPos) {
 		Location l = s.getLocation();				
 		RTLVariable vpcVar = vpcAnalysis.getVPC(l);
 		CompositeState cState = (CompositeState)s;
 		BasedNumberElement vpcVal = ((BasedNumberValuation)cState.getComponent(vAnalysisPos)).getValue(vpcVar);
+		return vpcVal;
+	}
+	
+	private String vpcName(AbstractState s, VpcTrackingAnalysis vpcAnalysis, int vAnalysisPos) {
+		Location l = s.getLocation();				
+		BasedNumberElement vpcVal = getVPC(s, vpcAnalysis, vAnalysisPos);
+		StringBuilder nodeLabel = new StringBuilder();
 		nodeLabel.append("vpc");
 		nodeLabel.append(vpcVal.toString());
 		nodeLabel.append("_");
@@ -486,6 +492,8 @@ public class ProgramGraphWriter {
 		VpcTrackingAnalysis vpcAnalysis = (VpcTrackingAnalysis)mgr.getAnalysis(VpcTrackingAnalysis.class);
 		
 		int vAnalysisPos = 1 + Options.cpas.getValue().indexOf(mgr.getShorthand(VpcTrackingAnalysis.class));
+		
+		Program program = Program.getProgram();
 
 		/*
 		ReachedSet vpcStates = reached.select(vAnalysisPos);		
@@ -533,22 +541,69 @@ public class ProgramGraphWriter {
 				Map<String, String> properties = null;
 				if (curState == art.getRoot())
 					properties = startNode;
-				if (Program.getProgram().getStatement(curState.getLocation()) instanceof RTLHalt)
+				if (program.getStatement(curState.getLocation()) instanceof RTLHalt)
 					properties = endNode;
 				
 				String nodeName = vpcName(curState, vpcAnalysis, vAnalysisPos);
+
+				AbsoluteAddress curAddress = curState.getLocation().getAddress();
 				StringBuilder nodeLabel = new StringBuilder();
-				nodeLabel.append(nodeName);
 				
+				BasedNumberElement vpcVal = getVPC(curState, vpcAnalysis, vAnalysisPos);
+
+				nodeLabel.append(vpcVal.toString()).append(" @ ");
+				nodeLabel.append(curAddress).append("\\n");
+
 				for (AbstractState coverState : art.getCoveringStates(curState)) {
-					nodeLabel.append("Covered by ").append(coverState.getIdentifier()).append("\\n");
+					nodeLabel.append("\\n").append("Covered by ").append(coverState.getIdentifier());
 				}
+				
+				Instruction instr = program.getInstruction(curAddress);
+				if (instr != null) {
+					nodeLabel.append(instr.toString(curAddress.getValue(), 
+							program.getModule(curAddress).getSymbolFinder()));
+					nodeLabel.append("\\l");
+				}
+				
+				
+				Set<AbstractState> successors = art.getChildren(curState);
+				Set<AbstractState> blockStates = new HashSet<AbstractState>();
+				blockStates.add(curState);
+				
+				while (successors.size() == 1) {					
+					
+					if (program.getStatement(curState.getLocation()) instanceof RTLHalt)
+						properties = endNode;
+
+					AbstractState succ = successors.iterator().next();
+					if (blockStates.contains(succ))
+						break;
+					else
+						blockStates.add(succ);
+					BasedNumberElement succVpcVal = getVPC(succ, vpcAnalysis, vAnalysisPos);
+					if (!vpcVal.equals(succVpcVal))
+						break;
+
+					AbsoluteAddress nextAddress = succ.getLocation().getAddress();
+					if (!curAddress.equals(nextAddress)) {
+						curAddress = nextAddress;
+						instr = program.getInstruction(curAddress);
+						if (instr != null) {
+							nodeLabel.append(instr.toString(curAddress.getValue(), 
+									program.getModule(curAddress).getSymbolFinder()));
+							nodeLabel.append("\\l");
+						}
+						//nodeLabel.append(vpcName(succ, vpcAnalysis, vAnalysisPos));
+					}
+					
+					successors = art.getChildren(succ);
+				}				
 
 				if (nodeNames.add(nodeName)) {
 					gwriter.writeNode(nodeName, nodeLabel.toString(), properties);
 				}
 
-				for (AbstractState nextState : art.getChildren(curState)) {
+				for (AbstractState nextState : successors) {
 					String nextName = vpcName(nextState, vpcAnalysis, vAnalysisPos);
 					worklist.add(nextState);
 					if (outEdges.put(nodeName, nextName)) {

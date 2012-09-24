@@ -19,6 +19,7 @@ package org.jakstab.analysis;
 
 import java.util.*;
 
+import org.jakstab.AnalysisManager;
 import org.jakstab.Options;
 import org.jakstab.Program;
 import org.jakstab.Algorithm;
@@ -92,7 +93,9 @@ public class CPAAlgorithm implements Algorithm {
 		this.worklist = worklist;
 		this.failFast = failFast;
 		
-		if (Options.errorTrace.getValue() || Options.asmTrace.getValue())
+		if (Options.errorTrace.getValue() || Options.asmTrace.getValue() || 
+				AnalysisManager.getInstance().getAnalysis(
+						org.jakstab.analysis.explicit.VpcTrackingAnalysis.class) != null)
 			art = new AbstractReachabilityTree();
 		else
 			art = null;
