@@ -495,35 +495,9 @@ public class ProgramGraphWriter {
 		
 		Program program = Program.getProgram();
 
-		/*
-		ReachedSet vpcStates = reached.select(vAnalysisPos);		
-		
-		Set<Location> cfgNodes = new HashSet<Location>();
-		for (CFAEdge e : program.getCFA()) {
-			cfgNodes.add(e.getTarget());
-			cfgNodes.add(e.getSource());
-		}
-		
-		Set<BasedNumberElement> vcfgNodes = new HashSet<BasedNumberElement>();
-		for (Location l : cfgNodes) {
-			RTLVariable vpcVar = vpcAnalysis.getVPC(l);
-			for (AbstractState s : reached.where(l)) {
-				BasedNumberElement vpcVal = ((BasedNumberValuation)s).getValue(vpcVar);
-				vcfgNodes.add(vpcVal);
-			}
-		}
-		*/
-		
 		Set<String> nodeNames = new HashSet<String>();
 		Multimap<String, String> outEdges = HashMultimap.create();
 		
-
-		Map<String,String> startNode = new HashMap<String, String>();
-		Map<String,String> endNode = new HashMap<String, String>();
-		startNode.put("color", "green");
-		startNode.put("style", "filled,bold");
-		endNode.put("color", "red");
-		endNode.put("style", "filled,bold");
 
 		// Create dot file
 		GraphWriter gwriter = createGraphWriter(filename);
@@ -536,25 +510,20 @@ public class ProgramGraphWriter {
 			worklist.add(art.getRoot());
 			//visited.addAll(worklist);
 			while (!worklist.isEmpty()) {
-				AbstractState curState = worklist.removeFirst();
+				AbstractState headState = worklist.removeFirst();
 
-				Map<String, String> properties = null;
-				if (curState == art.getRoot())
-					properties = startNode;
-				if (program.getStatement(curState.getLocation()) instanceof RTLHalt)
-					properties = endNode;
-				
-				String nodeName = vpcName(curState, vpcAnalysis, vAnalysisPos);
+				String nodeName = vpcName(headState, vpcAnalysis, vAnalysisPos);
 
-				AbsoluteAddress curAddress = curState.getLocation().getAddress();
+				Location curLocation = headState.getLocation();
+				AbsoluteAddress curAddress = curLocation.getAddress();
 				StringBuilder nodeLabel = new StringBuilder();
 				
-				BasedNumberElement vpcVal = getVPC(curState, vpcAnalysis, vAnalysisPos);
+				BasedNumberElement vpcVal = getVPC(headState, vpcAnalysis, vAnalysisPos);
 
 				nodeLabel.append(vpcVal.toString()).append(" @ ");
 				nodeLabel.append(curAddress).append("\\n");
 
-				for (AbstractState coverState : art.getCoveringStates(curState)) {
+				for (AbstractState coverState : art.getCoveringStates(headState)) {
 					nodeLabel.append("\\n").append("Covered by ").append(coverState.getIdentifier());
 				}
 				
@@ -566,24 +535,26 @@ public class ProgramGraphWriter {
 				}
 				
 				
-				Set<AbstractState> successors = art.getChildren(curState);
+				Set<AbstractState> successors = art.getChildren(headState);
 				Set<AbstractState> blockStates = new HashSet<AbstractState>();
-				blockStates.add(curState);
+				blockStates.add(headState);
 				
-				while (successors.size() == 1) {					
+				while (successors.size() == 1) {
 					
-					if (program.getStatement(curState.getLocation()) instanceof RTLHalt)
-						properties = endNode;
-
 					AbstractState succ = successors.iterator().next();
+					
+					// Check for cycles
 					if (blockStates.contains(succ))
 						break;
 					else
 						blockStates.add(succ);
+					
+					// Check if VPC value changed
 					BasedNumberElement succVpcVal = getVPC(succ, vpcAnalysis, vAnalysisPos);
 					if (!vpcVal.equals(succVpcVal))
 						break;
 
+					curLocation = succ.getLocation();
 					AbsoluteAddress nextAddress = succ.getLocation().getAddress();
 					if (!curAddress.equals(nextAddress)) {
 						curAddress = nextAddress;
@@ -600,6 +571,11 @@ public class ProgramGraphWriter {
 				}				
 
 				if (nodeNames.add(nodeName)) {
+					Map<String, String> properties = getNodeProperties(curLocation);
+					if (headState == art.getRoot()) {
+						properties.put("color", "green");
+						properties.put("style", "filled,bold");
+					}
 					gwriter.writeNode(nodeName, nodeLabel.toString(), properties);
 				}
 
@@ -607,8 +583,21 @@ public class ProgramGraphWriter {
 					String nextName = vpcName(nextState, vpcAnalysis, vAnalysisPos);
 					worklist.add(nextState);
 					if (outEdges.put(nodeName, nextName)) {
-						gwriter.writeEdge(nodeName, nextName);
-						logger.info("Edge : " + nodeName + " -> " + nextName);
+						
+						// Label conditional edges
+						String label = "";
+						if (instr instanceof BranchInstruction) {
+							BranchInstruction bi = (BranchInstruction)instr;
+							if (bi.isConditional()) {
+								// Get the original goto from the program (not the converted assume) 
+								RTLStatement rtlGoto = program.getStatement(curLocation);								
+								// If this is the fall-through edge, output F, otherwise T
+								label = nextState.getLocation().getAddress().equals(
+										rtlGoto.getNextLabel().getAddress()) ? "F" : "T";
+							}
+						}
+
+						gwriter.writeLabeledEdge(nodeName, nextName, label);
 					}
 				}
 			}			
