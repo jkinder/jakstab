@@ -132,6 +132,7 @@ public class GraphvizWriter implements GraphWriter {
 		id = id.replace('.', '_');
 		id = id.replace(':', '_');
 		id = id.replace('-', '_');
+		id = id.replace('+', '_');
 		id = id.replace('$', '_');
 		id = id.replace('<', '_');
 		id = id.replace('>', '_');

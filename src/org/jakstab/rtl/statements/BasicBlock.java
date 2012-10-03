@@ -17,9 +17,12 @@
  */
 package org.jakstab.rtl.statements;
 
+import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.NoSuchElementException;
 
 import org.jakstab.Program;
+import org.jakstab.asm.AbsoluteAddress;
 import org.jakstab.cfa.Location;
 import org.jakstab.cfa.StateTransformer;
 import org.jakstab.util.Characters;
@@ -60,6 +63,44 @@ public class BasicBlock extends LinkedList<RTLStatement> implements StateTransfo
 	@Override
 	public String toString() {
 		return toStringUntil(null);
+	}
+	
+	public Iterator<AbsoluteAddress> addressIterator() {
+		return new Iterator<AbsoluteAddress>() {
+			Iterator<RTLStatement> stmtIt = iterator();
+			AbsoluteAddress nextAddress = null;
+			{
+				if (stmtIt.hasNext())
+					nextAddress = stmtIt.next().getAddress();
+			}
+
+			@Override
+			public boolean hasNext() {
+				return nextAddress != null;
+			}
+
+			@Override
+			public AbsoluteAddress next() {
+				if (!hasNext())
+					throw new NoSuchElementException();
+				
+				AbsoluteAddress oldAddress = nextAddress;				
+				while (nextAddress == oldAddress) {
+					if (stmtIt.hasNext())
+						nextAddress = stmtIt.next().getAddress();
+					else
+						nextAddress = null;
+				}
+				
+				return oldAddress;
+			}
+
+			@Override
+			public void remove() {
+				throw new UnsupportedOperationException();
+			}
+			
+		};
 	}
 
 }

@@ -25,6 +25,7 @@ import java.util.*;
 import org.jakstab.util.Logger;
 import org.jakstab.asm.*;
 import org.jakstab.cfa.CFAEdge;
+import org.jakstab.cfa.ControlFlowGraph;
 import org.jakstab.cfa.Location;
 import org.jakstab.disasm.DisassemblyException;
 import org.jakstab.loader.*;
@@ -79,6 +80,7 @@ public final class Program {
 	private ExecutableImage mainModule;
 	private List<ExecutableImage> modules;
 	private Set<CFAEdge> cfa;
+	private ControlFlowGraph cfg;
 	private final Map<String, ExportedSymbol> exportedSymbols;
 	private final Set<UnresolvedSymbol> unresolvedSymbols;
 	private Set<Location> unresolvedBranches;
@@ -489,9 +491,14 @@ public final class Program {
 	public Set<CFAEdge> getCFA() {
 		return Collections.unmodifiableSet(cfa);
 	}
+	
+	public ControlFlowGraph getCFG() {
+		return cfg;
+	}
 
 	public void setCFA(Set<CFAEdge> cfa) {
 		this.cfa = cfa;
+		cfg = new ControlFlowGraph(cfa);
 	}
 
 	public Location getStart() {

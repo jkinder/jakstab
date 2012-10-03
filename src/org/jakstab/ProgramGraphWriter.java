@@ -34,8 +34,10 @@ import org.jakstab.asm.ReturnInstruction;
 import org.jakstab.asm.SymbolFinder;
 import org.jakstab.cfa.CFAEdge;
 import org.jakstab.cfa.CFAEdge.Kind;
+import org.jakstab.cfa.ControlFlowGraph;
 import org.jakstab.cfa.Location;
 import org.jakstab.rtl.expressions.RTLVariable;
+import org.jakstab.rtl.statements.BasicBlock;
 import org.jakstab.rtl.statements.RTLHalt;
 import org.jakstab.rtl.statements.RTLStatement;
 import org.jakstab.util.*;
@@ -219,6 +221,77 @@ public class ProgramGraphWriter {
 			logger.fatal(e);
 			return;
 		}
+	}
+	
+	public void writeAssemblyBBCFG(String filename) {
+		ControlFlowGraph cfg = program.getCFG();
+
+		// Create dot file
+		GraphWriter gwriter = createGraphWriter(filename);
+		if (gwriter == null) return;
+
+		logger.info("Writing assembly CFG to " + gwriter.getFilename());
+		try {
+			for (BasicBlock bb : cfg.getBasicBlocks()) {
+				AbsoluteAddress nodeAddr = bb.getFirst().getAddress();
+				String nodeName = nodeAddr.toString();
+				StringBuilder labelBuilder = new StringBuilder();
+				String locLabel = program.getSymbolFor(nodeAddr);
+				if (locLabel.length() > 20) locLabel = locLabel.substring(0, 20) + "...";
+				labelBuilder.append(locLabel).append("\\n");
+
+				for (Iterator<AbsoluteAddress> addrIt = bb.addressIterator(); addrIt.hasNext();) {
+					AbsoluteAddress curAddr = addrIt.next();
+					Instruction instr = program.getInstruction(curAddr);
+					if (instr != null) {
+						String instrString = instr.toString(curAddr.getValue(), program.getModule(curAddr).getSymbolFinder());
+						instrString = instrString.replace("\t", " ");
+						labelBuilder.append(instrString + "\\l");
+					} else {
+						//labelBuilder.append(curAddr.toString() + "\\l");
+					}
+					gwriter.writeNode(nodeName, labelBuilder.toString(), getNodeProperties(bb.getFirst().getLabel()));
+				}
+			}
+			
+			for (CFAEdge e : cfg.getBasicBlockEdges()) {
+				if (e.getKind() == null) logger.error("Null kind? " + e);
+				AbsoluteAddress sourceAddr = e.getSource().getAddress(); 
+				AbsoluteAddress targetAddr = e.getTarget().getAddress();
+				BasicBlock bb = (BasicBlock)e.getTransformer();
+				
+				String label = null;
+				Location lastLoc = bb.getLast().getLabel();
+				Instruction instr = program.getInstruction(lastLoc.getAddress());
+				
+				if (instr instanceof BranchInstruction) {
+					BranchInstruction bi = (BranchInstruction)instr;
+					if (bi.isConditional()) {
+						// Get the original goto from the program (not the converted assume) 
+						RTLStatement rtlGoto = program.getStatement(lastLoc);
+						
+						// If this is the fall-through edge, output F, otherwise T
+						label = targetAddr.equals(rtlGoto.getNextLabel().getAddress()) ? "F" : "T";
+					}
+				}
+				
+				if (label != null)
+					gwriter.writeLabeledEdge(sourceAddr.toString(), 
+							targetAddr.toString(), 
+							label,
+							e.getKind().equals(CFAEdge.Kind.MAY) ? Color.BLACK : Color.GREEN);
+				else
+					gwriter.writeEdge(sourceAddr.toString(), 
+							targetAddr.toString(), 
+							e.getKind().equals(CFAEdge.Kind.MAY) ? Color.BLACK : Color.GREEN);
+
+			}
+
+			gwriter.close();
+		} catch (IOException e) {
+		logger.error("Cannot write to output file", e);
+		return;
+	}
 	}
 
 	
@@ -439,7 +512,7 @@ public class ProgramGraphWriter {
 				Map<String, String> properties = null;
 				if (curState == art.getRoot())
 					properties = startNode;
-				if (Program.getProgram().getStatement(curState.getLocation()) instanceof RTLHalt)
+				if (program.getStatement(curState.getLocation()) instanceof RTLHalt)
 					properties = endNode;
 				StringBuilder nodeLabel = new StringBuilder();
 				nodeLabel.append(curState.getIdentifier());
@@ -493,8 +566,6 @@ public class ProgramGraphWriter {
 		
 		int vAnalysisPos = 1 + Options.cpas.getValue().indexOf(mgr.getShorthand(VpcTrackingAnalysis.class));
 		
-		Program program = Program.getProgram();
-
 		Set<String> nodeNames = new HashSet<String>();
 		Multimap<String, String> outEdges = HashMultimap.create();
 		
@@ -527,20 +598,14 @@ public class ProgramGraphWriter {
 					nodeLabel.append("\\n").append("Covered by ").append(coverState.getIdentifier());
 				}
 				
-				Instruction instr = program.getInstruction(curAddress);
-				if (instr != null) {
-					nodeLabel.append(instr.toString(curAddress.getValue(), 
-							program.getModule(curAddress).getSymbolFinder()));
-					nodeLabel.append("\\l");
-				}
-				
-				
-				Set<AbstractState> successors = art.getChildren(headState);
+				Set<AbstractState> successors = new FastSet<AbstractState>(headState);
 				Set<AbstractState> blockStates = new HashSet<AbstractState>();
-				blockStates.add(headState);
 				
-				while (successors.size() == 1) {
-					
+				curAddress = null;
+				// Holds last instruction processed
+				Instruction instr = null;
+				
+				do {
 					AbstractState succ = successors.iterator().next();
 					
 					// Check for cycles
@@ -556,19 +621,21 @@ public class ProgramGraphWriter {
 
 					curLocation = succ.getLocation();
 					AbsoluteAddress nextAddress = succ.getLocation().getAddress();
-					if (!curAddress.equals(nextAddress)) {
+
+					if (!nextAddress.equals(curAddress)) {
 						curAddress = nextAddress;
 						instr = program.getInstruction(curAddress);
 						if (instr != null) {
-							nodeLabel.append(instr.toString(curAddress.getValue(), 
-									program.getModule(curAddress).getSymbolFinder()));
-							nodeLabel.append("\\l");
+							String instrString = instr.toString(curAddress.getValue(), 
+									program.getModule(curAddress).getSymbolFinder());
+							instrString = instrString.replace("\t", " ");
+							nodeLabel.append(instrString).append("\\l");
 						}
 						//nodeLabel.append(vpcName(succ, vpcAnalysis, vAnalysisPos));
 					}
-					
 					successors = art.getChildren(succ);
-				}				
+					
+				} while (successors.size() == 1);
 
 				if (nodeNames.add(nodeName)) {
 					Map<String, String> properties = getNodeProperties(curLocation);

@@ -295,7 +295,10 @@ public class Main {
 			if (!(cfr.isCompleted() && Options.secondaryCPAs.getValue().length() > 0)) {
 				if (!Options.noGraphs.getValue()) {
 					graphWriter.writeControlFlowAutomaton(baseFileName + "_cfa");
-					graphWriter.writeAssemblyCFG(baseFileName + "_asmcfg");
+					if (Options.basicBlocks.getValue())
+						graphWriter.writeAssemblyBBCFG(baseFileName + "_asmcfg");
+					else
+						graphWriter.writeAssemblyCFG(baseFileName + "_asmcfg");
 				}
 				//if (Options.errorTrace) graphWriter.writeART(baseFileName + "_art", cfr.getART());
 			} else {
