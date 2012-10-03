@@ -56,14 +56,31 @@ public class VpcLiftedCFG {
 		basicBlocks = new HashMap<VpcLocation, BasicBlock>();
 		Program program = Program.getProgram();
 		
+		// Find basic block heads
 		for (VpcLocation l : locations) {
 			Set<VpcLocation> in = inEdges.get(l);
-			if (in != null && in.size() == 1) {
+			// This can only NOT be a BB head if it has in-degree 1
+			if (in.size() == 1) {
 				VpcLocation e = in.iterator().next();
-				if (!(program.getStatement(e.getLocation()) instanceof RTLGoto))
-					continue;
+				// Out-degree of predecessor also has to be 1
+				if (outEdges.get(e).size() == 1) {
+
+					RTLStatement predStmt = program.getStatement(e.getLocation());
+					if (predStmt instanceof RTLGoto) {
+						RTLGoto g = (RTLGoto)predStmt;
+						if (g.getType() != RTLGoto.Type.CALL && 
+								g.getType() != RTLGoto.Type.RETURN) {
+							// If vpcs are equal, don't start a new head even for Gotos
+							if (e.getVPC().equals(l.getVPC()))
+								continue;
+						}
+					} else {
+						// Non-goto
+						continue;
+					}
+				}
 			}
-			if (in == null || in.size() == 0) {
+			if (in.size() == 0) {
 				logger.debug("Orphan block at " + l);
 			}
 			// Create new basic block from location
@@ -88,7 +105,7 @@ public class VpcLiftedCFG {
 				out = outEdges.get(l);
 			}
 			
-			if (out != null) for (VpcLocation e : out) {
+			for (VpcLocation e : out) {
 				bbOutEdges.put(head, e);
 				bbInEdges.put(e, head);
 			}

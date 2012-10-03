@@ -736,7 +736,7 @@ public class ProgramGraphWriter {
 						instrString = instrString.replace("\t", " ");
 						labelBuilder.append(instrString + "\\l");
 					} else {
-						//labelBuilder.append(curAddr.toString() + "\\l");
+						//labelBuilder.append("no instruction\\l");
 					}
 				}
 				gwriter.writeNode(nodeName, labelBuilder.toString(), getNodeProperties(bb.getFirst().getLabel()));
