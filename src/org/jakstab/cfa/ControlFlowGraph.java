@@ -10,6 +10,7 @@ import org.jakstab.Program;
 import org.jakstab.rtl.statements.BasicBlock;
 import org.jakstab.rtl.statements.RTLGoto;
 import org.jakstab.rtl.statements.RTLStatement;
+import org.jakstab.util.FastSet;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.SetMultimap;
@@ -80,6 +81,13 @@ public class ControlFlowGraph {
 	public Set<CFAEdge> getEdges() {
 		return Collections.unmodifiableSet(
 				new HashSet<CFAEdge>(outEdges.values()));
+	}
+	
+	public Set<Location> getSuccessorLocations(Location l) {
+		Set<Location> res = new FastSet<Location>();
+		for (CFAEdge e : outEdges.get(l))
+			res.add(e.getTarget());
+		return res;
 	}
 	
 	public BasicBlock getBasicBlock(Location l) {

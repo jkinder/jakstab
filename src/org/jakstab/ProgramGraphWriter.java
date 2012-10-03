@@ -40,6 +40,7 @@ import org.jakstab.cfa.VpcLiftedCFG;
 import org.jakstab.cfa.VpcLocation;
 import org.jakstab.rtl.expressions.RTLVariable;
 import org.jakstab.rtl.statements.BasicBlock;
+import org.jakstab.rtl.statements.RTLGoto;
 import org.jakstab.rtl.statements.RTLHalt;
 import org.jakstab.rtl.statements.RTLStatement;
 import org.jakstab.util.*;
@@ -756,9 +757,10 @@ public class ProgramGraphWriter {
 					if (bi.isConditional()) {
 						// Get the original goto from the program (not the converted assume) 
 						RTLStatement rtlGoto = program.getStatement(lastLoc);
+						assert(rtlGoto instanceof RTLGoto);
 						
 						// If this is the fall-through edge, output F, otherwise T
-						label = targetAddr.equals(rtlGoto.getNextLabel().getAddress()) ? "F" : "T";
+						label = targetAddr.getLocation().equals(rtlGoto.getNextLabel()) ? "F" : "T";
 					}
 				}
 				
