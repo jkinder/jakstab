@@ -23,10 +23,6 @@ import java.io.IOException;
 import java.util.*;
 
 import org.jakstab.analysis.*;
-import org.jakstab.analysis.composite.CompositeState;
-import org.jakstab.analysis.explicit.BasedNumberElement;
-import org.jakstab.analysis.explicit.BasedNumberValuation;
-import org.jakstab.analysis.explicit.VpcTrackingAnalysis;
 import org.jakstab.asm.AbsoluteAddress;
 import org.jakstab.asm.BranchInstruction;
 import org.jakstab.asm.Instruction;
@@ -38,7 +34,6 @@ import org.jakstab.cfa.ControlFlowGraph;
 import org.jakstab.cfa.Location;
 import org.jakstab.cfa.VpcLiftedCFG;
 import org.jakstab.cfa.VpcLocation;
-import org.jakstab.rtl.expressions.RTLVariable;
 import org.jakstab.rtl.statements.BasicBlock;
 import org.jakstab.rtl.statements.RTLGoto;
 import org.jakstab.rtl.statements.RTLHalt;
@@ -46,7 +41,6 @@ import org.jakstab.rtl.statements.RTLStatement;
 import org.jakstab.util.*;
 
 import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Multimap;
 import com.google.common.collect.SetMultimap;
 
 /**
@@ -543,148 +537,13 @@ public class ProgramGraphWriter {
 
 	}
 	
-	private BasedNumberElement getVPC(AbstractState s, VpcTrackingAnalysis vpcAnalysis, int vAnalysisPos) {
-		Location l = s.getLocation();				
-		RTLVariable vpcVar = vpcAnalysis.getVPC(l);
-		CompositeState cState = (CompositeState)s;
-		BasedNumberElement vpcVal = ((BasedNumberValuation)cState.getComponent(vAnalysisPos)).getValue(vpcVar);
-		return vpcVal;
-	}
-	
-	private String vpcName(AbstractState s, VpcTrackingAnalysis vpcAnalysis, int vAnalysisPos) {
-		Location l = s.getLocation();				
-		BasedNumberElement vpcVal = getVPC(s, vpcAnalysis, vAnalysisPos);
-		StringBuilder nodeLabel = new StringBuilder();
-		nodeLabel.append("vpc");
-		nodeLabel.append(vpcVal.toString());
-		nodeLabel.append("_");
-		nodeLabel.append(l);
-		return nodeLabel.toString();
-	}
-	
-	public void writeVpcGraph2(String filename, AbstractReachabilityTree art, ReachedSet reached) {
-		
-		AnalysisManager mgr = AnalysisManager.getInstance();
-		VpcTrackingAnalysis vpcAnalysis = (VpcTrackingAnalysis)mgr.getAnalysis(VpcTrackingAnalysis.class);
-		
-		int vAnalysisPos = 1 + Options.cpas.getValue().indexOf(mgr.getShorthand(VpcTrackingAnalysis.class));
-		
-		Set<String> nodeNames = new HashSet<String>();
-		Multimap<String, String> outEdges = HashMultimap.create();
-		
-
-		// Create dot file
-		GraphWriter gwriter = createGraphWriter(filename);
-		if (gwriter == null) return;
-
-		logger.info("Writing VPC-CFG to " + gwriter.getFilename());
-		try {
-			Deque<AbstractState> worklist = new LinkedList<AbstractState>();
-			//Set<AbstractState> visited = new HashSet<AbstractState>();
-			worklist.add(art.getRoot());
-			//visited.addAll(worklist);
-			while (!worklist.isEmpty()) {
-				AbstractState headState = worklist.removeFirst();
-
-				String nodeName = vpcName(headState, vpcAnalysis, vAnalysisPos);
-
-				Location curLocation = headState.getLocation();
-				AbsoluteAddress curAddress = curLocation.getAddress();
-				StringBuilder nodeLabel = new StringBuilder();
-				
-				BasedNumberElement vpcVal = getVPC(headState, vpcAnalysis, vAnalysisPos);
-
-				nodeLabel.append(vpcVal.toString()).append(" @ ");
-				nodeLabel.append(curAddress).append("\\n");
-
-				for (AbstractState coverState : art.getCoveringStates(headState)) {
-					nodeLabel.append("\\n").append("Covered by ").append(coverState.getIdentifier());
-				}
-				
-				Set<AbstractState> successors = new FastSet<AbstractState>(headState);
-				Set<AbstractState> blockStates = new HashSet<AbstractState>();
-				
-				curAddress = null;
-				// Holds last instruction processed
-				Instruction instr = null;
-				
-				do {
-					AbstractState succ = successors.iterator().next();
-					
-					// Check for cycles
-					if (blockStates.contains(succ))
-						break;
-					else
-						blockStates.add(succ);
-					
-					// Check if VPC value changed
-					BasedNumberElement succVpcVal = getVPC(succ, vpcAnalysis, vAnalysisPos);
-					if (!vpcVal.equals(succVpcVal))
-						break;
-
-					curLocation = succ.getLocation();
-					AbsoluteAddress nextAddress = succ.getLocation().getAddress();
-
-					if (!nextAddress.equals(curAddress)) {
-						curAddress = nextAddress;
-						instr = program.getInstruction(curAddress);
-						if (instr != null) {
-							String instrString = instr.toString(curAddress.getValue(), 
-									program.getModule(curAddress).getSymbolFinder());
-							instrString = instrString.replace("\t", " ");
-							nodeLabel.append(instrString).append("\\l");
-						}
-						//nodeLabel.append(vpcName(succ, vpcAnalysis, vAnalysisPos));
-					}
-					successors = art.getChildren(succ);
-					
-				} while (successors.size() == 1);
-
-				if (nodeNames.add(nodeName)) {
-					Map<String, String> properties = getNodeProperties(curLocation);
-					if (headState == art.getRoot()) {
-						properties.put("color", "green");
-						properties.put("style", "filled,bold");
-					}
-					gwriter.writeNode(nodeName, nodeLabel.toString(), properties);
-				}
-
-				for (AbstractState nextState : successors) {
-					String nextName = vpcName(nextState, vpcAnalysis, vAnalysisPos);
-					worklist.add(nextState);
-					if (outEdges.put(nodeName, nextName)) {
-						
-						// Label conditional edges
-						String label = "";
-						if (instr instanceof BranchInstruction) {
-							BranchInstruction bi = (BranchInstruction)instr;
-							if (bi.isConditional()) {
-								// Get the original goto from the program (not the converted assume) 
-								RTLStatement rtlGoto = program.getStatement(curLocation);								
-								// If this is the fall-through edge, output F, otherwise T
-								label = nextState.getLocation().getAddress().equals(
-										rtlGoto.getNextLabel().getAddress()) ? "F" : "T";
-							}
-						}
-
-						gwriter.writeLabeledEdge(nodeName, nextName, label);
-					}
-				}
-			}			
-			gwriter.close();
-		} catch (IOException e) {
-			logger.error("Cannot write to output file", e);
-			return;
-		}
-	}
-	
 	public void writeVpcGraph(String filename, AbstractReachabilityTree art, ReachedSet reached) {
 		VpcLiftedCFG vCfg = new VpcLiftedCFG(art);
 		// Create dot file
 		GraphWriter gwriter = createGraphWriter(filename);
 		if (gwriter == null) return;
 		
-		logger.info("Writing VPC-CFA to " + gwriter.getFilename());
+		logger.info("Writing VPC-lifted CFA to " + gwriter.getFilename());
 		try {
 			for (VpcLocation node : vCfg.getNodes()) {
 				String nodeName = node.toString();
@@ -715,7 +574,7 @@ public class ProgramGraphWriter {
 		GraphWriter gwriter = createGraphWriter(filename);
 		if (gwriter == null) return;
 
-		logger.info("Writing VPC-BB-CFG to " + gwriter.getFilename());
+		logger.info("Writing VPC-lifted CFG to " + gwriter.getFilename());
 		try {
 			for (VpcLocation vpcLoc : vCfg.getBasicBlockNodes()) {
 				

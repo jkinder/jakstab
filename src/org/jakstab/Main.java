@@ -289,17 +289,15 @@ public class Main {
 			graphWriter.writeDisassembly(program, baseFileName + "_jak.asm");
 			
 			if (Options.cpas.getValue().contains("v")) {
-				graphWriter.writeVpcGraph(baseFileName + "_vcfg", cfr.getART(), reached);
-				graphWriter.writeVpcBBGraph(baseFileName + "_bbvcfg", cfr.getART(), reached);
+				//graphWriter.writeVpcGraph(baseFileName + "_vcfg", cfr.getART(), reached);
+				graphWriter.writeVpcBBGraph(baseFileName + "_vcfg", cfr.getART(), reached);
 			}
 
 			if (!(cfr.isCompleted() && Options.secondaryCPAs.getValue().length() > 0)) {
 				if (!Options.noGraphs.getValue()) {
 					graphWriter.writeControlFlowAutomaton(baseFileName + "_cfa");
-					if (Options.basicBlocks.getValue())
-						graphWriter.writeAssemblyBBCFG(baseFileName + "_asmcfg");
-					else
-						graphWriter.writeAssemblyCFG(baseFileName + "_asmcfg");
+					graphWriter.writeAssemblyBBCFG(baseFileName + "_asmcfg");
+					//graphWriter.writeAssemblyCFG(baseFileName + "_asmcfg");
 				}
 				//if (Options.errorTrace) graphWriter.writeART(baseFileName + "_art", cfr.getART());
 			} else {
