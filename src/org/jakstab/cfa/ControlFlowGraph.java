@@ -18,6 +18,7 @@ public class ControlFlowGraph {
 	
 	private SetMultimap<Location, CFAEdge> outEdges;
 	private SetMultimap<Location, CFAEdge> inEdges;
+
 	private SetMultimap<Location, CFAEdge> bbOutEdges;
 	private SetMultimap<Location, CFAEdge> bbInEdges;
 	private Map<Location, BasicBlock> basicBlocks;
@@ -79,6 +80,10 @@ public class ControlFlowGraph {
 	public Set<CFAEdge> getEdges() {
 		return Collections.unmodifiableSet(
 				new HashSet<CFAEdge>(outEdges.values()));
+	}
+	
+	public BasicBlock getBasicBlock(Location l) {
+		return basicBlocks.get(l);
 	}
 	
 	public Set<Location> getBasicBlockNodes() {

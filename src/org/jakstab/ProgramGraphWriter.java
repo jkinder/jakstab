@@ -36,6 +36,8 @@ import org.jakstab.cfa.CFAEdge;
 import org.jakstab.cfa.CFAEdge.Kind;
 import org.jakstab.cfa.ControlFlowGraph;
 import org.jakstab.cfa.Location;
+import org.jakstab.cfa.VpcLiftedCFG;
+import org.jakstab.cfa.VpcLocation;
 import org.jakstab.rtl.expressions.RTLVariable;
 import org.jakstab.rtl.statements.BasicBlock;
 import org.jakstab.rtl.statements.RTLHalt;
@@ -289,9 +291,9 @@ public class ProgramGraphWriter {
 
 			gwriter.close();
 		} catch (IOException e) {
-		logger.error("Cannot write to output file", e);
-		return;
-	}
+			logger.error("Cannot write to output file", e);
+			return;
+		}
 	}
 
 	
@@ -559,7 +561,7 @@ public class ProgramGraphWriter {
 		return nodeLabel.toString();
 	}
 	
-	public void writeVpcGraph(String filename, AbstractReachabilityTree art, ReachedSet reached) {
+	public void writeVpcGraph2(String filename, AbstractReachabilityTree art, ReachedSet reached) {
 		
 		AnalysisManager mgr = AnalysisManager.getInstance();
 		VpcTrackingAnalysis vpcAnalysis = (VpcTrackingAnalysis)mgr.getAnalysis(VpcTrackingAnalysis.class);
@@ -675,5 +677,107 @@ public class ProgramGraphWriter {
 		}
 	}
 	
+	public void writeVpcGraph(String filename, AbstractReachabilityTree art, ReachedSet reached) {
+		VpcLiftedCFG vCfg = new VpcLiftedCFG(art);
+		// Create dot file
+		GraphWriter gwriter = createGraphWriter(filename);
+		if (gwriter == null) return;
+		
+		logger.info("Writing VPC-CFA to " + gwriter.getFilename());
+		try {
+			for (VpcLocation node : vCfg.getNodes()) {
+				String nodeName = node.toString();
+				StringBuilder labelBuilder = new StringBuilder();
+				labelBuilder.append(nodeName);
+				gwriter.writeNode(nodeName, labelBuilder.toString(), getNodeProperties(node.getLocation()));
+			}
+
+			for (Map.Entry<VpcLocation, VpcLocation> e : vCfg.getEdges()) {
+				gwriter.writeLabeledEdge(e.getKey().toString(), 
+						e.getValue().toString(), 
+						program.getStatement(e.getKey().getLocation()).toString());
+			}
+
+			gwriter.close();
+		} catch (IOException e) {
+			logger.error("Cannot write to output file", e);
+			return;
+		}
+	}
+
+	
+	public void writeVpcBBGraph(String filename, AbstractReachabilityTree art, ReachedSet reached) {
+		
+		VpcLiftedCFG vCfg = new VpcLiftedCFG(art);
+		
+		// Create dot file
+		GraphWriter gwriter = createGraphWriter(filename);
+		if (gwriter == null) return;
+
+		logger.info("Writing VPC-BB-CFG to " + gwriter.getFilename());
+		try {
+			for (VpcLocation vpcLoc : vCfg.getBasicBlockNodes()) {
+				
+				AbsoluteAddress nodeAddr = vpcLoc.getLocation().getAddress();
+				String nodeName = vpcLoc.toString();
+				StringBuilder labelBuilder = new StringBuilder();
+				String locLabel = program.getSymbolFor(nodeAddr);
+				if (locLabel.length() > 20) locLabel = locLabel.substring(0, 20) + "...";
+				labelBuilder.append(locLabel).append(" @ ").append(vpcLoc.getVPC()).append("\\n");
+				
+				BasicBlock bb = vCfg.getBasicBlock(vpcLoc);
+
+				for (Iterator<AbsoluteAddress> addrIt = bb.addressIterator(); addrIt.hasNext();) {
+					AbsoluteAddress curAddr = addrIt.next();
+					Instruction instr = program.getInstruction(curAddr);
+					if (instr != null) {
+						String instrString = instr.toString(curAddr.getValue(), program.getModule(curAddr).getSymbolFinder());
+						instrString = instrString.replace("\t", " ");
+						labelBuilder.append(instrString + "\\l");
+					} else {
+						//labelBuilder.append(curAddr.toString() + "\\l");
+					}
+				}
+				gwriter.writeNode(nodeName, labelBuilder.toString(), getNodeProperties(bb.getFirst().getLabel()));
+			}
+
+			for (Map.Entry<VpcLocation, VpcLocation> e : vCfg.getBasicBlockEdges()) {
+				VpcLocation sourceAddr = e.getKey(); 
+				VpcLocation targetAddr = e.getValue();
+				BasicBlock bb = vCfg.getBasicBlock(sourceAddr);
+				assert(bb != null);
+				
+				String label = null;
+				Location lastLoc = bb.getLast().getLabel();
+				Instruction instr = program.getInstruction(lastLoc.getAddress());
+				
+				if (instr instanceof BranchInstruction) {
+					BranchInstruction bi = (BranchInstruction)instr;
+					if (bi.isConditional()) {
+						// Get the original goto from the program (not the converted assume) 
+						RTLStatement rtlGoto = program.getStatement(lastLoc);
+						
+						// If this is the fall-through edge, output F, otherwise T
+						label = targetAddr.equals(rtlGoto.getNextLabel().getAddress()) ? "F" : "T";
+					}
+				}
+				
+				if (label != null)
+					gwriter.writeLabeledEdge(sourceAddr.toString(), 
+							targetAddr.toString(), 
+							label);
+				else
+					gwriter.writeEdge(sourceAddr.toString(), 
+							targetAddr.toString());
+
+			}
+
+			gwriter.close();
+		} catch (IOException e) {
+			logger.error("Cannot write to output file", e);
+			return;
+		}
+	}
+
 
 }

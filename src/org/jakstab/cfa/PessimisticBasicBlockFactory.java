@@ -35,6 +35,11 @@ import org.jakstab.util.Logger;
 import org.jakstab.util.Tuple;
 
 /**
+ * The transformers created by this factory are basic blocks that begin with a 
+ * control flow statement and end on the last statement before the next control
+ * flow statement. The CFA edges created point from the first statement to the
+ * first statement of each successor block.
+ * 
  * @author Johannes Kinder
  */
 public class PessimisticBasicBlockFactory extends ResolvingTransformerFactory implements StateTransformerFactory {

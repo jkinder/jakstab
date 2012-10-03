@@ -290,6 +290,7 @@ public class Main {
 			
 			if (Options.cpas.getValue().contains("v")) {
 				graphWriter.writeVpcGraph(baseFileName + "_vcfg", cfr.getART(), reached);
+				graphWriter.writeVpcBBGraph(baseFileName + "_bbvcfg", cfr.getART(), reached);
 			}
 
 			if (!(cfr.isCompleted() && Options.secondaryCPAs.getValue().length() > 0)) {
