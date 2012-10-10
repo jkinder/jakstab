@@ -243,7 +243,7 @@ public class ProgramGraphWriter {
 					AbsoluteAddress curAddr = addrIt.next();
 					Instruction instr = program.getInstruction(curAddr);
 					if (instr != null) {
-						String instrString = instr.toString(curAddr.getValue(), program.getModule(curAddr).getSymbolFinder());
+						String instrString = program.getInstructionString(curAddr);
 						instrString = instrString.replace("\t", " ");
 						labelBuilder.append(instrString + "\\l");
 					} else {
@@ -320,7 +320,7 @@ public class ProgramGraphWriter {
 				String nodeLabel = program.getSymbolFor(nodeAddr);
 				
 				if (instr != null) {
-					String instrString = instr.toString(nodeAddr.getValue(), program.getModule(nodeAddr).getSymbolFinder());
+					String instrString = program.getInstructionString(nodeAddr);
 					instrString = instrString.replace("\t", " ");
 					gwriter.writeNode(nodeName, nodeLabel + "\\n" + instrString, getNodeProperties(node));
 				} else {
@@ -662,7 +662,7 @@ public class ProgramGraphWriter {
 					AbsoluteAddress curAddr = addrIt.next();
 					Instruction instr = program.getInstruction(curAddr);
 					if (instr != null) {
-						String instrString = instr.toString(curAddr.getValue(), program.getModule(curAddr).getSymbolFinder());
+						String instrString = program.getInstructionString(curAddr);
 						instrString = instrString.replace("\t", " ");
 						labelBuilder.append(instrString + "\\l");
 					} else {
