@@ -289,15 +289,6 @@ public final class Program {
 	}
 	
 	/**
-	 * Get all statements in the Program.
-	 * 
-	 * @return a collection of all statements in all loaded modules.
-	 */
-	public Collection<RTLStatement> getStatements() {
-		return statementMap.values();
-	}
-
-	/**
 	 * Get the statement at a specific label. If there is no statement stored, attempts
 	 * to disassemble the instruction at the label's virtual address. If the address is
 	 * outside of the file area, logs an error and returns a Halt statement by default.
