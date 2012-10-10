@@ -63,7 +63,7 @@ public class CPAAlgorithm implements Algorithm {
 	 */
 	public static CPAAlgorithm createForwardAlgorithm(Program program, ConfigurableProgramAnalysis... cpas) {
 		ConfigurableProgramAnalysis cpa = new CompositeProgramAnalysis(new LocationAnalysis(), cpas);
-		return new CPAAlgorithm(program, cpa, new CFATransformerFactory(program.getCFA()), new FastSet<AbstractState>());
+		return new CPAAlgorithm(program, cpa, new CFATransformerFactory(program.getCFG()), new FastSet<AbstractState>());
 	}
 
 	/**
@@ -76,7 +76,7 @@ public class CPAAlgorithm implements Algorithm {
 	 */
 	public static CPAAlgorithm createBackwardAlgorithm(Program program, ConfigurableProgramAnalysis... cpas) {
 		ConfigurableProgramAnalysis cpa = new CompositeProgramAnalysis(new BackwardLocationAnalysis(), cpas);
-		return new CPAAlgorithm(program, cpa, new ReverseCFATransformerFactory(program.getCFA()), new FastSet<AbstractState>());
+		return new CPAAlgorithm(program, cpa, new ReverseCFATransformerFactory(program.getCFG()), new FastSet<AbstractState>());
 	}
 
 	public CPAAlgorithm(Program program, ConfigurableProgramAnalysis cpa,

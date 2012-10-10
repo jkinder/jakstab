@@ -56,33 +56,21 @@ public class ProgramGraphWriter {
 	private static final Logger logger = Logger.getLogger(ProgramGraphWriter.class);
 	private Program program;
 	
-	private Set<RTLLabel> mustLeaves;
-	private Set<RTLLabel> locations;
-	private SetMultimap<RTLLabel, CFAEdge> inEdges;
-	private SetMultimap<RTLLabel, CFAEdge> outEdges;
+	private Set<Location> mustLeaves;
+	private ControlFlowGraph cfg;
 	private VpcLiftedCFG vcfg;
 
 	public ProgramGraphWriter(Program program) {
 		this.program = program;
 
-		// TODO: Make functions in this class use these pre-initialized data structures 
+		cfg = program.getCFG();
 		
-		locations = new HashSet<RTLLabel>();
-		mustLeaves = new HashSet<RTLLabel>();
-		inEdges = HashMultimap.create();
-		outEdges = HashMultimap.create();
-		
-		for (CFAEdge e : program.getCFA()) {
-			inEdges.put(e.getTarget().getLabel(), e);
-			outEdges.put(e.getSource().getLabel(), e);
-			locations.add(e.getSource().getLabel());
-			locations.add(e.getTarget().getLabel());
-		}
+		mustLeaves = new HashSet<Location>();
 		
 		// Find locations which have an incoming MUST edge, but no outgoing one
-		for (RTLLabel l : locations) {
+		for (Location l : cfg.getNodes()) {
 			boolean foundMust = false;
-			for (CFAEdge e : inEdges.get(l)) {
+			for (CFAEdge e : cfg.getInEdges(l)) {
 				foundMust |= e.getKind() == Kind.MUST;
 			}
 			
@@ -90,7 +78,7 @@ public class ProgramGraphWriter {
 				continue;
 			
 			foundMust = false;
-			for (CFAEdge e : outEdges.get(l)) {
+			for (CFAEdge e : cfg.getOutEdges(l)) {
 				foundMust |= e.getKind() == Kind.MUST;
 			}
 			
@@ -151,13 +139,13 @@ public class ProgramGraphWriter {
 	}
 
 	// Does not write a real graph, but still fits best into this class  
-	public void writeDisassembly(Program program, String filename) {
+	public void writeDisassembly(String filename) {
 		logger.info("Writing assembly file to " + filename);
 
 		SetMultimap<AbsoluteAddress, CFAEdge> branchEdges = HashMultimap.create(); 
 		SetMultimap<AbsoluteAddress, CFAEdge> branchEdgesRev = HashMultimap.create(); 
 		if (!Options.noGraphs.getValue()) {
-			for (CFAEdge e : program.getCFA()) {
+			for (CFAEdge e : cfg.getEdges()) {
 				AbsoluteAddress sourceAddr = e.getSource().getAddress(); 
 				AbsoluteAddress targetAddr = e.getTarget().getAddress();
 				if (program.getInstruction(sourceAddr) instanceof BranchInstruction && !sourceAddr.equals(targetAddr)) {
@@ -298,7 +286,7 @@ public class ProgramGraphWriter {
 	public void writeAssemblyCFG(String filename) {
 		Set<CFAEdge> edges = new HashSet<CFAEdge>(); 
 		Set<RTLLabel> nodes = new HashSet<RTLLabel>();
-		for (CFAEdge e : program.getCFA()) {
+		for (CFAEdge e : cfg.getEdges()) {
 			AbsoluteAddress sourceAddr = e.getSource().getAddress(); 
 			AbsoluteAddress targetAddr = e.getTarget().getAddress();
 			if (!sourceAddr.equals(targetAddr)) {
@@ -373,11 +361,6 @@ public class ProgramGraphWriter {
 	}
 
 	public void writeControlFlowAutomaton(String filename, ReachedSet reached) {
-		Set<Location> nodes = new HashSet<Location>();
-		for (CFAEdge e : program.getCFA()) {
-			nodes.add(e.getTarget());
-			nodes.add(e.getSource());
-		}
 
 		// Create dot file
 		GraphWriter gwriter = createGraphWriter(filename);
@@ -385,7 +368,7 @@ public class ProgramGraphWriter {
 
 		logger.info("Writing CFA to " + gwriter.getFilename());
 		try {
-			for (Location node : nodes) {
+			for (Location node : cfg.getNodes()) {
 				String nodeName = node.toString();
 				StringBuilder labelBuilder = new StringBuilder();
 				labelBuilder.append(nodeName);
@@ -402,7 +385,7 @@ public class ProgramGraphWriter {
 				gwriter.writeNode(nodeName, labelBuilder.toString(), getNodeProperties(node));
 			}
 
-			for (CFAEdge e : program.getCFA()) {
+			for (CFAEdge e : cfg.getEdges()) {
 				if (e.getKind() == null) logger.error("Null kind? " + e);
 				gwriter.writeLabeledEdge(e.getSource().toString(), 
 						e.getTarget().toString(), 
@@ -418,11 +401,6 @@ public class ProgramGraphWriter {
 	}
 	
 	public void writeControlFlowAutomaton(String filename, Map<RTLLabel, Object> reached) {
-		Set<Location> nodes = new HashSet<Location>();
-		for (CFAEdge e : program.getCFA()) {
-			nodes.add(e.getTarget());
-			nodes.add(e.getSource());
-		}
 
 		// Create dot file
 		GraphWriter gwriter = createGraphWriter(filename);
@@ -430,7 +408,7 @@ public class ProgramGraphWriter {
 
 		logger.info("Writing CFA to " + gwriter.getFilename());
 		try {
-			for (Location node : nodes) {
+			for (Location node : cfg.getNodes()) {
 				String nodeName = node.toString();
 				StringBuilder labelBuilder = new StringBuilder();
 				labelBuilder.append(nodeName);
@@ -445,7 +423,7 @@ public class ProgramGraphWriter {
 				gwriter.writeNode(nodeName, labelBuilder.toString(), getNodeProperties(node));
 			}
 
-			for (CFAEdge e : program.getCFA()) {
+			for (CFAEdge e : cfg.getEdges()) {
 				if (e.getKind() == null) logger.error("Null kind? " + e);
 				gwriter.writeLabeledEdge(e.getSource().toString(), 
 						e.getTarget().toString(), 
@@ -542,11 +520,11 @@ public class ProgramGraphWriter {
 	
 	private VpcLiftedCFG getVpcGraph(AbstractReachabilityTree art) {
 		if (vcfg == null)
-			vcfg = new VpcLiftedCFG(art);
+			vcfg = new VpcLiftedCFG(program.getCFG(), art);
 		return vcfg;
 	}
 	
-	public void writeVpcGraph(String filename, AbstractReachabilityTree art, ReachedSet reached) {
+	public void writeVpcGraph(String filename, AbstractReachabilityTree art) {
 		VpcLiftedCFG vCfg = getVpcGraph(art);
 		// Create dot file
 		GraphWriter gwriter = createGraphWriter(filename);
@@ -574,7 +552,7 @@ public class ProgramGraphWriter {
 		}
 	}
 
-	public void writeVpcBBGraph(String filename, AbstractReachabilityTree art, ReachedSet reached) {
+	public void writeVpcBBGraph(String filename, AbstractReachabilityTree art) {
 		
 		VpcLiftedCFG vCfg = getVpcGraph(art);
 		
@@ -638,7 +616,7 @@ public class ProgramGraphWriter {
 
 
 	
-	public void writeVpcAsmBBGraph(String filename, AbstractReachabilityTree art, ReachedSet reached) {
+	public void writeVpcAsmBBGraph(String filename, AbstractReachabilityTree art) {
 		
 		VpcLiftedCFG vCfg = getVpcGraph(art);
 		

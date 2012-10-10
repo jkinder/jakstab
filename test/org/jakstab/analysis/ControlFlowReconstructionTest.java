@@ -76,7 +76,7 @@ public class ControlFlowReconstructionTest {
 
 		assertEquals(numInstructions, program.getAssemblyMap().size());
 		assertEquals(numStatements, program.getStatementCount());
-		assertTrue("Not enough edges!", numEdges <= program.getCFA().size());
+		assertTrue("Not enough edges!", numEdges <= program.getCFG().numEdges());
 		if (checkCompleteness) 
 			assertTrue("Analysis timed out when it should not!", cfr.isCompleted());
 	}

@@ -38,10 +38,10 @@ public class ReverseCFATransformerFactory implements StateTransformerFactory {
 	private SetMultimap<Location, CFAEdge> reverseCFA;
 	private Location sink;
 	
-	public ReverseCFATransformerFactory(Set<CFAEdge> cfa) {
+	public ReverseCFATransformerFactory(ControlFlowGraph cfg) {
 		reverseCFA = HashMultimap.create();
 		Set<Location> nonSinks = new HashSet<Location>();
-		for (CFAEdge e : cfa) {
+		for (CFAEdge e : cfg.getEdges()) {
 			reverseCFA.put(e.getTarget(), e);
 			nonSinks.add(e.getSource());
 		}

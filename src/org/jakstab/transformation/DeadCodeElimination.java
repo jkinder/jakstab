@@ -93,7 +93,7 @@ public class DeadCodeElimination implements CFATransformation {
 		SetMultimap<Location, CFAEdge> inEdges = HashMultimap.create();
 		SetMultimap<Location, CFAEdge> outEdges = HashMultimap.create();
 
-		Set<CFAEdge> cfa = new TreeSet<CFAEdge>(program.getCFA()); 
+		Set<CFAEdge> cfa = new TreeSet<CFAEdge>(program.getCFG().getEdges()); 
 
 		for (CFAEdge e : cfa) {
 			inEdges.put(e.getTarget(), e);

@@ -86,7 +86,7 @@ public class ExpressionSubstitution implements CFATransformation {
 		cpaAlgo.run();
 		ReachedSet exprSubstStates = cpaAlgo.getReachedStates().select(1);
 		
-		for (CFAEdge edge : program.getCFA()) {
+		for (CFAEdge edge : program.getCFG().getEdges()) {
 			assert exprSubstStates.where(edge.getSource()).size() == 1;
 			SubstitutionState s = (SubstitutionState)exprSubstStates.where(edge.getSource()).iterator().next();
 			substituteCFAEdge(edge, s);

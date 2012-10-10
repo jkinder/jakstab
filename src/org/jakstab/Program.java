@@ -79,7 +79,6 @@ public final class Program {
 	private Map<AbsoluteAddress, Instruction> assemblyMap;
 	private ExecutableImage mainModule;
 	private List<ExecutableImage> modules;
-	private Set<CFAEdge> cfa;
 	private ControlFlowGraph cfg;
 	private final Map<String, ExportedSymbol> exportedSymbols;
 	private final Set<UnresolvedSymbol> unresolvedSymbols;
@@ -97,7 +96,6 @@ public final class Program {
 		modules = new LinkedList<ExecutableImage>();
 		assemblyMap = new TreeMap<AbsoluteAddress, Instruction>();
 		statementMap = new HashMap<RTLLabel, RTLStatement>(2000);
-		cfa = new FastSet<CFAEdge>();
 		exportedSymbols = new HashMap<String, ExportedSymbol>();
 		unresolvedSymbols = new FastSet<UnresolvedSymbol>();
 		
@@ -465,7 +463,7 @@ public final class Program {
 	 */
 	public SetOfVariables getUsedVariables() {
 		SetOfVariables result = new SetOfVariables();
-		for (CFAEdge edge : cfa)
+		for (CFAEdge edge : cfg.getEdges())
 			result.addAll(((RTLStatement)edge.getTransformer()).getUsedVariables());
 		return result;
 	}
@@ -479,16 +477,11 @@ public final class Program {
 		return exportedSymbols.values();
 	}
 	
-	public Set<CFAEdge> getCFA() {
-		return Collections.unmodifiableSet(cfa);
-	}
-	
 	public ControlFlowGraph getCFG() {
 		return cfg;
 	}
 
 	public void setCFA(Set<CFAEdge> cfa) {
-		this.cfa = cfa;
 		cfg = new ControlFlowGraph(cfa);
 	}
 

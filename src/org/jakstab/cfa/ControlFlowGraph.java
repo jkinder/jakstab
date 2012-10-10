@@ -11,12 +11,16 @@ import org.jakstab.rtl.statements.BasicBlock;
 import org.jakstab.rtl.statements.RTLGoto;
 import org.jakstab.rtl.statements.RTLStatement;
 import org.jakstab.util.FastSet;
+import org.jakstab.util.Logger;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.SetMultimap;
 
 public class ControlFlowGraph {
 	
+	@SuppressWarnings("unused")
+	private static final Logger logger = Logger.getLogger(ControlFlowGraph.class);
+
 	private SetMultimap<Location, CFAEdge> outEdges;
 	private SetMultimap<Location, CFAEdge> inEdges;
 
@@ -83,6 +87,14 @@ public class ControlFlowGraph {
 				new HashSet<CFAEdge>(outEdges.values()));
 	}
 	
+	public Set<CFAEdge> getInEdges(Location l) {
+		return Collections.unmodifiableSet(inEdges.get(l));
+	}
+	
+	public Set<CFAEdge> getOutEdges(Location l) {
+		return Collections.unmodifiableSet(inEdges.get(l));
+	}
+	
 	public Set<Location> getSuccessorLocations(Location l) {
 		Set<Location> res = new FastSet<Location>();
 		for (CFAEdge e : outEdges.get(l))
@@ -130,6 +142,18 @@ public class ControlFlowGraph {
 		inEdges.put(e.getTarget(), e);
 		locations.add(e.getSource());
 		locations.add(e.getTarget());		
+	}
+	
+	public CFAEdge getEdgeBetween(Location src, Location tgt) {
+		Set<CFAEdge> out = outEdges.get(src);
+		if (out != null) for (CFAEdge e : out)
+			if (e.getTarget().equals(tgt))
+				return e;
+		return null;
+	}
+
+	public int numEdges() {
+		return outEdges.size();
 	}
 
 }

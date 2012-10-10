@@ -252,7 +252,7 @@ public class Main {
 			logger.error( "   Runtime:                     " + String.format("%8dms", (overallEndTime - overallStartTime)));
 			logger.error( "   Instructions:                        " + String.format("%8d", program.getInstructionCount()));
 			logger.error( "   RTL Statements:                      " + String.format("%8d", program.getStatementCount()));
-			logger.error( "   CFA Edges:                           " + String.format("%8d", program.getCFA().size()));
+			logger.error( "   CFA Edges:                           " + String.format("%8d", program.getCFG().numEdges()));
 			logger.error( "   States visited:                      " + String.format("%8d", cfr.getNumberOfStatesVisited()));
 			logger.error( "   Final state space:                   " + String.format("%8d", stateCount));
 			logger.error( "   Finished normally:                   " + String.format("%8b", cfr.isCompleted()));
@@ -267,7 +267,7 @@ public class Main {
 			
 			stats.record(program.getInstructionCount());
 			stats.record(program.getStatementCount());
-			stats.record(program.getCFA().size());
+			stats.record(program.getCFG().numEdges());
 			stats.record(indirectBranches);
 			stats.record(program.getUnresolvedBranches().size());
 			stats.record(cfr.getNumberOfStatesVisited());
@@ -286,11 +286,11 @@ public class Main {
 
 			ProgramGraphWriter graphWriter = new ProgramGraphWriter(program);
 			
-			graphWriter.writeDisassembly(program, baseFileName + "_jak.asm");
+			graphWriter.writeDisassembly(baseFileName + "_jak.asm");
 			
 			if (Options.cpas.getValue().contains("v")) {
-				graphWriter.writeVpcBBGraph(baseFileName + "_vcfg", cfr.getART(), reached);
-				graphWriter.writeVpcAsmBBGraph(baseFileName + "_asmvcfg", cfr.getART(), reached);
+				graphWriter.writeVpcBBGraph(baseFileName + "_vcfg", cfr.getART());
+				graphWriter.writeVpcAsmBBGraph(baseFileName + "_asmvcfg", cfr.getART());
 			}
 
 			if (!(cfr.isCompleted() && Options.secondaryCPAs.getValue().length() > 0)) {

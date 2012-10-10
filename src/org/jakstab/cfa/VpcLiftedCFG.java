@@ -41,13 +41,13 @@ public class VpcLiftedCFG {
 	private Map<VpcLocation, BasicBlock> basicBlocks;
 	private Set<VpcLocation> locations;
 	
-	public VpcLiftedCFG(AbstractReachabilityTree art) {
+	public VpcLiftedCFG(ControlFlowGraph cfg, AbstractReachabilityTree art) {
 		
 		outEdges = HashMultimap.create();
 		inEdges = HashMultimap.create();
 		locations = new HashSet<VpcLocation>();
 		
-		reconstructCFGFromVPC(art);
+		reconstructCFGFromVPC(cfg, art);
 		logger.debug(locations.size() + " VPC locations.");
 		logger.debug(outEdges.size() + " edges in the VPC-CFG.");
 
@@ -140,17 +140,10 @@ public class VpcLiftedCFG {
 				new HashSet<BasicBlock>(basicBlocks.values()));
 	}
 	
-	private VpcLocation reconstructCFGFromVPC(AbstractReachabilityTree art) {
+	private VpcLocation reconstructCFGFromVPC(ControlFlowGraph cfg, AbstractReachabilityTree art) {
 		
-		Program program = Program.getProgram();
 		AnalysisManager mgr = AnalysisManager.getInstance();
-		ControlFlowGraph cfg = program.getCFG();
 		
-		SetMultimap<RTLLabel, CFAEdge> cfaEdges = HashMultimap.create();
-		for (CFAEdge e : program.getCFA()) {
-			cfaEdges.put(e.getSource().getLabel(), e);
-		}
-
 		VpcTrackingAnalysis vpcAnalysis = (VpcTrackingAnalysis)mgr.getAnalysis(VpcTrackingAnalysis.class);
 		
 		int vAnalysisPos = 1 + Options.cpas.getValue().indexOf(mgr.getShorthand(VpcTrackingAnalysis.class));
@@ -175,9 +168,7 @@ public class VpcLiftedCFG {
 				VpcLocation vpcLoc = headVpcLoc;
 				BasedNumberElement nextVpcVal = getVPC(nextState, vpcAnalysis, vAnalysisPos);
 				
-				CFAEdge edge = getEdgeBetween(cfaEdges, 
-						(RTLLabel)headState.getLocation(), 
-						(RTLLabel)nextState.getLocation());
+				CFAEdge edge = cfg.getEdgeBetween(headState.getLocation(), nextState.getLocation());
 
 				List<RTLStatement> stmtList;
 				if (Options.basicBlocks.getValue())
@@ -214,13 +205,4 @@ public class VpcLiftedCFG {
 		return vpcVal;
 	}
 	
-	private CFAEdge getEdgeBetween(SetMultimap<RTLLabel, CFAEdge> cfaEdges, RTLLabel src, RTLLabel tgt) {
-		Set<CFAEdge> out = cfaEdges.get(src);
-		if (out != null) for (CFAEdge e : out)
-			if (e.getTarget().equals(tgt))
-				return e;
-		return null;
-	}
-	
-
 }

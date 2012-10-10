@@ -23,9 +23,6 @@ import org.jakstab.Program;
 import org.jakstab.analysis.AbstractState;
 import org.jakstab.util.Logger;
 
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.SetMultimap;
-
 /**
  * Trivial implementation that provides CFA edges from an already reconstructed
  * control flow automaton. 
@@ -37,18 +34,15 @@ public class CFATransformerFactory implements StateTransformerFactory {
 	@SuppressWarnings("unused")
 	private static final Logger logger = Logger.getLogger(CFATransformerFactory.class);
 	
-	private SetMultimap<Location, CFAEdge> cfa;
+	private ControlFlowGraph cfg;
 	
-	public CFATransformerFactory(Set<CFAEdge> cfa) {
-		this.cfa = HashMultimap.create();
-		for (CFAEdge e : cfa) {
-			this.cfa.put(e.getSource(), e);
-		}
+	public CFATransformerFactory(ControlFlowGraph cfg) {
+		this.cfg = cfg;
 	}
 
 	@Override
 	public Set<CFAEdge> getTransformers(AbstractState a) {
-		Set<CFAEdge> cfaEdges = cfa.get(a.getLocation());
+		Set<CFAEdge> cfaEdges = cfg.getOutEdges(a.getLocation());
 		return cfaEdges;
 	}
 
