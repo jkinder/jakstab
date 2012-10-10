@@ -289,8 +289,8 @@ public class Main {
 			graphWriter.writeDisassembly(program, baseFileName + "_jak.asm");
 			
 			if (Options.cpas.getValue().contains("v")) {
-				//graphWriter.writeVpcGraph(baseFileName + "_vcfg", cfr.getART(), reached);
 				graphWriter.writeVpcBBGraph(baseFileName + "_vcfg", cfr.getART(), reached);
+				graphWriter.writeVpcAsmBBGraph(baseFileName + "_asmvcfg", cfr.getART(), reached);
 			}
 
 			if (!(cfr.isCompleted() && Options.secondaryCPAs.getValue().length() > 0)) {
