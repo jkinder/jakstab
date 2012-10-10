@@ -49,8 +49,8 @@ public class LocationAnalysis implements ConfigurableProgramAnalysis {
 	}
 
 	@Override
-	public AbstractState initStartState(Location label) {
-		return new LocationState(label);
+	public AbstractState initStartState(Location location) {
+		return new LocationState(location);
 	}
 
 	@Override

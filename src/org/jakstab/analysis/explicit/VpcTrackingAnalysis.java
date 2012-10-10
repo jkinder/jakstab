@@ -33,6 +33,7 @@ import org.jakstab.analysis.Precision;
 import org.jakstab.analysis.ReachedSet;
 import org.jakstab.cfa.CFAEdge;
 import org.jakstab.cfa.Location;
+import org.jakstab.cfa.RTLLabel;
 import org.jakstab.cfa.StateTransformer;
 import org.jakstab.rtl.expressions.ExpressionFactory;
 import org.jakstab.rtl.expressions.RTLVariable;
@@ -64,7 +65,7 @@ public class VpcTrackingAnalysis implements ConfigurableProgramAnalysis {
 		logger.debug("Using VPC " + vpc);
 	}
 	
-	public RTLVariable getVPC(Location l) {
+	public RTLVariable getVPC(RTLLabel l) {
 		return vpc;
 	}
 	
@@ -195,7 +196,7 @@ public class VpcTrackingAnalysis implements ConfigurableProgramAnalysis {
 	}
 
 	@Override
-	public AbstractState initStartState(Location label) {
+	public AbstractState initStartState(Location location) {
 		return BasedNumberValuation.createInitialState();
 	}
 

@@ -29,7 +29,7 @@ import org.jakstab.util.FastSet;
 import org.jakstab.util.Logger;
 import org.jakstab.asm.AbsoluteAddress;
 import org.jakstab.asm.SymbolFinder;
-import org.jakstab.cfa.Location;
+import org.jakstab.cfa.RTLLabel;
 import org.jakstab.rtl.expressions.*;
 import org.jakstab.rtl.statements.*;
 import org.jakstab.ssl.Architecture;
@@ -344,7 +344,7 @@ public class Win32StubLibrary implements StubProvider {
 		int rtlId = 0;
 		for (RTLStatement stmt : seq) {
 			stmt.setLabel(address, rtlId++);
-			stmt.setNextLabel(new Location(address, rtlId));
+			stmt.setNextLabel(new RTLLabel(address, rtlId));
 		}
 		seq.getLast().setNextLabel(null);
 

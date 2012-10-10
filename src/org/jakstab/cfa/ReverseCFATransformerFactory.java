@@ -22,7 +22,7 @@ import java.util.Set;
 
 import org.jakstab.analysis.AbstractState;
 import org.jakstab.asm.AbsoluteAddress;
-import org.jakstab.cfa.Location;
+import org.jakstab.cfa.RTLLabel;
 import org.jakstab.rtl.statements.RTLSkip;
 import org.jakstab.util.FastSet;
 import org.jakstab.util.Logger;
@@ -35,12 +35,12 @@ public class ReverseCFATransformerFactory implements StateTransformerFactory {
 	@SuppressWarnings("unused")
 	private static final Logger logger = Logger.getLogger(ReverseCFATransformerFactory.class);
 	
-	private SetMultimap<Location,CFAEdge> reverseCFA;
+	private SetMultimap<Location, CFAEdge> reverseCFA;
 	private Location sink;
 	
 	public ReverseCFATransformerFactory(Set<CFAEdge> cfa) {
 		reverseCFA = HashMultimap.create();
-		Set<Location> nonSinks = new HashSet<Location>();
+		Set<RTLLabel> nonSinks = new HashSet<RTLLabel>();
 		for (CFAEdge e : cfa) {
 			reverseCFA.put(e.getTarget(), e);
 			nonSinks.add(e.getSource());
@@ -59,9 +59,9 @@ public class ReverseCFATransformerFactory implements StateTransformerFactory {
 			throw new RuntimeException("CFA has no sink!");
 		} else {
 			// Generate artificial exit node
-			sink = new Location(new AbsoluteAddress(0xFFFFFF01L));
+			sink = new RTLLabel(new AbsoluteAddress(0xFFFFFF01L));
 			for (Location l : sinks) {
-				reverseCFA.put(sink, new CFAEdge(l, sink, new RTLSkip()));
+				reverseCFA.put(sink, new CFAEdge((RTLLabel)l, (RTLLabel)sink, new RTLSkip()));
 			}
 		}
 	}

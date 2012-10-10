@@ -36,6 +36,7 @@ import org.jakstab.analysis.ReachedSet;
 import org.jakstab.asm.AbsoluteAddress;
 import org.jakstab.cfa.CFAEdge;
 import org.jakstab.cfa.Location;
+import org.jakstab.cfa.RTLLabel;
 import org.jakstab.cfa.StateTransformer;
 import org.jakstab.rtl.statements.RTLAssume;
 import org.jakstab.rtl.statements.RTLGoto;
@@ -124,7 +125,7 @@ public class TraceReplayAnalysis implements ConfigurableProgramAnalysis {
 		return null;
 	}
 
-	public AbstractState initStartState(Location label) {
+	public AbstractState initStartState(Location location) {
 		//return new TraceReplayState(succ, ((Location)label).getAddress());
 		return TraceReplayState.BOT;
 	}
@@ -142,7 +143,7 @@ public class TraceReplayAnalysis implements ConfigurableProgramAnalysis {
 		return Program.getProgram().getModule(a) != null;
 	}
 
-	private static boolean isProgramAddress(Location l) {
+	private static boolean isProgramAddress(RTLLabel l) {
 		return isProgramAddress(l.getAddress());
 	}
 
@@ -155,8 +156,8 @@ public class TraceReplayAnalysis implements ConfigurableProgramAnalysis {
 	private AbstractState singlePost(AbstractState state, CFAEdge cfaEdge, Precision precision) {
 
 		
-		Location edgeTarget = cfaEdge.getTarget();
-		Location edgeSource = cfaEdge.getSource();
+		RTLLabel edgeTarget = cfaEdge.getTarget();
+		RTLLabel edgeSource = cfaEdge.getSource();
 		
 		// If the entire edge is outside the module, just wait and do nothing 
 		if (!isProgramAddress(edgeSource) && !isProgramAddress(edgeTarget)) {

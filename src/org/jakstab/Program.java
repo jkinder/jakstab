@@ -26,7 +26,7 @@ import org.jakstab.util.Logger;
 import org.jakstab.asm.*;
 import org.jakstab.cfa.CFAEdge;
 import org.jakstab.cfa.ControlFlowGraph;
-import org.jakstab.cfa.Location;
+import org.jakstab.cfa.RTLLabel;
 import org.jakstab.disasm.DisassemblyException;
 import org.jakstab.loader.*;
 import org.jakstab.loader.elf.ELFModule;
@@ -74,8 +74,8 @@ public final class Program {
 	}
 
 	private final Architecture arch;
-	private Location start;
-	private Map<Location, RTLStatement> statementMap;
+	private RTLLabel start;
+	private Map<RTLLabel, RTLStatement> statementMap;
 	private Map<AbsoluteAddress, Instruction> assemblyMap;
 	private ExecutableImage mainModule;
 	private List<ExecutableImage> modules;
@@ -83,7 +83,7 @@ public final class Program {
 	private ControlFlowGraph cfg;
 	private final Map<String, ExportedSymbol> exportedSymbols;
 	private final Set<UnresolvedSymbol> unresolvedSymbols;
-	private Set<Location> unresolvedBranches;
+	private Set<RTLLabel> unresolvedBranches;
 	private StubProvider stubLibrary;
 	private Harness harness;
 	
@@ -96,12 +96,12 @@ public final class Program {
 
 		modules = new LinkedList<ExecutableImage>();
 		assemblyMap = new TreeMap<AbsoluteAddress, Instruction>();
-		statementMap = new HashMap<Location, RTLStatement>(2000);
+		statementMap = new HashMap<RTLLabel, RTLStatement>(2000);
 		cfa = new FastSet<CFAEdge>();
 		exportedSymbols = new HashMap<String, ExportedSymbol>();
 		unresolvedSymbols = new FastSet<UnresolvedSymbol>();
 		
-		unresolvedBranches = new FastSet<Location>();
+		unresolvedBranches = new FastSet<RTLLabel>();
 	}
 	
 	/**
@@ -251,7 +251,7 @@ public final class Program {
 	 * Set the program entry point to the given label.
 	 * @param label the new entry point
 	 */
-	public void setStart(Location label) {
+	public void setStart(RTLLabel label) {
 		this.start = label;
 	}
 
@@ -260,7 +260,7 @@ public final class Program {
 	 * @param entryAddress the new entry address
 	 */
 	public void setEntryAddress(AbsoluteAddress entryAddress) {
-		setStart(new Location(entryAddress));
+		setStart(new RTLLabel(entryAddress));
 	}
 	
 	/**
@@ -305,7 +305,7 @@ public final class Program {
 	 * @param label The label for which to get the statement
 	 * @return The statement object at label.
 	 */
-	public final RTLStatement getStatement(Location label) {
+	public final RTLStatement getStatement(RTLLabel label) {
 		if (!statementMap.containsKey(label)) {
 			AbsoluteAddress address = label.getAddress();
 			Instruction instr = getInstruction(address);
@@ -343,7 +343,7 @@ public final class Program {
 		statementMap.put(stmt.getLabel(), stmt);
 	}
 	
-	public boolean containsLabel(Location label) {
+	public boolean containsLabel(RTLLabel label) {
 		return statementMap.containsKey(label);
 	}
 
@@ -426,7 +426,7 @@ public final class Program {
 		return instr.toString(addr.getValue(), symbolFinder(addr));
 	}
 	
-	public String getSymbolFor(Location label) {
+	public String getSymbolFor(RTLLabel label) {
 		SymbolFinder symFinder = symbolFinder(label.getAddress());
 		if (symFinder.hasSymbolFor(label.getAddress())) {
 			return symFinder.getSymbolFor(label.getAddress());
@@ -447,11 +447,11 @@ public final class Program {
 		return (module == null) ? new DummySymbolFinder() : module.getSymbolFinder();
 	}
 	
-	public Set<Location> getUnresolvedBranches() {
+	public Set<RTLLabel> getUnresolvedBranches() {
 		return unresolvedBranches;
 	}
 
-	public void setUnresolvedBranches(Set<Location> unresolvedBranches) {
+	public void setUnresolvedBranches(Set<RTLLabel> unresolvedBranches) {
 		this.unresolvedBranches = unresolvedBranches;
 	}
 
@@ -501,7 +501,7 @@ public final class Program {
 		cfg = new ControlFlowGraph(cfa);
 	}
 
-	public Location getStart() {
+	public RTLLabel getStart() {
 		return start;
 	}
 	

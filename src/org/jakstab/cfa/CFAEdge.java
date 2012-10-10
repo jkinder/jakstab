@@ -60,12 +60,12 @@ public class CFAEdge implements Comparable<CFAEdge> {
 		} 
 	}
 
-	private Location source;
-	private Location target;
+	private RTLLabel source;
+	private RTLLabel target;
 	private StateTransformer transformer;
 	private Kind kind;
 
-	public CFAEdge(Location source, Location target, StateTransformer transformer, Kind kind) {
+	public CFAEdge(RTLLabel source, RTLLabel target, StateTransformer transformer, Kind kind) {
 		super();
 		assert (source != null && target != null) : "Cannot create edge with dangling edges: " + source + " -> " + target;
 		assert transformer != null : "Need to specify transformer for edge " + source + " -> " + target;
@@ -76,21 +76,21 @@ public class CFAEdge implements Comparable<CFAEdge> {
 		this.kind = kind;
 	}
 	
-	public CFAEdge(Location source, Location target, StateTransformer transformer) {
+	public CFAEdge(RTLLabel source, RTLLabel target, StateTransformer transformer) {
 		this(source, target, transformer, Kind.MAY);
 	}
 
 	/**
 	 * @return the source
 	 */
-	public Location getSource() {
+	public RTLLabel getSource() {
 		return source;
 	}
 	
 	/**
 	 * @return the target
 	 */
-	public Location getTarget() {
+	public RTLLabel getTarget() {
 		return target;
 	}
 
@@ -114,11 +114,11 @@ public class CFAEdge implements Comparable<CFAEdge> {
 		assert transformer != null : "Need to specify transformer for edge " + source + " -> " + target;
 	}
 
-	public void setSource(Location source) {
+	public void setSource(RTLLabel source) {
 		this.source = source;
 	}
 
-	public void setTarget(Location target) {
+	public void setTarget(RTLLabel target) {
 		this.target = target;
 	}
 

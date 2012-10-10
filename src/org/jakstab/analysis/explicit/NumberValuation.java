@@ -24,6 +24,7 @@ import org.jakstab.Program;
 import org.jakstab.analysis.*;
 import org.jakstab.asm.AbsoluteAddress;
 import org.jakstab.cfa.Location;
+import org.jakstab.cfa.RTLLabel;
 import org.jakstab.cfa.StateTransformer;
 import org.jakstab.loader.ExecutableImage;
 import org.jakstab.rtl.*;
@@ -338,7 +339,7 @@ public final class NumberValuation implements AbstractState {
 			setValue((RTLMemoryLocation)w, v);
 	}
 	
-	public Location getProgramCounter() {
+	public RTLLabel getProgramCounter() {
 		return null;
 	}
 

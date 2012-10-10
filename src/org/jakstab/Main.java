@@ -32,6 +32,7 @@ import org.jakstab.analysis.procedures.ProcedureAnalysis;
 import org.jakstab.analysis.procedures.ProcedureState;
 import org.jakstab.asm.*;
 import org.jakstab.cfa.Location;
+import org.jakstab.cfa.RTLLabel;
 import org.jakstab.loader.*;
 import org.jakstab.rtl.expressions.ExpressionFactory;
 import org.jakstab.ssl.Architecture;
@@ -362,16 +363,16 @@ public class Main {
 				CPAAlgorithm cpaAlg = CPAAlgorithm.createForwardAlgorithm(program, procedureAnalysis);
 				runAlgorithm(cpaAlg);
 				reached = cpaAlg.getReachedStates().select(1);
-				Set<Location> procedures = procedureAnalysis.getCallees();
+				Set<RTLLabel> procedures = procedureAnalysis.getCallees();
 
-				SetMultimap<Location, Location> callGraph = HashMultimap.create();
+				SetMultimap<RTLLabel, RTLLabel> callGraph = HashMultimap.create();
 
 				// Procedure analysis and thus this callgraph only works with --procedures 2
 				// A broken callgraph does not affect the safety checks, though, as all
 				// procedures are checked without any interprocedural abstraction anyway
-				for (Pair<Location,Location> callSite : procedureAnalysis.getCallSites()) {
+				for (Pair<RTLLabel,RTLLabel> callSite : procedureAnalysis.getCallSites()) {
 					ProcedureState procedureState = (ProcedureState)Lattices.joinAll(reached.where(callSite.getLeft()));
-					for (Location procedure : procedureState.getProcedureEntries()) {
+					for (RTLLabel procedure : procedureState.getProcedureEntries()) {
 						callGraph.put(procedure, callSite.getRight()); 
 					}
 				}

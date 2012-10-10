@@ -30,7 +30,7 @@ import org.jakstab.analysis.composite.DualCompositeState;
 import org.jakstab.asm.AbsoluteAddress;
 import org.jakstab.cfa.CFAEdge.Kind;
 import org.jakstab.rtl.Context;
-import org.jakstab.cfa.Location;
+import org.jakstab.cfa.RTLLabel;
 import org.jakstab.rtl.expressions.ExpressionFactory;
 import org.jakstab.rtl.expressions.RTLExpression;
 import org.jakstab.rtl.expressions.RTLNumber;
@@ -60,7 +60,7 @@ public class AlternatingStateTransformerFactory extends ResolvingTransformerFact
 
 	@Override
 	public Set<CFAEdge> getTransformers(final AbstractState a) {
-		RTLStatement stmt = Program.getProgram().getStatement(a.getLocation());
+		RTLStatement stmt = Program.getProgram().getStatement((RTLLabel)a.getLocation());
 
 		Set<CFAEdge> transformers = stmt.accept(new DefaultStatementVisitor<Set<CFAEdge>>() {
 
@@ -93,10 +93,10 @@ public class AlternatingStateTransformerFactory extends ResolvingTransformerFact
 				if (Options.procedureAbstraction.getValue() == 2) {
 					// Calls always get a fallthrough edge in optimistic mode
 					if (stmt.getType() == RTLGoto.Type.CALL) {
-						Location nextLabel = stmt.getNextLabel();
+						RTLLabel nextLabel = stmt.getNextLabel();
 
 						if (Program.getProgram().getHarness().contains(stmt.getAddress())) {
-							nextLabel = new Location(Program.getProgram().getHarness().getFallthroughAddress(stmt.getAddress()));
+							nextLabel = new RTLLabel(Program.getProgram().getHarness().getFallthroughAddress(stmt.getAddress()));
 						}
 
 						if (nextLabel != null) {
@@ -120,7 +120,7 @@ public class AlternatingStateTransformerFactory extends ResolvingTransformerFact
 				for (Tuple<RTLNumber> pair : dcs.projectionFromConcretization(stmt.getCondition(), stmt.getTargetExpression())) {
 					RTLNumber conditionValue = pair.get(0);
 					RTLNumber targetValue = pair.get(1);
-					Location nextLabel;
+					RTLLabel nextLabel;
 					// Start building the assume expression: assume correct condition case 
 					assert conditionValue != null;
 					RTLExpression assumption = 
@@ -143,7 +143,7 @@ public class AlternatingStateTransformerFactory extends ResolvingTransformerFact
 										targetValue)
 								);
 						// set next label to jump target
-						nextLabel = new Location(new AbsoluteAddress(targetValue));
+						nextLabel = new RTLLabel(new AbsoluteAddress(targetValue));
 					}
 					assumption = assumption.evaluate(new Context());
 					RTLAssume assume = new RTLAssume(assumption, stmt);
@@ -162,7 +162,7 @@ public class AlternatingStateTransformerFactory extends ResolvingTransformerFact
 				for (Tuple<RTLNumber> pair : dcs.projection(stmt.getCondition(), stmt.getTargetExpression())) {
 					RTLNumber conditionValue = pair.get(0);
 					RTLNumber targetValue = pair.get(1);
-					Location nextLabel;
+					RTLLabel nextLabel;
 					// Start building the assume expression: assume correct condition case 
 					assert conditionValue != null;
 					RTLExpression assumption = 
@@ -224,7 +224,7 @@ public class AlternatingStateTransformerFactory extends ResolvingTransformerFact
 										targetValue)
 								);
 						// set next label to jump target
-						nextLabel = new Location(new AbsoluteAddress(targetValue));
+						nextLabel = new RTLLabel(new AbsoluteAddress(targetValue));
 					}
 					assumption = assumption.evaluate(new Context());
 					RTLAssume assume = new RTLAssume(assumption, stmt);
@@ -244,13 +244,13 @@ public class AlternatingStateTransformerFactory extends ResolvingTransformerFact
 
 		});		
 
-		saveNewEdges(transformers, a.getLocation());
+		saveNewEdges(transformers, (RTLLabel)a.getLocation());
 
 		return transformers;
 	}
 
 	@Override
-	protected void saveNewEdges(Set<CFAEdge> transformers, Location l) {
+	protected void saveNewEdges(Set<CFAEdge> transformers, RTLLabel l) {
 		// Make sure we only add new edges. Edges are mutable so we cannot just implement
 		// hashCode and equals and add everything into a HashSet.
 		for (CFAEdge edge : transformers) {

@@ -94,10 +94,10 @@ public interface ConfigurableProgramAnalysis {
 	 * Initializes an abstract state with initial valuations using a given program 
 	 * counter value
 	 * 
-	 * @param label the initial location for this analysis
+	 * @param location the initial location for this analysis
 	 * @return the new abstract initial state
 	 */
-	public AbstractState initStartState(Location label);
+	public AbstractState initStartState(Location location);
 
 	/**
 	 * Initializes a precision object every time a new location is reached.

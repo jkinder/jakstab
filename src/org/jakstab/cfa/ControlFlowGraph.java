@@ -17,18 +17,18 @@ import com.google.common.collect.SetMultimap;
 
 public class ControlFlowGraph {
 	
-	private SetMultimap<Location, CFAEdge> outEdges;
-	private SetMultimap<Location, CFAEdge> inEdges;
+	private SetMultimap<RTLLabel, CFAEdge> outEdges;
+	private SetMultimap<RTLLabel, CFAEdge> inEdges;
 
-	private SetMultimap<Location, CFAEdge> bbOutEdges;
-	private SetMultimap<Location, CFAEdge> bbInEdges;
-	private Map<Location, BasicBlock> basicBlocks;
-	private Set<Location> locations;
+	private SetMultimap<RTLLabel, CFAEdge> bbOutEdges;
+	private SetMultimap<RTLLabel, CFAEdge> bbInEdges;
+	private Map<RTLLabel, BasicBlock> basicBlocks;
+	private Set<RTLLabel> locations;
 	
 	public ControlFlowGraph(Set<CFAEdge> edges) {
 		outEdges = HashMultimap.create();
 		inEdges = HashMultimap.create();
-		locations = new HashSet<Location>();
+		locations = new HashSet<RTLLabel>();
 		
 		for (CFAEdge e : edges) {
 			addEdge(e);
@@ -36,10 +36,10 @@ public class ControlFlowGraph {
 		
 		bbOutEdges = HashMultimap.create();
 		bbInEdges = HashMultimap.create();
-		basicBlocks = new HashMap<Location, BasicBlock>();
+		basicBlocks = new HashMap<RTLLabel, BasicBlock>();
 		Program program = Program.getProgram();
 		
-		for (Location l : locations) {
+		for (RTLLabel l : locations) {
 			Set<CFAEdge> in = inEdges.get(l);
 			if (in != null && in.size() == 1) {
 				CFAEdge e = in.iterator().next();
@@ -51,12 +51,12 @@ public class ControlFlowGraph {
 			basicBlocks.put(l, bb);
 		}
 		
-		for (Map.Entry<Location, BasicBlock> entry : basicBlocks.entrySet()) {
-			Location head = entry.getKey();
+		for (Map.Entry<RTLLabel, BasicBlock> entry : basicBlocks.entrySet()) {
+			RTLLabel head = entry.getKey();
 			BasicBlock bb = entry.getValue();
 			
 			bb.add(program.getStatement(head));
-			Location l = head;
+			RTLLabel l = head;
 			Set<CFAEdge> out = outEdges.get(l);
 			while (out != null && out.size() == 1) {
 				l = out.iterator().next().getTarget();
@@ -74,7 +74,7 @@ public class ControlFlowGraph {
 		}
 	}
 	
-	public Set<Location> getNodes() {
+	public Set<RTLLabel> getNodes() {
 		return Collections.unmodifiableSet(locations);
 	}
 	
@@ -83,18 +83,18 @@ public class ControlFlowGraph {
 				new HashSet<CFAEdge>(outEdges.values()));
 	}
 	
-	public Set<Location> getSuccessorLocations(Location l) {
-		Set<Location> res = new FastSet<Location>();
+	public Set<RTLLabel> getSuccessorLocations(RTLLabel l) {
+		Set<RTLLabel> res = new FastSet<RTLLabel>();
 		for (CFAEdge e : outEdges.get(l))
 			res.add(e.getTarget());
 		return res;
 	}
 	
-	public BasicBlock getBasicBlock(Location l) {
+	public BasicBlock getBasicBlock(RTLLabel l) {
 		return basicBlocks.get(l);
 	}
 	
-	public Set<Location> getBasicBlockNodes() {
+	public Set<RTLLabel> getBasicBlockNodes() {
 		return Collections.unmodifiableSet(basicBlocks.keySet());
 	}
 	

@@ -59,7 +59,7 @@ public class SignAnalysis implements ConfigurableProgramAnalysis {
 	 * @see org.jakstab.analysis.ConfigurableProgramAnalysis#initStartState(org.jakstab.cfa.Location)
 	 */
 	@Override
-	public AbstractState initStartState(Location label) {
+	public AbstractState initStartState(Location location) {
 		return SignState.TOP;
 	}
 

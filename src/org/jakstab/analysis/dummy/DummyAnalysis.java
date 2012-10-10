@@ -71,7 +71,7 @@ public class DummyAnalysis implements ConfigurableProgramAnalysis {
 	}
 
 	@Override
-	public AbstractState initStartState(Location label) {
+	public AbstractState initStartState(Location location) {
 		return top;
 	}
 

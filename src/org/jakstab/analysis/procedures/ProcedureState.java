@@ -22,6 +22,7 @@ import java.util.Set;
 import org.jakstab.analysis.AbstractState;
 import org.jakstab.analysis.LatticeElement;
 import org.jakstab.cfa.Location;
+import org.jakstab.cfa.RTLLabel;
 import org.jakstab.rtl.expressions.RTLExpression;
 import org.jakstab.rtl.expressions.RTLNumber;
 import org.jakstab.util.FastSet;
@@ -36,13 +37,13 @@ public class ProcedureState implements AbstractState {
 	@SuppressWarnings("unused")
 	private static final Logger logger = Logger.getLogger(ProcedureState.class);
 	
-	private FastSet<Location> procedureEntries;
+	private FastSet<RTLLabel> procedureEntries;
 
-	public ProcedureState(FastSet<Location> procedureEntries) {
+	public ProcedureState(FastSet<RTLLabel> procedureEntries) {
 		this.procedureEntries = procedureEntries;
 	}
 	
-	public Set<Location> getProcedureEntries() {
+	public Set<RTLLabel> getProcedureEntries() {
 		return procedureEntries;
 	}
 

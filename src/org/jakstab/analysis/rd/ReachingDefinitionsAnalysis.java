@@ -30,7 +30,7 @@ public class ReachingDefinitionsAnalysis extends SimpleCPA implements Configurab
 	}
 
 	@Override
-	public AbstractState initStartState(Location label) {
+	public AbstractState initStartState(Location location) {
 		// TODO Return the initial state for a program entry location "label" here.
 		return new RDState(); // Dummy
 	}

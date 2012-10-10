@@ -22,7 +22,7 @@ import java.util.Set;
 import org.jakstab.analysis.AbstractState;
 import org.jakstab.asm.AbsoluteAddress;
 import org.jakstab.rtl.Context;
-import org.jakstab.cfa.Location;
+import org.jakstab.cfa.RTLLabel;
 import org.jakstab.rtl.expressions.ExpressionFactory;
 import org.jakstab.rtl.expressions.RTLExpression;
 import org.jakstab.rtl.expressions.RTLNumber;
@@ -55,7 +55,7 @@ public class SemiOptimisticStateTransformerFactory extends ResolvingTransformerF
 		for (Tuple<RTLNumber> pair : valuePairs) {
 			RTLNumber conditionValue = pair.get(0);
 			RTLNumber targetValue = pair.get(1);
-			Location nextLabel;
+			RTLLabel nextLabel;
 			// assume correct condition case 
 			assert conditionValue != null;
 			RTLExpression assumption = 
@@ -94,7 +94,7 @@ public class SemiOptimisticStateTransformerFactory extends ResolvingTransformerF
 									targetValue)
 					);
 					// set next label to jump target
-					nextLabel = new Location(new AbsoluteAddress(targetValue));
+					nextLabel = new RTLLabel(new AbsoluteAddress(targetValue));
 				}
 			}
 			assumption = assumption.evaluate(new Context());

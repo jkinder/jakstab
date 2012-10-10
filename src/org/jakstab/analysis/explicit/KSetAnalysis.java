@@ -68,7 +68,7 @@ public class KSetAnalysis implements ConfigurableProgramAnalysis {
 	}
 
 	@Override
-	public AbstractState initStartState(Location label) {
+	public AbstractState initStartState(Location location) {
 		return new ValuationState(valueFactory);
 	}
 

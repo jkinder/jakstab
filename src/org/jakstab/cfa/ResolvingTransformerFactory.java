@@ -21,7 +21,7 @@ import java.util.*;
 
 import org.jakstab.Program;
 import org.jakstab.analysis.AbstractState;
-import org.jakstab.cfa.Location;
+import org.jakstab.cfa.RTLLabel;
 import org.jakstab.rtl.statements.*;
 import org.jakstab.util.FastSet;
 import org.jakstab.util.Logger;
@@ -41,21 +41,21 @@ public abstract class ResolvingTransformerFactory implements StateTransformerFac
 	@SuppressWarnings("unused")
 	private static final Logger logger = Logger.getLogger(ResolvingTransformerFactory.class);
 
-	protected final Set<Location> unresolvedBranches = new FastSet<Location>();
+	protected final Set<RTLLabel> unresolvedBranches = new FastSet<RTLLabel>();
 	protected boolean sound = true;
-	protected SetMultimap<Location,CFAEdge> outEdges = HashMultimap.create();
+	protected SetMultimap<RTLLabel,CFAEdge> outEdges = HashMultimap.create();
 
 	public boolean isSound() {
 		return sound;
 	}
 
-	public Set<Location> getUnresolvedBranches() {
+	public Set<RTLLabel> getUnresolvedBranches() {
 		return unresolvedBranches;
 	}
 
 	@Override
 	public Set<CFAEdge> getTransformers(final AbstractState a) {
-		RTLStatement stmt = Program.getProgram().getStatement(a.getLocation());
+		RTLStatement stmt = Program.getProgram().getStatement((RTLLabel)a.getLocation());
 
 		Set<CFAEdge> transformers = stmt.accept(new DefaultStatementVisitor<Set<CFAEdge>>() {
 
@@ -77,12 +77,12 @@ public abstract class ResolvingTransformerFactory implements StateTransformerFac
 
 		});		
 
-		saveNewEdges(transformers, a.getLocation());
+		saveNewEdges(transformers, (RTLLabel)a.getLocation());
 
 		return transformers;
 	}
 
-	protected void saveNewEdges(Set<CFAEdge> transformers, Location l) {
+	protected void saveNewEdges(Set<CFAEdge> transformers, RTLLabel l) {
 		// Make sure we only add new edges. Edges are mutable so we cannot just implement
 		// hashCode and equals and add everything into a HashSet.
 		Set<CFAEdge> newEdges;
@@ -105,7 +105,7 @@ public abstract class ResolvingTransformerFactory implements StateTransformerFac
 		outEdges.putAll(l, newEdges);
 	}
 
-	public Set<CFAEdge> getExistingOutEdges(Location l) {
+	public Set<CFAEdge> getExistingOutEdges(RTLLabel l) {
 		return outEdges.get(l);
 	}
 

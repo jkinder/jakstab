@@ -48,25 +48,16 @@ public class LocationState implements AbstractState, Comparable<LocationState> {
 		this.location = location;
 	}
 	
-	/*
-	 * @see org.jakstab.analysis.AbstractState#getIdentifier()
-	 */
 	@Override
 	public String getIdentifier() {
 		return location.toString();
 	}
 
-	/*
-	 * @see org.jakstab.analysis.AbstractState#getLocation()
-	 */
 	@Override
 	public Location getLocation() {
 		return location;
 	}
 
-	/*
-	 * @see org.jakstab.analysis.AbstractState#join(org.jakstab.analysis.LatticeElement)
-	 */
 	@Override
 	public LocationState join(LatticeElement l) {
 		LocationState c = (LocationState)l;
@@ -75,34 +66,22 @@ public class LocationState implements AbstractState, Comparable<LocationState> {
 		return TOP;
 	}
 
-	/*
-	 * @see org.jakstab.analysis.LatticeElement#isBot()
-	 */
 	@Override
 	public boolean isBot() {
 		return this == BOT;
 	}
 
-	/*
-	 * @see org.jakstab.analysis.LatticeElement#isTop()
-	 */
 	@Override
 	public boolean isTop() {
 		return this == TOP;
 	}
 
-	/*
-	 * @see org.jakstab.analysis.LatticeElement#lessOrEqual(org.jakstab.analysis.LatticeElement)
-	 */
 	@Override
 	public boolean lessOrEqual(LatticeElement l) {
 		if (l.isTop() || this.equals(l)) return true;
 		return false;
 	}
 
-	/*
-	 * @see java.lang.Object#hashCode()
-	 */
 	@Override
 	public int hashCode() {
 		if (isTop()) return 38941;
@@ -110,9 +89,6 @@ public class LocationState implements AbstractState, Comparable<LocationState> {
 		return location.hashCode() + 31;
 	}
 
-	/*
-	 * @see java.lang.Object#equals(java.lang.Object)
-	 */
 	@Override
 	public boolean equals(Object obj) {
 		if (this == obj) return true;

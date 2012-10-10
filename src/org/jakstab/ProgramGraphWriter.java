@@ -31,7 +31,7 @@ import org.jakstab.asm.SymbolFinder;
 import org.jakstab.cfa.CFAEdge;
 import org.jakstab.cfa.CFAEdge.Kind;
 import org.jakstab.cfa.ControlFlowGraph;
-import org.jakstab.cfa.Location;
+import org.jakstab.cfa.RTLLabel;
 import org.jakstab.cfa.VpcLiftedCFG;
 import org.jakstab.cfa.VpcLocation;
 import org.jakstab.rtl.expressions.ExpressionFactory;
@@ -55,10 +55,10 @@ public class ProgramGraphWriter {
 	private static final Logger logger = Logger.getLogger(ProgramGraphWriter.class);
 	private Program program;
 	
-	private Set<Location> mustLeaves;
-	private Set<Location> locations;
-	private SetMultimap<Location, CFAEdge> inEdges;
-	private SetMultimap<Location, CFAEdge> outEdges;
+	private Set<RTLLabel> mustLeaves;
+	private Set<RTLLabel> locations;
+	private SetMultimap<RTLLabel, CFAEdge> inEdges;
+	private SetMultimap<RTLLabel, CFAEdge> outEdges;
 	private VpcLiftedCFG vcfg;
 
 	public ProgramGraphWriter(Program program) {
@@ -66,8 +66,8 @@ public class ProgramGraphWriter {
 
 		// TODO: Make functions in this class use these pre-initialized data structures 
 		
-		locations = new HashSet<Location>();
-		mustLeaves = new HashSet<Location>();
+		locations = new HashSet<RTLLabel>();
+		mustLeaves = new HashSet<RTLLabel>();
 		inEdges = HashMultimap.create();
 		outEdges = HashMultimap.create();
 		
@@ -79,7 +79,7 @@ public class ProgramGraphWriter {
 		}
 		
 		// Find locations which have an incoming MUST edge, but no outgoing one
-		for (Location l : locations) {
+		for (RTLLabel l : locations) {
 			boolean foundMust = false;
 			for (CFAEdge e : inEdges.get(l)) {
 				foundMust |= e.getKind() == Kind.MUST;
@@ -117,7 +117,7 @@ public class ProgramGraphWriter {
 		}
 	}
 
-	private Map<String,String> getNodeProperties(Location loc) {
+	private Map<String,String> getNodeProperties(RTLLabel loc) {
 		RTLStatement curStmt = program.getStatement(loc);
 		Map<String,String> properties = new HashMap<String, String>();
 
@@ -260,7 +260,7 @@ public class ProgramGraphWriter {
 				BasicBlock bb = (BasicBlock)e.getTransformer();
 				
 				String label = null;
-				Location lastLoc = bb.getLast().getLabel();
+				RTLLabel lastLoc = bb.getLast().getLabel();
 				Instruction instr = program.getInstruction(lastLoc.getAddress());
 				
 				if (instr instanceof BranchInstruction) {
@@ -296,7 +296,7 @@ public class ProgramGraphWriter {
 	
 	public void writeAssemblyCFG(String filename) {
 		Set<CFAEdge> edges = new HashSet<CFAEdge>(); 
-		Set<Location> nodes = new HashSet<Location>();
+		Set<RTLLabel> nodes = new HashSet<RTLLabel>();
 		for (CFAEdge e : program.getCFA()) {
 			AbsoluteAddress sourceAddr = e.getSource().getAddress(); 
 			AbsoluteAddress targetAddr = e.getTarget().getAddress();
@@ -313,7 +313,7 @@ public class ProgramGraphWriter {
 
 		logger.info("Writing assembly CFG to " + gwriter.getFilename());
 		try {
-			for (Location node : nodes) {
+			for (RTLLabel node : nodes) {
 				AbsoluteAddress nodeAddr = node.getAddress();
 				Instruction instr = program.getInstruction(nodeAddr);
 				String nodeName = nodeAddr.toString();
@@ -372,7 +372,7 @@ public class ProgramGraphWriter {
 	}
 
 	public void writeControlFlowAutomaton(String filename, ReachedSet reached) {
-		Set<Location> nodes = new HashSet<Location>();
+		Set<RTLLabel> nodes = new HashSet<RTLLabel>();
 		for (CFAEdge e : program.getCFA()) {
 			nodes.add(e.getTarget());
 			nodes.add(e.getSource());
@@ -384,7 +384,7 @@ public class ProgramGraphWriter {
 
 		logger.info("Writing CFA to " + gwriter.getFilename());
 		try {
-			for (Location node : nodes) {
+			for (RTLLabel node : nodes) {
 				String nodeName = node.toString();
 				StringBuilder labelBuilder = new StringBuilder();
 				labelBuilder.append(nodeName);
@@ -416,8 +416,8 @@ public class ProgramGraphWriter {
 		}
 	}
 	
-	public void writeControlFlowAutomaton(String filename, Map<Location, Object> reached) {
-		Set<Location> nodes = new HashSet<Location>();
+	public void writeControlFlowAutomaton(String filename, Map<RTLLabel, Object> reached) {
+		Set<RTLLabel> nodes = new HashSet<RTLLabel>();
 		for (CFAEdge e : program.getCFA()) {
 			nodes.add(e.getTarget());
 			nodes.add(e.getSource());
@@ -429,7 +429,7 @@ public class ProgramGraphWriter {
 
 		logger.info("Writing CFA to " + gwriter.getFilename());
 		try {
-			for (Location node : nodes) {
+			for (RTLLabel node : nodes) {
 				String nodeName = node.toString();
 				StringBuilder labelBuilder = new StringBuilder();
 				labelBuilder.append(nodeName);
@@ -459,23 +459,23 @@ public class ProgramGraphWriter {
 		}
 	}
 	
-	public void writeCallGraph(String filename, SetMultimap<Location, Location> callGraph) {
+	public void writeCallGraph(String filename, SetMultimap<RTLLabel, RTLLabel> callGraph) {
 		// Create dot file
 		GraphWriter gwriter = createGraphWriter(filename);
 		if (gwriter == null) return;
 		
-		Set<Location> nodes = new HashSet<Location>();
+		Set<RTLLabel> nodes = new HashSet<RTLLabel>();
 		
 		logger.info("Writing callgraph to " + gwriter.getFilename());
 		try {
-			for (Map.Entry<Location, Location> e : callGraph.entries()) {
+			for (Map.Entry<RTLLabel, RTLLabel> e : callGraph.entries()) {
 				nodes.add(e.getKey());
 				nodes.add(e.getValue());
 				gwriter.writeEdge(e.getKey().toString(), 
 						e.getValue().toString());
 			}
 			
-			for (Location node : nodes) {
+			for (RTLLabel node : nodes) {
 				gwriter.writeNode(node.toString(), node.toString(), getNodeProperties(node));
 			}
 
@@ -511,7 +511,7 @@ public class ProgramGraphWriter {
 				Map<String, String> properties = null;
 				if (curState == art.getRoot())
 					properties = startNode;
-				if (program.getStatement(curState.getLocation()) instanceof RTLHalt)
+				if (program.getStatement((RTLLabel)curState.getLocation()) instanceof RTLHalt)
 					properties = endNode;
 				StringBuilder nodeLabel = new StringBuilder();
 				nodeLabel.append(curState.getIdentifier());
@@ -585,7 +585,7 @@ public class ProgramGraphWriter {
 		try {
 			for (VpcLocation vpcLoc : vCfg.getBasicBlockNodes()) {
 				
-				Location nodeAddr = vpcLoc.getLocation();
+				RTLLabel nodeAddr = vpcLoc.getLocation();
 				String nodeName = vpcLoc.toString();
 				StringBuilder labelBuilder = new StringBuilder();
 				String locLabel = program.getSymbolFor(nodeAddr);
@@ -679,7 +679,7 @@ public class ProgramGraphWriter {
 				assert(bb != null);
 				
 				String label = null;
-				Location lastLoc = bb.getLast().getLabel();
+				RTLLabel lastLoc = bb.getLast().getLabel();
 				Instruction instr = program.getInstruction(lastLoc.getAddress());
 				
 				if (instr instanceof BranchInstruction) {

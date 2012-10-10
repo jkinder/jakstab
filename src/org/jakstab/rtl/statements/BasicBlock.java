@@ -23,7 +23,7 @@ import java.util.NoSuchElementException;
 
 import org.jakstab.Program;
 import org.jakstab.asm.AbsoluteAddress;
-import org.jakstab.cfa.Location;
+import org.jakstab.cfa.RTLLabel;
 import org.jakstab.cfa.StateTransformer;
 import org.jakstab.util.Characters;
 import org.jakstab.util.Logger;
@@ -38,14 +38,14 @@ public class BasicBlock extends LinkedList<RTLStatement> implements StateTransfo
 	@SuppressWarnings("unused")
 	private static final Logger logger = Logger.getLogger(BasicBlock.class);
 
-	public boolean containsLocation(Location l) {
+	public boolean containsLocation(RTLLabel l) {
 		for (RTLStatement stmt : this)
 			if (stmt.getLabel().equals(l))
 				return true;
 		return false;
 	}
 	
-	public String toStringUntil(Location l) {
+	public String toStringUntil(RTLLabel l) {
 		StringBuilder sb = new StringBuilder();
 		
 		for (RTLStatement stmt : this) {

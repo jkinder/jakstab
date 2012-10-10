@@ -1,12 +1,13 @@
 package org.jakstab.cfa;
 
 import org.jakstab.analysis.explicit.BasedNumberElement;
+import org.jakstab.asm.AbsoluteAddress;
 
-public 	class VpcLocation {
+public 	class VpcLocation implements Location {
 	private final BasedNumberElement vpc;
-	private final Location location;
+	private final RTLLabel location;
 	
-	public VpcLocation(BasedNumberElement vpc, Location location) {
+	public VpcLocation(BasedNumberElement vpc, RTLLabel location) {
 		super();
 		this.vpc = vpc;
 		this.location = location;
@@ -16,7 +17,7 @@ public 	class VpcLocation {
 		return vpc;
 	}
 	
-	public Location getLocation() {
+	public RTLLabel getLocation() {
 		return location;
 	}
 
@@ -55,6 +56,26 @@ public 	class VpcLocation {
 		} else if (!vpc.equals(other.vpc))
 			return false;
 		return true;
+	}
+
+	@Override
+	public int compareTo(Location l) {
+		if (!(l instanceof VpcLocation))
+			throw new UnsupportedOperationException("Cannot compare RTLLabel to other location types.");
+		VpcLocation other = (VpcLocation)l;
+		if (vpc.equals(other.vpc))
+			return location.compareTo(other.location);
+		if (vpc.isTop())
+			return 1;
+		if (other.vpc.isTop())
+			return -1;
+		// Too lazy right now to implement something better
+		return vpc.toString().compareTo(other.vpc.toString());
+	}
+
+	@Override
+	public AbsoluteAddress getAddress() {
+		return location.getAddress();
 	}
 	
 }

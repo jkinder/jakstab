@@ -25,7 +25,7 @@ import java.util.LinkedList;
 import org.jakstab.Program;
 import org.jakstab.analysis.callstack.CallStackState;
 import org.jakstab.asm.AbsoluteAddress;
-import org.jakstab.cfa.Location;
+import org.jakstab.cfa.RTLLabel;
 import org.jakstab.ssl.Architecture;
 import org.jakstab.util.Logger;
 import org.junit.After;
@@ -41,25 +41,25 @@ public class CallStackStateTest {
 	private static CallStackState s2;
 	private static CallStackState s3;
 	private static CallStackState s4;
-	private static Location l1;
-	private static Location l2;
-	private static Location l3;
-	private static Location l4;
+	private static RTLLabel l1;
+	private static RTLLabel l2;
+	private static RTLLabel l3;
+	private static RTLLabel l4;
 
 	
 	@Before
 	public void setUp() throws Exception {
 		Program.createProgram(new Architecture("ssl/pentium.ssl"));
 
-		l1 = new Location(new AbsoluteAddress(0x12345678));
-		l2 = new Location(new AbsoluteAddress(0xFF241111));
-		l3 = new Location(new AbsoluteAddress(0xEE345678));
-		l4 = new Location(new AbsoluteAddress(0xDD345678));
+		l1 = new RTLLabel(new AbsoluteAddress(0x12345678));
+		l2 = new RTLLabel(new AbsoluteAddress(0xFF241111));
+		l3 = new RTLLabel(new AbsoluteAddress(0xEE345678));
+		l4 = new RTLLabel(new AbsoluteAddress(0xDD345678));
 		
-		s1 = new CallStackState(new LinkedList<Location>(Arrays.asList(l1, l2, l3, l4)));
-		s2 = new CallStackState(new LinkedList<Location>(Arrays.asList(l1, l2, l3, l4)));
-		s3 = new CallStackState(new LinkedList<Location>(Arrays.asList(l3, l2)));
-		s4 = new CallStackState(new LinkedList<Location>());
+		s1 = new CallStackState(new LinkedList<RTLLabel>(Arrays.asList(l1, l2, l3, l4)));
+		s2 = new CallStackState(new LinkedList<RTLLabel>(Arrays.asList(l1, l2, l3, l4)));
+		s3 = new CallStackState(new LinkedList<RTLLabel>(Arrays.asList(l3, l2)));
+		s4 = new CallStackState(new LinkedList<RTLLabel>());
 	}
 
 	@After

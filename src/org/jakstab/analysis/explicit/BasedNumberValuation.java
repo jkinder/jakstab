@@ -23,6 +23,7 @@ import org.jakstab.Program;
 import org.jakstab.analysis.*;
 import org.jakstab.asm.x86.X86Instruction;
 import org.jakstab.cfa.Location;
+import org.jakstab.cfa.RTLLabel;
 import org.jakstab.rtl.*;
 import org.jakstab.rtl.expressions.*;
 import org.jakstab.rtl.statements.*;
@@ -62,9 +63,9 @@ public final class BasedNumberValuation implements AbstractState {
 		}
 		
 		private static final class AllocationTreeNode {
-			private final Location location;
+			private final RTLLabel location;
 			private final AllocationTreeNode parent;
-			public AllocationTreeNode(Location location, AllocationTreeNode parent) {
+			public AllocationTreeNode(RTLLabel location, AllocationTreeNode parent) {
 				this.location = location; this.parent = parent;
 			}
 		}
@@ -79,7 +80,7 @@ public final class BasedNumberValuation implements AbstractState {
 			this(null);
 		}
 		
-		public int countAllocation(Location loc) {
+		public int countAllocation(RTLLabel loc) {
 			int count = 0;
 			for (AllocationTreeNode iter = leaf; iter != null; iter = iter.parent)
 				if (iter.location.equals(loc))

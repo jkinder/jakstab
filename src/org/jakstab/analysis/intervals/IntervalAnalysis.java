@@ -64,7 +64,7 @@ public class IntervalAnalysis implements ConfigurableProgramAnalysis {
 	 * @see org.jakstab.analysis.ConfigurableProgramAnalysis#initStartState(org.jakstab.cfa.Location)
 	 */
 	@Override
-	public AbstractState initStartState(Location label) {
+	public AbstractState initStartState(Location location) {
 		//IntervalState init = new IntervalState();
 		/*init.setValue(Program.getProgram().getArchitecture().stackPointer(), 
 				new IntervalElement(MemoryRegion.STACK, 0, 0, 0, 32));*/

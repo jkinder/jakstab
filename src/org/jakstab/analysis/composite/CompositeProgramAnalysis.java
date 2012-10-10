@@ -78,10 +78,10 @@ public class CompositeProgramAnalysis implements ConfigurableProgramAnalysis {
 	}
 
 	@Override
-	public AbstractState initStartState(Location label) {
+	public AbstractState initStartState(Location location) {
 		AbstractState[] components = new AbstractState[cpas.length];
 		for (int i=0; i<cpas.length; i++)
-			components[i] = cpas[i].initStartState(label);
+			components[i] = cpas[i].initStartState(location);
 		return createCompositeState(components);
 	}
 

@@ -24,7 +24,7 @@ import org.jakstab.Options;
 import org.jakstab.util.Logger;
 import org.jakstab.asm.*;
 import org.jakstab.asm.x86.*;
-import org.jakstab.cfa.Location;
+import org.jakstab.cfa.RTLLabel;
 import org.jakstab.rtl.*;
 import org.jakstab.rtl.expressions.*;
 import org.jakstab.rtl.statements.*;
@@ -394,7 +394,7 @@ public class Architecture {
 			// we need to label only after evaluation, as some instructions might disappear
 			for (RTLStatement stmt : instrRTL) {
 				stmt.setLabel(address, rtlId++);
-				stmt.setNextLabel(new Location(address, rtlId));
+				stmt.setNextLabel(new RTLLabel(address, rtlId));
 			}
 		} else {
 			logger.debug("Detected semantic nop during instantiation: " + address);
@@ -404,7 +404,7 @@ public class Architecture {
 			instrRTL.addFirst(nop);
 		}
 		// set next label of the last statement to fall-through instruction 
-		instrRTL.getLast().setNextLabel(new Location(new AbsoluteAddress(address.getValue() + instr.getSize()), 0));
+		instrRTL.getLast().setNextLabel(new RTLLabel(new AbsoluteAddress(address.getValue() + instr.getSize()), 0));
 		
 		// infer missing bit widths:
 		try {

@@ -21,7 +21,7 @@ package org.jakstab.rtl.statements;
 import java.util.Set;
 
 import org.jakstab.asm.AbsoluteAddress;
-import org.jakstab.cfa.Location;
+import org.jakstab.cfa.RTLLabel;
 import org.jakstab.cfa.StateTransformer;
 import org.jakstab.rtl.*;
 import org.jakstab.rtl.expressions.RTLMemoryLocation;
@@ -30,9 +30,9 @@ import org.jakstab.ssl.Architecture;
 
 public interface RTLStatement extends Comparable<RTLStatement>, StateTransformer {
 
-	public void setNextLabel(Location nextLabel);
+	public void setNextLabel(RTLLabel nextLabel);
 
-	public Location getNextLabel();
+	public RTLLabel getNextLabel();
 	
 	/**
 	 * Generic accept method for an statement visitor to support the
@@ -97,7 +97,7 @@ public interface RTLStatement extends Comparable<RTLStatement>, StateTransformer
 	 * 
 	 * @return the label of this statement.
 	 */
-	public Location getLabel();
+	public RTLLabel getLabel();
 
 	/**
 	 * Creates a label for this statement based on address and RTL-index.
@@ -112,7 +112,7 @@ public interface RTLStatement extends Comparable<RTLStatement>, StateTransformer
 	 * 
 	 * @param label the label for this statement.
 	 */
-	public void setLabel(Location label);
+	public void setLabel(RTLLabel label);
 
 	/**
 	 * Returns the virtual address of this statement.

@@ -20,7 +20,7 @@ package org.jakstab.loader;
 import org.jakstab.Program;
 import org.jakstab.analysis.MemoryRegion;
 import org.jakstab.asm.AbsoluteAddress;
-import org.jakstab.cfa.Location;
+import org.jakstab.cfa.RTLLabel;
 import org.jakstab.rtl.expressions.ExpressionFactory;
 import org.jakstab.rtl.expressions.RTLExpression;
 import org.jakstab.rtl.expressions.RTLVariable;
@@ -85,7 +85,7 @@ public class DefaultHarness implements Harness {
 		int rtlId = 0;
 		for (RTLStatement stmt : seq) {
 			stmt.setLabel(address, rtlId++);
-			stmt.setNextLabel(new Location(address, rtlId));
+			stmt.setNextLabel(new RTLLabel(address, rtlId));
 		}
 		seq.getLast().setNextLabel(null);
 

@@ -22,6 +22,7 @@ import java.util.*;
 import org.jakstab.analysis.composite.CompositeState;
 import org.jakstab.analysis.location.LocationState;
 import org.jakstab.cfa.Location;
+import org.jakstab.cfa.RTLLabel;
 import org.jakstab.util.Logger;
 
 import com.google.common.collect.HashMultimap;
@@ -138,7 +139,7 @@ public class ReachedSet extends AbstractSet<AbstractState> implements Collection
 		}
 	}
 	
-	public void logStates(Location loc) {
+	public void logStates(RTLLabel loc) {
 		for (CompositeState c : compositeMap.get(new LocationState(loc))) {
 			logger.fatal(c);
 		}

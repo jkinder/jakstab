@@ -58,7 +58,7 @@ public class ControlFlowReconstruction implements Algorithm {
 		
 		@Override
 		public boolean add(AbstractState a) {
-			if (!program.containsLabel((a.getLocation()))) {
+			if (!program.containsLabel((RTLLabel)a.getLocation())) {
 				return priorityList.add(a);
 			} else {
 				if (priorityList.contains(a)) return false;
@@ -262,7 +262,7 @@ public class ControlFlowReconstruction implements Algorithm {
 							break;
 						
 						if (last != null) {
-							for (CFAEdge edge : transformerFactory.getExistingOutEdges(last.getLocation())) {
+							for (CFAEdge edge : transformerFactory.getExistingOutEdges((RTLLabel)last.getLocation())) {
 								if (edge.getTarget().equals(state.getLocation())) {
 									logger.warn(edge.getTransformer());
 									break;
@@ -278,10 +278,10 @@ public class ControlFlowReconstruction implements Algorithm {
 
 					// Replay basic block up to the error state location
 					if (transformerFactory instanceof PessimisticBasicBlockFactory) {
-						for (CFAEdge edge : transformerFactory.getExistingOutEdges(last.getLocation())) {
+						for (CFAEdge edge : transformerFactory.getExistingOutEdges((RTLLabel)last.getLocation())) {
 							BasicBlock bb = (BasicBlock)edge.getTransformer();
-							if (bb.containsLocation(e.getState().getLocation())) {
-								logger.warn(bb.toStringUntil(e.getState().getLocation()));
+							if (bb.containsLocation((RTLLabel)e.getState().getLocation())) {
+								logger.warn(bb.toStringUntil((RTLLabel)e.getState().getLocation()));
 								break;
 							}
 						}
@@ -292,7 +292,7 @@ public class ControlFlowReconstruction implements Algorithm {
 					else {
 						logger.warn("Edges from error state: ");
 						for (CFAEdge edge : transformerFactory
-								.getExistingOutEdges(e.getState().getLocation()))
+								.getExistingOutEdges((RTLLabel)e.getState().getLocation()))
 							logger.warn(edge.getTransformer());
 					}
 					
@@ -337,7 +337,7 @@ public class ControlFlowReconstruction implements Algorithm {
 								if (instr instanceof X86Instruction &&
 										((X86Instruction)instr).hasPrefixLOCK() &&
 										((X86Instruction)instr).hasPrefixREPZ()) {
-									sb.append(program.getStatement(s.getLocation()));
+									sb.append(program.getStatement((RTLLabel)s.getLocation()));
 								} else {
 									sb.append(instr.toString(addr.getValue(), symFinder));
 								}

@@ -37,7 +37,7 @@ public class CFATransformerFactory implements StateTransformerFactory {
 	@SuppressWarnings("unused")
 	private static final Logger logger = Logger.getLogger(CFATransformerFactory.class);
 	
-	private SetMultimap<Location,CFAEdge> cfa;
+	private SetMultimap<Location, CFAEdge> cfa;
 	
 	public CFATransformerFactory(Set<CFAEdge> cfa) {
 		this.cfa = HashMultimap.create();
@@ -46,9 +46,6 @@ public class CFATransformerFactory implements StateTransformerFactory {
 		}
 	}
 
-	/*
-	 * @see org.jakstab.analysis.StateTransformerFactory#getTransformers(org.jakstab.analysis.AbstractState)
-	 */
 	@Override
 	public Set<CFAEdge> getTransformers(AbstractState a) {
 		Set<CFAEdge> cfaEdges = cfa.get(a.getLocation());

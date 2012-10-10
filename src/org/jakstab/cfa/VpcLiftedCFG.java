@@ -146,9 +146,9 @@ public class VpcLiftedCFG {
 		AnalysisManager mgr = AnalysisManager.getInstance();
 		ControlFlowGraph cfg = program.getCFG();
 		
-		SetMultimap<Location, CFAEdge> algoBBOutEdges = HashMultimap.create();
+		SetMultimap<RTLLabel, CFAEdge> cfaEdges = HashMultimap.create();
 		for (CFAEdge e : program.getCFA()) {
-			algoBBOutEdges.put(e.getSource(), e);
+			cfaEdges.put(e.getSource(), e);
 		}
 
 		VpcTrackingAnalysis vpcAnalysis = (VpcTrackingAnalysis)mgr.getAnalysis(VpcTrackingAnalysis.class);
@@ -161,12 +161,12 @@ public class VpcLiftedCFG {
 		visited.add(art.getRoot());
 		
 		VpcLocation root = new VpcLocation(getVPC(art.getRoot(), vpcAnalysis, vAnalysisPos), 
-				art.getRoot().getLocation()); 
+				(RTLLabel)art.getRoot().getLocation()); 
 
 		while (!worklist.isEmpty()) {
 			AbstractState headState = worklist.removeFirst();
 			BasedNumberElement vpcVal = getVPC(headState, vpcAnalysis, vAnalysisPos);
-			VpcLocation headVpcLoc = new VpcLocation(vpcVal, headState.getLocation());
+			VpcLocation headVpcLoc = new VpcLocation(vpcVal, (RTLLabel)headState.getLocation());
 			locations.add(headVpcLoc);
 
 			Set<AbstractState> successors = art.getChildren(headState);
@@ -175,7 +175,9 @@ public class VpcLiftedCFG {
 				VpcLocation vpcLoc = headVpcLoc;
 				BasedNumberElement nextVpcVal = getVPC(nextState, vpcAnalysis, vAnalysisPos);
 				
-				CFAEdge edge = getEdgeBetween(algoBBOutEdges, headState.getLocation(), nextState.getLocation());
+				CFAEdge edge = getEdgeBetween(cfaEdges, 
+						(RTLLabel)headState.getLocation(), 
+						(RTLLabel)nextState.getLocation());
 
 				List<RTLStatement> stmtList;
 				if (Options.basicBlocks.getValue())
@@ -205,15 +207,15 @@ public class VpcLiftedCFG {
 	}
 
 	private BasedNumberElement getVPC(AbstractState s, VpcTrackingAnalysis vpcAnalysis, int vAnalysisPos) {
-		Location l = s.getLocation();				
+		RTLLabel l = (RTLLabel)s.getLocation();				
 		RTLVariable vpcVar = vpcAnalysis.getVPC(l);
 		CompositeState cState = (CompositeState)s;
 		BasedNumberElement vpcVal = ((BasedNumberValuation)cState.getComponent(vAnalysisPos)).getValue(vpcVar);
 		return vpcVal;
 	}
 	
-	private CFAEdge getEdgeBetween(SetMultimap<Location, CFAEdge> algoBBOutEdges, Location src, Location tgt) {
-		Set<CFAEdge> out = algoBBOutEdges.get(src);
+	private CFAEdge getEdgeBetween(SetMultimap<RTLLabel, CFAEdge> cfaEdges, RTLLabel src, RTLLabel tgt) {
+		Set<CFAEdge> out = cfaEdges.get(src);
 		if (out != null) for (CFAEdge e : out)
 			if (e.getTarget().equals(tgt))
 				return e;
