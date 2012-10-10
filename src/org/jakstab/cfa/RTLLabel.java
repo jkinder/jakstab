@@ -100,4 +100,9 @@ public class RTLLabel implements Location {
 		return true;
 	}
 
+	@Override
+	public RTLLabel getLabel() {
+		return this;
+	}
+
 }

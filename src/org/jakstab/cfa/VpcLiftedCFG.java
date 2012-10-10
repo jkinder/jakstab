@@ -65,7 +65,7 @@ public class VpcLiftedCFG {
 				// Out-degree of predecessor also has to be 1
 				if (outEdges.get(e).size() == 1) {
 
-					RTLStatement predStmt = program.getStatement(e.getLocation());
+					RTLStatement predStmt = program.getStatement(e.getLabel());
 					if (predStmt instanceof RTLGoto) {
 						RTLGoto g = (RTLGoto)predStmt;
 						if (g.getType() != RTLGoto.Type.CALL && 
@@ -94,14 +94,14 @@ public class VpcLiftedCFG {
 			VpcLocation head = entry.getKey();
 			BasicBlock bb = entry.getValue();
 			
-			bb.add(program.getStatement(head.getLocation()));
+			bb.add(program.getStatement(head.getLabel()));
 			VpcLocation l = head;
 			Set<VpcLocation> out = outEdges.get(l);
 			while (out != null && out.size() == 1) {
 				l = out.iterator().next();
 				if (basicBlocks.containsKey(l))
 					break;
-				bb.add(program.getStatement(l.getLocation()));
+				bb.add(program.getStatement(l.getLabel()));
 				out = outEdges.get(l);
 			}
 			
@@ -148,7 +148,7 @@ public class VpcLiftedCFG {
 		
 		SetMultimap<RTLLabel, CFAEdge> cfaEdges = HashMultimap.create();
 		for (CFAEdge e : program.getCFA()) {
-			cfaEdges.put(e.getSource(), e);
+			cfaEdges.put(e.getSource().getLabel(), e);
 		}
 
 		VpcTrackingAnalysis vpcAnalysis = (VpcTrackingAnalysis)mgr.getAnalysis(VpcTrackingAnalysis.class);
@@ -188,7 +188,7 @@ public class VpcLiftedCFG {
 					if (stmt instanceof RTLHalt)
 						break;
 					VpcLocation nextVpcLoc = new VpcLocation(nextVpcVal, stmt.getNextLabel());
-					assert cfg.getSuccessorLocations(vpcLoc.getLocation()).contains(nextVpcLoc.getLocation());
+					assert cfg.getSuccessorLocations(vpcLoc.getLabel()).contains(nextVpcLoc.getLabel());
 					outEdges.put(vpcLoc, nextVpcLoc);
 					inEdges.put(nextVpcLoc, vpcLoc);
 					locations.add(nextVpcLoc);

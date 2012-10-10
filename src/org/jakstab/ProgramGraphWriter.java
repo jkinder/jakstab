@@ -31,6 +31,7 @@ import org.jakstab.asm.SymbolFinder;
 import org.jakstab.cfa.CFAEdge;
 import org.jakstab.cfa.CFAEdge.Kind;
 import org.jakstab.cfa.ControlFlowGraph;
+import org.jakstab.cfa.Location;
 import org.jakstab.cfa.RTLLabel;
 import org.jakstab.cfa.VpcLiftedCFG;
 import org.jakstab.cfa.VpcLocation;
@@ -72,10 +73,10 @@ public class ProgramGraphWriter {
 		outEdges = HashMultimap.create();
 		
 		for (CFAEdge e : program.getCFA()) {
-			inEdges.put(e.getTarget(), e);
-			outEdges.put(e.getSource(), e);
-			locations.add(e.getSource());
-			locations.add(e.getTarget());
+			inEdges.put(e.getTarget().getLabel(), e);
+			outEdges.put(e.getSource().getLabel(), e);
+			locations.add(e.getSource().getLabel());
+			locations.add(e.getTarget().getLabel());
 		}
 		
 		// Find locations which have an incoming MUST edge, but no outgoing one
@@ -117,8 +118,8 @@ public class ProgramGraphWriter {
 		}
 	}
 
-	private Map<String,String> getNodeProperties(RTLLabel loc) {
-		RTLStatement curStmt = program.getStatement(loc);
+	private Map<String,String> getNodeProperties(Location loc) {
+		RTLStatement curStmt = program.getStatement(loc.getLabel());
 		Map<String,String> properties = new HashMap<String, String>();
 
 		if (curStmt != null) {
@@ -302,8 +303,8 @@ public class ProgramGraphWriter {
 			AbsoluteAddress targetAddr = e.getTarget().getAddress();
 			if (!sourceAddr.equals(targetAddr)) {
 				edges.add(e);
-				nodes.add(e.getSource());
-				nodes.add(e.getTarget());
+				nodes.add(e.getSource().getLabel());
+				nodes.add(e.getTarget().getLabel());
 			}
 		}
 		
@@ -340,7 +341,7 @@ public class ProgramGraphWriter {
 					BranchInstruction bi = (BranchInstruction)instr;
 					if (bi.isConditional()) {
 						// Get the original goto from the program (not the converted assume) 
-						RTLStatement rtlGoto = program.getStatement(e.getSource());
+						RTLStatement rtlGoto = program.getStatement(e.getSource().getLabel());
 						
 						// If this is the fall-through edge, output F, otherwise T
 						label = targetAddr.equals(rtlGoto.getNextLabel().getAddress()) ? "F" : "T";
@@ -372,7 +373,7 @@ public class ProgramGraphWriter {
 	}
 
 	public void writeControlFlowAutomaton(String filename, ReachedSet reached) {
-		Set<RTLLabel> nodes = new HashSet<RTLLabel>();
+		Set<Location> nodes = new HashSet<Location>();
 		for (CFAEdge e : program.getCFA()) {
 			nodes.add(e.getTarget());
 			nodes.add(e.getSource());
@@ -384,7 +385,7 @@ public class ProgramGraphWriter {
 
 		logger.info("Writing CFA to " + gwriter.getFilename());
 		try {
-			for (RTLLabel node : nodes) {
+			for (Location node : nodes) {
 				String nodeName = node.toString();
 				StringBuilder labelBuilder = new StringBuilder();
 				labelBuilder.append(nodeName);
@@ -417,7 +418,7 @@ public class ProgramGraphWriter {
 	}
 	
 	public void writeControlFlowAutomaton(String filename, Map<RTLLabel, Object> reached) {
-		Set<RTLLabel> nodes = new HashSet<RTLLabel>();
+		Set<Location> nodes = new HashSet<Location>();
 		for (CFAEdge e : program.getCFA()) {
 			nodes.add(e.getTarget());
 			nodes.add(e.getSource());
@@ -429,7 +430,7 @@ public class ProgramGraphWriter {
 
 		logger.info("Writing CFA to " + gwriter.getFilename());
 		try {
-			for (RTLLabel node : nodes) {
+			for (Location node : nodes) {
 				String nodeName = node.toString();
 				StringBuilder labelBuilder = new StringBuilder();
 				labelBuilder.append(nodeName);
@@ -459,23 +460,23 @@ public class ProgramGraphWriter {
 		}
 	}
 	
-	public void writeCallGraph(String filename, SetMultimap<RTLLabel, RTLLabel> callGraph) {
+	public void writeCallGraph(String filename, SetMultimap<Location, Location> callGraph) {
 		// Create dot file
 		GraphWriter gwriter = createGraphWriter(filename);
 		if (gwriter == null) return;
 		
-		Set<RTLLabel> nodes = new HashSet<RTLLabel>();
+		Set<Location> nodes = new HashSet<Location>();
 		
 		logger.info("Writing callgraph to " + gwriter.getFilename());
 		try {
-			for (Map.Entry<RTLLabel, RTLLabel> e : callGraph.entries()) {
+			for (Map.Entry<Location, Location> e : callGraph.entries()) {
 				nodes.add(e.getKey());
 				nodes.add(e.getValue());
 				gwriter.writeEdge(e.getKey().toString(), 
 						e.getValue().toString());
 			}
 			
-			for (RTLLabel node : nodes) {
+			for (Location node : nodes) {
 				gwriter.writeNode(node.toString(), node.toString(), getNodeProperties(node));
 			}
 
@@ -557,13 +558,13 @@ public class ProgramGraphWriter {
 				String nodeName = node.toString();
 				StringBuilder labelBuilder = new StringBuilder();
 				labelBuilder.append(nodeName);
-				gwriter.writeNode(nodeName, labelBuilder.toString(), getNodeProperties(node.getLocation()));
+				gwriter.writeNode(nodeName, labelBuilder.toString(), getNodeProperties(node.getLabel()));
 			}
 
 			for (Map.Entry<VpcLocation, VpcLocation> e : vCfg.getEdges()) {
 				gwriter.writeLabeledEdge(e.getKey().toString(), 
 						e.getValue().toString(), 
-						program.getStatement(e.getKey().getLocation()).toString());
+						program.getStatement(e.getKey().getLabel()).toString());
 			}
 
 			gwriter.close();
@@ -585,7 +586,7 @@ public class ProgramGraphWriter {
 		try {
 			for (VpcLocation vpcLoc : vCfg.getBasicBlockNodes()) {
 				
-				RTLLabel nodeAddr = vpcLoc.getLocation();
+				RTLLabel nodeAddr = vpcLoc.getLabel();
 				String nodeName = vpcLoc.toString();
 				StringBuilder labelBuilder = new StringBuilder();
 				String locLabel = program.getSymbolFor(nodeAddr);
@@ -614,7 +615,7 @@ public class ProgramGraphWriter {
 					if (!bi.getCondition().equals(ExpressionFactory.TRUE)) {
 						// Get the original goto from the program (not the converted assume) 
 						// If this is the fall-through edge, output F, otherwise T
-						label = targetAddr.getLocation().equals(bi.getNextLabel()) ? "F" : "T";
+						label = targetAddr.getLabel().equals(bi.getNextLabel()) ? "F" : "T";
 					}
 				}
 				
@@ -649,7 +650,7 @@ public class ProgramGraphWriter {
 		try {
 			for (VpcLocation vpcLoc : vCfg.getBasicBlockNodes()) {
 				
-				AbsoluteAddress nodeAddr = vpcLoc.getLocation().getAddress();
+				AbsoluteAddress nodeAddr = vpcLoc.getLabel().getAddress();
 				String nodeName = vpcLoc.toString();
 				StringBuilder labelBuilder = new StringBuilder();
 				String locLabel = program.getSymbolFor(nodeAddr);
@@ -690,7 +691,7 @@ public class ProgramGraphWriter {
 						assert(rtlGoto instanceof RTLGoto);
 						
 						// If this is the fall-through edge, output F, otherwise T
-						label = targetAddr.getLocation().equals(rtlGoto.getNextLabel()) ? "F" : "T";
+						label = targetAddr.getLabel().equals(rtlGoto.getNextLabel()) ? "F" : "T";
 					}
 				}
 				

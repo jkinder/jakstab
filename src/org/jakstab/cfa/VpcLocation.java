@@ -3,7 +3,7 @@ package org.jakstab.cfa;
 import org.jakstab.analysis.explicit.BasedNumberElement;
 import org.jakstab.asm.AbsoluteAddress;
 
-public 	class VpcLocation implements Location {
+public class VpcLocation implements Location {
 	private final BasedNumberElement vpc;
 	private final RTLLabel location;
 	
@@ -17,7 +17,8 @@ public 	class VpcLocation implements Location {
 		return vpc;
 	}
 	
-	public RTLLabel getLocation() {
+	@Override
+	public RTLLabel getLabel() {
 		return location;
 	}
 
@@ -77,5 +78,5 @@ public 	class VpcLocation implements Location {
 	public AbsoluteAddress getAddress() {
 		return location.getAddress();
 	}
-	
+
 }

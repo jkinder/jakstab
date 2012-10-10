@@ -22,7 +22,7 @@ import java.util.*;
 
 import org.jakstab.Program;
 import org.jakstab.cfa.CFAEdge;
-import org.jakstab.cfa.RTLLabel;
+import org.jakstab.cfa.Location;
 import org.jakstab.cfa.StateTransformer;
 import org.jakstab.rtl.expressions.*;
 import org.jakstab.rtl.statements.*;
@@ -42,7 +42,7 @@ public class DeadCodeElimination implements CFATransformation {
 	private final static Logger logger = Logger.getLogger(DeadCodeElimination.class);
 
 
-	private Map<RTLLabel,SetOfVariables> liveVars;
+	private Map<Location,SetOfVariables> liveVars;
 	private SetOfVariables liveInSinks;
 	private Program program;
 	@SuppressWarnings("unused")
@@ -58,7 +58,7 @@ public class DeadCodeElimination implements CFATransformation {
 		super();
 		this.program = program;
 
-		liveVars = new TreeMap<RTLLabel, SetOfVariables>();
+		liveVars = new TreeMap<Location, SetOfVariables>();
 		liveInSinks = new SetOfVariables();
 		liveInSinks.addAll(program.getArchitecture().getRegisters());
 	}
@@ -88,10 +88,10 @@ public class DeadCodeElimination implements CFATransformation {
 		logger.infoString("Eliminating dead code");
 		long startTime = System.currentTimeMillis();
 
-		FastSet<RTLLabel> worklist = new FastSet<RTLLabel>();
+		FastSet<Location> worklist = new FastSet<Location>();
 
-		SetMultimap<RTLLabel, CFAEdge> inEdges = HashMultimap.create();
-		SetMultimap<RTLLabel, CFAEdge> outEdges = HashMultimap.create();
+		SetMultimap<Location, CFAEdge> inEdges = HashMultimap.create();
+		SetMultimap<Location, CFAEdge> outEdges = HashMultimap.create();
 
 		Set<CFAEdge> cfa = new TreeSet<CFAEdge>(program.getCFA()); 
 
@@ -112,7 +112,7 @@ public class DeadCodeElimination implements CFATransformation {
 				worklist.add(e.getSource());
 			}
 
-			for (RTLLabel l : inEdges.keySet()) {
+			for (Location l : inEdges.keySet()) {
 				if (outEdges.get(l).size() == 0) {
 					// Sinks havn't been initialized yet
 					worklist.add(l);
@@ -127,7 +127,7 @@ public class DeadCodeElimination implements CFATransformation {
 
 			while (!worklist.isEmpty() && !stop) {
 
-				RTLLabel node = worklist.pick();
+				Location node = worklist.pick();
 				
 				SetOfVariables newLive = null;
 				for (CFAEdge outEdge : outEdges.get(node)) {
@@ -193,7 +193,7 @@ public class DeadCodeElimination implements CFATransformation {
 						
 					}
 					if (deadEdge.getSource().equals(program.getStart())) {
-						program.setStart(deadEdge.getTarget());
+						program.setStart(deadEdge.getTarget().getLabel());
 					}
 					removalCount++;
 				}

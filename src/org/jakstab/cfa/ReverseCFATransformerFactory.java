@@ -40,7 +40,7 @@ public class ReverseCFATransformerFactory implements StateTransformerFactory {
 	
 	public ReverseCFATransformerFactory(Set<CFAEdge> cfa) {
 		reverseCFA = HashMultimap.create();
-		Set<RTLLabel> nonSinks = new HashSet<RTLLabel>();
+		Set<Location> nonSinks = new HashSet<Location>();
 		for (CFAEdge e : cfa) {
 			reverseCFA.put(e.getTarget(), e);
 			nonSinks.add(e.getSource());
@@ -61,7 +61,7 @@ public class ReverseCFATransformerFactory implements StateTransformerFactory {
 			// Generate artificial exit node
 			sink = new RTLLabel(new AbsoluteAddress(0xFFFFFF01L));
 			for (Location l : sinks) {
-				reverseCFA.put(sink, new CFAEdge((RTLLabel)l, (RTLLabel)sink, new RTLSkip()));
+				reverseCFA.put(sink, new CFAEdge(l, sink, new RTLSkip()));
 			}
 		}
 	}

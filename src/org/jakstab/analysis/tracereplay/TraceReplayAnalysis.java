@@ -156,8 +156,8 @@ public class TraceReplayAnalysis implements ConfigurableProgramAnalysis {
 	private AbstractState singlePost(AbstractState state, CFAEdge cfaEdge, Precision precision) {
 
 		
-		RTLLabel edgeTarget = cfaEdge.getTarget();
-		RTLLabel edgeSource = cfaEdge.getSource();
+		RTLLabel edgeTarget = cfaEdge.getTarget().getLabel();
+		RTLLabel edgeSource = cfaEdge.getSource().getLabel();
 		
 		// If the entire edge is outside the module, just wait and do nothing 
 		if (!isProgramAddress(edgeSource) && !isProgramAddress(edgeTarget)) {

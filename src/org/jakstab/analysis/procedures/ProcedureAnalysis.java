@@ -25,7 +25,6 @@ import org.jakstab.AnalysisProperties;
 import org.jakstab.analysis.*;
 import org.jakstab.cfa.CFAEdge;
 import org.jakstab.cfa.Location;
-import org.jakstab.cfa.RTLLabel;
 import org.jakstab.cfa.StateTransformer;
 import org.jakstab.rtl.statements.RTLAssume;
 import org.jakstab.util.FastSet;
@@ -45,12 +44,12 @@ public class ProcedureAnalysis implements ConfigurableProgramAnalysis {
 	@SuppressWarnings("unused")
 	private static final Logger logger = Logger.getLogger(ProcedureAnalysis.class);
 	
-	private final Set<Pair<RTLLabel, RTLLabel>> callSites;
-	private final Set<RTLLabel> callees;
+	private final Set<Pair<Location, Location>> callSites;
+	private final Set<Location> callees;
 
 	public ProcedureAnalysis() {
-		callSites = new HashSet<Pair<RTLLabel, RTLLabel>>();
-		callees = new HashSet<RTLLabel>();
+		callSites = new HashSet<Pair<Location, Location>>();
+		callees = new HashSet<Location>();
 	}
 
 	@Override
@@ -60,7 +59,7 @@ public class ProcedureAnalysis implements ConfigurableProgramAnalysis {
 
 	@Override
 	public AbstractState initStartState(Location location) {
-		return new ProcedureState(new FastSet<RTLLabel>((RTLLabel)location));
+		return new ProcedureState(new FastSet<Location>(location));
 	}
 
 	@Override
@@ -81,7 +80,7 @@ public class ProcedureAnalysis implements ConfigurableProgramAnalysis {
 				case CALL:
 					callSites.add(Pair.create(edge.getSource(), edge.getTarget()));
 					callees.add(edge.getTarget());
-					post = new ProcedureState(new FastSet<RTLLabel>(edge.getTarget()));
+					post = new ProcedureState(new FastSet<Location>(edge.getTarget()));
 					return Collections.singleton(post);
 				case RETURN:
 					//post = new ProcedureState(new FastSet<Location>(((Location)edge.getTarget())));
@@ -110,11 +109,11 @@ public class ProcedureAnalysis implements ConfigurableProgramAnalysis {
 		return Pair.create(s, precision);
 	}
 	
-	public Set<RTLLabel> getCallees() {
+	public Set<Location> getCallees() {
 		return callees;
 	}
 	
-	public Set<Pair<RTLLabel,RTLLabel>> getCallSites() {
+	public Set<Pair<Location,Location>> getCallSites() {
 		return callSites;
 	}
 	
