@@ -33,7 +33,6 @@ import org.jakstab.cfa.CFAEdge.Kind;
 import org.jakstab.cfa.ControlFlowGraph;
 import org.jakstab.cfa.Location;
 import org.jakstab.cfa.RTLLabel;
-import org.jakstab.cfa.VpcLiftedCFG;
 import org.jakstab.cfa.VpcLocation;
 import org.jakstab.rtl.expressions.ExpressionFactory;
 import org.jakstab.rtl.statements.BasicBlock;
@@ -57,7 +56,7 @@ public class ProgramGraphWriter {
 	private Program program;
 	
 	private Set<Location> mustLeaves;
-	private VpcLiftedCFG vcfg;
+	private ControlFlowGraph vcfg;
 
 	public ProgramGraphWriter(Program program) {
 		this.program = program;
@@ -253,20 +252,20 @@ public class ProgramGraphWriter {
 	}
 
 	public void writeVpcAssemblyBasicBlockGraph(String filename, AbstractReachabilityTree art) {
-		VpcLiftedCFG vCfg = getVpcGraph(art);
-		logger.info("Writing VPC-lifted assembly CFG to " + filename);
+		ControlFlowGraph vCfg = getVpcGraph(art);
+		logger.info("Writing VPC-lifted assembly basic block graph to " + filename);
 		writeAssemblyBBCFG(vCfg, filename);
 	}
 
 	public void writeVpcGraph(String filename, AbstractReachabilityTree art) {
-		VpcLiftedCFG vCfg = getVpcGraph(art);		
+		ControlFlowGraph vCfg = getVpcGraph(art);		
 		logger.info("Writing VPC-lifted CFG to " + filename);
 		writeControlFlowGraph(vCfg, filename, null);
 	}
 
 	public void writeVpcBasicBlockGraph(String filename, AbstractReachabilityTree art) {
 		
-		VpcLiftedCFG vCfg = getVpcGraph(art);		
+		ControlFlowGraph vCfg = getVpcGraph(art);		
 		// Create dot file
 		GraphWriter gwriter = createGraphWriter(filename);
 		if (gwriter == null) return;
@@ -449,9 +448,9 @@ public class ProgramGraphWriter {
 		return properties;
 	}
 
-	private VpcLiftedCFG getVpcGraph(AbstractReachabilityTree art) {
+	private ControlFlowGraph getVpcGraph(AbstractReachabilityTree art) {
 		if (vcfg == null)
-			vcfg = new VpcLiftedCFG(art);
+			vcfg = VpcCfgReconstruction.reconstruct(art);
 		return vcfg;
 	}
 
@@ -499,11 +498,14 @@ public class ProgramGraphWriter {
 		if (gwriter == null) return;
 	
 		try {
-			for (BasicBlock bb : cfg.getBasicBlocks()) {
-				AbsoluteAddress nodeAddr = bb.getFirst().getAddress();
-				String nodeName = nodeAddr.toString();
+			for (Map.Entry<Location, BasicBlock> entry : cfg.getBasicBlocks().entrySet()) {
+				
+				Location nodeLoc = entry.getKey();
+				BasicBlock bb = entry.getValue();
+				
+				String nodeName = nodeLoc.toString();
 				StringBuilder labelBuilder = new StringBuilder();
-				String locLabel = program.getSymbolFor(nodeAddr);
+				String locLabel = program.getSymbolFor(nodeLoc.getAddress());
 				if (locLabel.length() > 20) locLabel = locLabel.substring(0, 20) + "...";
 				labelBuilder.append(locLabel).append("\\n");
 	
@@ -523,8 +525,8 @@ public class ProgramGraphWriter {
 			
 			for (CFAEdge e : cfg.getBasicBlockEdges()) {
 				if (e.getKind() == null) logger.error("Null kind? " + e);
-				AbsoluteAddress sourceAddr = e.getSource().getAddress(); 
-				AbsoluteAddress targetAddr = e.getTarget().getAddress();
+				Location sourceLoc = e.getSource(); 
+				Location targetLoc = e.getTarget();
 				BasicBlock bb = (BasicBlock)e.getTransformer();
 				
 				String label = null;
@@ -538,18 +540,18 @@ public class ProgramGraphWriter {
 						RTLStatement rtlGoto = program.getStatement(lastLoc);
 						
 						// If this is the fall-through edge, output F, otherwise T
-						label = targetAddr.equals(rtlGoto.getNextLabel().getAddress()) ? "F" : "T";
+						label = targetLoc.getAddress().equals(rtlGoto.getNextLabel().getAddress()) ? "F" : "T";
 					}
 				}
 				
 				if (label != null)
-					gwriter.writeLabeledEdge(sourceAddr.toString(), 
-							targetAddr.toString(), 
+					gwriter.writeLabeledEdge(sourceLoc.toString(), 
+							targetLoc.toString(), 
 							label,
 							e.getKind().equals(CFAEdge.Kind.MAY) ? Color.BLACK : Color.GREEN);
 				else
-					gwriter.writeEdge(sourceAddr.toString(), 
-							targetAddr.toString(), 
+					gwriter.writeEdge(sourceLoc.toString(), 
+							targetLoc.toString(), 
 							e.getKind().equals(CFAEdge.Kind.MAY) ? Color.BLACK : Color.GREEN);
 	
 			}

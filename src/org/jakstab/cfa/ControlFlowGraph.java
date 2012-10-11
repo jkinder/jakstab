@@ -85,9 +85,8 @@ public abstract class ControlFlowGraph {
 				new HashSet<CFAEdge>(bbOutEdges.values()));
 	}
 	
-	public Set<BasicBlock> getBasicBlocks() {
-		return Collections.unmodifiableSet(
-				new HashSet<BasicBlock>(basicBlocks.values()));
+	public Map<Location, BasicBlock> getBasicBlocks() {
+		return Collections.unmodifiableMap(basicBlocks);
 	}
 	
 	public CFAEdge getEdgeBetween(Location src, Location tgt) {

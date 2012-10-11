@@ -1,5 +1,5 @@
 /*
- * Stoppable.java - This file is part of the Jakstab project.
+ * Algorithm.java - This file is part of the Jakstab project.
  * Copyright 2007-2012 Johannes Kinder <jk@jakstab.org>
  *
  * This code is free software; you can redistribute it and/or modify it

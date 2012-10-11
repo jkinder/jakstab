@@ -309,8 +309,9 @@ public class Main {
 				logger.info("=== Simplifying CFA ===");
 				DeadCodeElimination dce;
 				long totalRemoved = 0;
-				runAlgorithm(new ExpressionSubstitution(program.getCFG()));
-				Set<CFAEdge> edges = program.getCFG().getEdges();
+				ExpressionSubstitution subst = new ExpressionSubstitution(program.getCFG());
+				runAlgorithm(subst);
+				Set<CFAEdge> edges = subst.getCFA();
 				do {
 					dce = new DeadCodeElimination(edges); 
 					runAlgorithm(dce);

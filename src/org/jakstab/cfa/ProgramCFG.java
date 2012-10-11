@@ -3,8 +3,7 @@ package org.jakstab.cfa;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.jakstab.Program;
-import org.jakstab.rtl.statements.RTLGoto;
+import org.jakstab.rtl.statements.RTLAssume;
 
 public class ProgramCFG extends ControlFlowGraph {
 	
@@ -26,8 +25,10 @@ public class ProgramCFG extends ControlFlowGraph {
 			Set<CFAEdge> in = getInEdges(l);
 			if (in != null && in.size() == 1) {
 				CFAEdge e = in.iterator().next();
-				if (!(Program.getProgram().getStatement(e.getSource().getLabel()) instanceof RTLGoto))
+				if (!(e.getTransformer() instanceof RTLAssume))
 					continue;
+				//if (!(Program.getProgram().getStatement(e.getSource().getLabel()) instanceof RTLGoto))
+					//continue;
 			}
 			result.add(l);
 		}
