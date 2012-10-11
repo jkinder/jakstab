@@ -15,8 +15,8 @@ public class ProgramCFG extends ControlFlowGraph {
 			addEdge(e);
 		}
 		
+		findEntryPoint();		
 		buildBasicBlocks(findBasicBlockHeads());
-		
 		assert valid();
 	}
 

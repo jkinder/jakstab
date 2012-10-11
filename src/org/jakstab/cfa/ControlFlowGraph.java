@@ -27,6 +27,8 @@ public abstract class ControlFlowGraph {
 	private SetMultimap<Location, CFAEdge> bbInEdges;
 	private Map<Location, BasicBlock> basicBlocks;
 	private Set<Location> locations;
+	private Location entryPoint;
+	
 	
 	public ControlFlowGraph() {
 		outEdges = HashMultimap.create();
@@ -34,6 +36,10 @@ public abstract class ControlFlowGraph {
 		locations = new HashSet<Location>();
 	}
 	
+	public Location getEntryPoint() {
+		return entryPoint;
+	}
+
 	public Set<Location> getNodes() {
 		return Collections.unmodifiableSet(locations);
 	}
@@ -41,6 +47,14 @@ public abstract class ControlFlowGraph {
 	public Set<CFAEdge> getEdges() {
 		return Collections.unmodifiableSet(
 				new HashSet<CFAEdge>(outEdges.values()));
+	}
+	
+	public int getInDegree(Location l) {
+		return inEdges.get(l).size();
+	}
+	
+	public int getOutDegree(Location l) {
+		return outEdges.get(l).size();
 	}
 	
 	public Set<CFAEdge> getInEdges(Location l) {
@@ -86,6 +100,16 @@ public abstract class ControlFlowGraph {
 
 	public int numEdges() {
 		return outEdges.size();
+	}
+	
+	protected void findEntryPoint() {
+		for (Location l : getNodes()) {
+			if (getInDegree(l) == 0) {
+				assert entryPoint == null : "Graph has multiple entry points: " + entryPoint + " and " + l; 
+				entryPoint = l;
+			}
+		}
+		assert entryPoint != null : "No entry point found! First statement in cycle?";
 	}
 	
 	protected void buildBasicBlocks(Set<Location> basicBlockHeads) {

@@ -44,19 +44,25 @@ public class DeadCodeElimination implements CFATransformation {
 
 	private Map<Location,SetOfVariables> liveVars;
 	private SetOfVariables liveInSinks;
+	private Set<CFAEdge> cfa;
 	private Program program;
 	@SuppressWarnings("unused")
 	private volatile boolean stop = false;
 	private long removalCount;
 	
 	
+	public Set<CFAEdge> getCFA() {
+		return cfa;
+	}
+	
 	public long getRemovalCount() {
 		return removalCount;
 	}
 
-	public DeadCodeElimination(Program program) {
+	public DeadCodeElimination(Set<CFAEdge> cfa) {
 		super();
-		this.program = program;
+		this.cfa = new TreeSet<CFAEdge>(cfa);
+		this.program = Program.getProgram();
 
 		liveVars = new TreeMap<Location, SetOfVariables>();
 		liveInSinks = new SetOfVariables();
@@ -92,8 +98,6 @@ public class DeadCodeElimination implements CFATransformation {
 
 		SetMultimap<Location, CFAEdge> inEdges = HashMultimap.create();
 		SetMultimap<Location, CFAEdge> outEdges = HashMultimap.create();
-
-		Set<CFAEdge> cfa = new TreeSet<CFAEdge>(program.getCFG().getEdges()); 
 
 		for (CFAEdge e : cfa) {
 			inEdges.put(e.getTarget(), e);
@@ -192,9 +196,9 @@ public class DeadCodeElimination implements CFATransformation {
 						inEdges.put(inEdge.getTarget(), inEdge);
 						
 					}
-					if (deadEdge.getSource().equals(program.getStart())) {
+					/*if (deadEdge.getSource().equals(program.getStart())) {
 						program.setStart(deadEdge.getTarget().getLabel());
-					}
+					}*/
 					removalCount++;
 				}
 			}
@@ -207,7 +211,7 @@ public class DeadCodeElimination implements CFATransformation {
 		logger.verbose("Removed " + removalCount + " edges, finished after " + 
 				(endTime - startTime) + "ms and " + iterations + " iterations.");
 
-		program.setCFA(cfa);
+		//program.setCFA(cfa);
 	}
 	
 	public void stop() {

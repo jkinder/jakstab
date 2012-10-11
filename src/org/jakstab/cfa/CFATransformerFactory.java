@@ -19,7 +19,6 @@ package org.jakstab.cfa;
 
 import java.util.Set;
 
-import org.jakstab.Program;
 import org.jakstab.analysis.AbstractState;
 import org.jakstab.util.Logger;
 
@@ -48,6 +47,6 @@ public class CFATransformerFactory implements StateTransformerFactory {
 
 	@Override
 	public Location getInitialLocation() {
-		return Program.getProgram().getStart();
+		return cfg.getEntryPoint();
 	}
 }

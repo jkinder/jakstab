@@ -37,6 +37,7 @@ public class VpcLiftedCFG extends ControlFlowGraph {
 		logger.debug(getNodes().size() + " VPC locations.");
 		logger.debug(getEdges().size() + " edges in the VPC-CFG.");
 		
+		findEntryPoint();
 		buildBasicBlocks(findBasicBlockHeads());
 		logger.debug(getBasicBlockEdges().size() + " basic block edges in the VPC-CFG.");
 

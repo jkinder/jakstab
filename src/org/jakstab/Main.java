@@ -31,6 +31,7 @@ import org.jakstab.analysis.explicit.BoundedAddressTracking;
 import org.jakstab.analysis.procedures.ProcedureAnalysis;
 import org.jakstab.analysis.procedures.ProcedureState;
 import org.jakstab.asm.*;
+import org.jakstab.cfa.CFAEdge;
 import org.jakstab.cfa.Location;
 import org.jakstab.loader.*;
 import org.jakstab.rtl.expressions.ExpressionFactory;
@@ -309,12 +310,15 @@ public class Main {
 				DeadCodeElimination dce;
 				long totalRemoved = 0;
 				runAlgorithm(new ExpressionSubstitution(program));
+				Set<CFAEdge> edges = program.getCFG().getEdges();
 				do {
-					dce = new DeadCodeElimination(program); 
+					dce = new DeadCodeElimination(edges); 
 					runAlgorithm(dce);
+					edges = dce.getCFA();					
 					totalRemoved += dce.getRemovalCount();
-				} while (dce.getRemovalCount() > 0);
+				} while (dce.getRemovalCount() > 0);				
 				logger.info("=== Finished CFA simplification, removed " + totalRemoved + " edges. ===");
+				program.setCFA(edges);
 
 				AnalysisManager mgr = AnalysisManager.getInstance();				
 				List<ConfigurableProgramAnalysis> secondaryCPAs = new LinkedList<ConfigurableProgramAnalysis>();
