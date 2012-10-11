@@ -17,12 +17,15 @@
  */
 package org.jakstab.transformation;
 
-import org.jakstab.Program;
+import java.util.HashSet;
+import java.util.Set;
+
 import org.jakstab.analysis.*;
 import org.jakstab.analysis.substitution.ExpressionSubstitutionAnalysis;
 import org.jakstab.analysis.substitution.SubstitutionElement;
 import org.jakstab.analysis.substitution.SubstitutionState;
 import org.jakstab.cfa.CFAEdge;
+import org.jakstab.cfa.ControlFlowGraph;
 import org.jakstab.rtl.Context;
 import org.jakstab.rtl.expressions.RTLVariable;
 import org.jakstab.rtl.statements.RTLSkip;
@@ -38,13 +41,8 @@ public class ExpressionSubstitution implements CFATransformation {
 	private static final Logger logger = Logger
 			.getLogger(ExpressionSubstitution.class);
 	
-	private Program program;
 	private CPAAlgorithm cpaAlgo;
-	
-	public ExpressionSubstitution(Program program) {
-		this.program = program;
-		cpaAlgo = CPAAlgorithm.createForwardAlgorithm(program, new ExpressionSubstitutionAnalysis());
-	}
+	private Set<CFAEdge> edgeSet;
 	
 	public static void substituteCFAEdge(CFAEdge edge, SubstitutionState s) {
 		RTLStatement stmt = (RTLStatement)edge.getTransformer();
@@ -76,6 +74,16 @@ public class ExpressionSubstitution implements CFATransformation {
 		}
 		return stmt;
 	}
+	
+	public ExpressionSubstitution(ControlFlowGraph cfg) {
+		cpaAlgo = CPAAlgorithm.createForwardAlgorithm(cfg, new ExpressionSubstitutionAnalysis());
+		edgeSet = new HashSet<CFAEdge>(cfg.getEdges());
+	}
+	
+	public Set<CFAEdge> getCFA() {
+		return edgeSet;
+	}
+
 
 	@Override
 	public void run() {
@@ -86,7 +94,7 @@ public class ExpressionSubstitution implements CFATransformation {
 		cpaAlgo.run();
 		ReachedSet exprSubstStates = cpaAlgo.getReachedStates().select(1);
 		
-		for (CFAEdge edge : program.getCFG().getEdges()) {
+		for (CFAEdge edge : edgeSet) {
 			assert exprSubstStates.where(edge.getSource()).size() == 1;
 			SubstitutionState s = (SubstitutionState)exprSubstStates.where(edge.getSource()).iterator().next();
 			substituteCFAEdge(edge, s);

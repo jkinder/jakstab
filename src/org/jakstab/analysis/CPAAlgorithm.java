@@ -40,7 +40,6 @@ public class CPAAlgorithm implements Algorithm {
 	@SuppressWarnings("unused")
 	private static final Logger logger = Logger.getLogger(CPAAlgorithm.class);
 
-	private final Program program;
 	private final StateTransformerFactory transformerFactory;
 	private final ConfigurableProgramAnalysis cpa;
 	private final ReachedSet reached;
@@ -58,12 +57,11 @@ public class CPAAlgorithm implements Algorithm {
 	 * forward transformer factory and worklist suitable for an analysis of a complete 
 	 * and already reconstructed control flow automaton.
 	 * 
-	 * @param program The program object
 	 * @param cpas The list of analyses to be performed  
 	 */
-	public static CPAAlgorithm createForwardAlgorithm(Program program, ConfigurableProgramAnalysis... cpas) {
+	public static CPAAlgorithm createForwardAlgorithm(ControlFlowGraph cfg, ConfigurableProgramAnalysis... cpas) {
 		ConfigurableProgramAnalysis cpa = new CompositeProgramAnalysis(new LocationAnalysis(), cpas);
-		return new CPAAlgorithm(program, cpa, new CFATransformerFactory(program.getCFG()), new FastSet<AbstractState>());
+		return new CPAAlgorithm(cpa, new CFATransformerFactory(cfg), new FastSet<AbstractState>());
 	}
 
 	/**
@@ -71,23 +69,21 @@ public class CPAAlgorithm implements Algorithm {
 	 * backward transformer factory and worklist suitable for an analysis of a complete 
 	 * and already reconstructed control flow automaton.
 	 * 
-	 * @param program The program object
 	 * @param cpas The list of backward analyses to be performed  
 	 */
-	public static CPAAlgorithm createBackwardAlgorithm(Program program, ConfigurableProgramAnalysis... cpas) {
+	public static CPAAlgorithm createBackwardAlgorithm(ControlFlowGraph cfg, ConfigurableProgramAnalysis... cpas) {
 		ConfigurableProgramAnalysis cpa = new CompositeProgramAnalysis(new BackwardLocationAnalysis(), cpas);
-		return new CPAAlgorithm(program, cpa, new ReverseCFATransformerFactory(program.getCFG()), new FastSet<AbstractState>());
+		return new CPAAlgorithm(cpa, new ReverseCFATransformerFactory(cfg), new FastSet<AbstractState>());
 	}
 
-	public CPAAlgorithm(Program program, ConfigurableProgramAnalysis cpa,
+	public CPAAlgorithm(ConfigurableProgramAnalysis cpa,
 			StateTransformerFactory transformerFactory, Worklist<AbstractState> worklist) {
-		this(program, cpa, transformerFactory, worklist, false);
+		this(cpa, transformerFactory, worklist, false);
 	}
 
-	public CPAAlgorithm(Program program, ConfigurableProgramAnalysis cpa,
+	public CPAAlgorithm(ConfigurableProgramAnalysis cpa,
 			StateTransformerFactory transformerFactory, Worklist<AbstractState> worklist, boolean failFast) {
 		super();
-		this.program = program;
 		this.cpa = cpa;
 		this.transformerFactory = transformerFactory;
 		this.worklist = worklist;
@@ -145,6 +141,7 @@ public class CPAAlgorithm implements Algorithm {
 		logger.debug("Starting CPA algorithm.");
 		
 		Runtime runtime = Runtime.getRuntime();
+		Program program = Program.getProgram();
 
 		AbstractState start = cpa.initStartState(transformerFactory.getInitialLocation()); 
 		worklist.add(start);

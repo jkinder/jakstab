@@ -309,7 +309,7 @@ public class Main {
 				logger.info("=== Simplifying CFA ===");
 				DeadCodeElimination dce;
 				long totalRemoved = 0;
-				runAlgorithm(new ExpressionSubstitution(program));
+				runAlgorithm(new ExpressionSubstitution(program.getCFG()));
 				Set<CFAEdge> edges = program.getCFG().getEdges();
 				do {
 					dce = new DeadCodeElimination(edges); 
@@ -338,9 +338,9 @@ public class Main {
 				CPAAlgorithm cpaAlg;
 				ConfigurableProgramAnalysis[] cpaArray = secondaryCPAs.toArray(new ConfigurableProgramAnalysis[secondaryCPAs.size()]);
 				if (Options.backward.getValue()) {
-					cpaAlg = CPAAlgorithm.createBackwardAlgorithm(program, cpaArray);
+					cpaAlg = CPAAlgorithm.createBackwardAlgorithm(program.getCFG(), cpaArray);
 				} else {
-					cpaAlg = CPAAlgorithm.createForwardAlgorithm(program, cpaArray);
+					cpaAlg = CPAAlgorithm.createForwardAlgorithm(program.getCFG(), cpaArray);
 				}
 				activeAlgorithm = cpaAlg;
 				cpaAlg.run();
@@ -364,7 +364,7 @@ public class Main {
 				cfr = null;
 				reached = null;
 				ProcedureAnalysis procedureAnalysis = new ProcedureAnalysis();		
-				CPAAlgorithm cpaAlg = CPAAlgorithm.createForwardAlgorithm(program, procedureAnalysis);
+				CPAAlgorithm cpaAlg = CPAAlgorithm.createForwardAlgorithm(program.getCFG(), procedureAnalysis);
 				runAlgorithm(cpaAlg);
 				reached = cpaAlg.getReachedStates().select(1);
 				Set<Location> procedures = procedureAnalysis.getCallees();
