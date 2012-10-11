@@ -494,15 +494,11 @@ public class ProgramGraphWriter {
 					properties = endNode;
 				StringBuilder nodeLabel = new StringBuilder();
 				nodeLabel.append(curState.getIdentifier());
-				//nodeLabel.append("\\n");
-				//nodeLabel.append(curState);
-				for (AbstractState coverState : art.getCoveringStates(curState)) {
-					nodeLabel.append("Covered by ").append(coverState.getIdentifier()).append("\\n");
-				}
 
 				gwriter.writeNode(nodeName, nodeLabel.toString(), properties);
 
-				for (AbstractState nextState : art.getChildren(curState)) {
+				for (Pair<CFAEdge, AbstractState> sPair : art.getChildren(curState)) {
+					AbstractState nextState = sPair.getRight();
 					//if (!visited.contains(nextState)) {
 					worklist.add(nextState);
 					//visited.add(nextState);
@@ -520,7 +516,7 @@ public class ProgramGraphWriter {
 	
 	private VpcLiftedCFG getVpcGraph(AbstractReachabilityTree art) {
 		if (vcfg == null)
-			vcfg = new VpcLiftedCFG(program.getCFG(), art);
+			vcfg = new VpcLiftedCFG(art);
 		return vcfg;
 	}
 	
@@ -532,17 +528,17 @@ public class ProgramGraphWriter {
 		
 		logger.info("Writing VPC-lifted CFA to " + gwriter.getFilename());
 		try {
-			for (VpcLocation node : vCfg.getNodes()) {
+			for (Location node : vCfg.getNodes()) {
 				String nodeName = node.toString();
 				StringBuilder labelBuilder = new StringBuilder();
 				labelBuilder.append(nodeName);
 				gwriter.writeNode(nodeName, labelBuilder.toString(), getNodeProperties(node.getLabel()));
 			}
 
-			for (Map.Entry<VpcLocation, VpcLocation> e : vCfg.getEdges()) {
-				gwriter.writeLabeledEdge(e.getKey().toString(), 
-						e.getValue().toString(), 
-						program.getStatement(e.getKey().getLabel()).toString());
+			for (CFAEdge e : vCfg.getEdges()) {
+				gwriter.writeLabeledEdge(e.getSource().toString(), 
+						e.getTarget().toString(), 
+						program.getStatement(e.getSource().getLabel()).toString());
 			}
 
 			gwriter.close();
@@ -562,7 +558,8 @@ public class ProgramGraphWriter {
 
 		logger.info("Writing VPC-lifted CFG to " + gwriter.getFilename());
 		try {
-			for (VpcLocation vpcLoc : vCfg.getBasicBlockNodes()) {
+			for (Location loc : vCfg.getBasicBlockNodes()) {
+				VpcLocation vpcLoc = (VpcLocation)loc;
 				
 				RTLLabel nodeAddr = vpcLoc.getLabel();
 				String nodeName = vpcLoc.toString();
@@ -579,9 +576,9 @@ public class ProgramGraphWriter {
 				gwriter.writeNode(nodeName, labelBuilder.toString(), getNodeProperties(bb.getFirst().getLabel()));
 			}
 
-			for (Map.Entry<VpcLocation, VpcLocation> e : vCfg.getBasicBlockEdges()) {
-				VpcLocation sourceAddr = e.getKey(); 
-				VpcLocation targetAddr = e.getValue();
+			for (CFAEdge e : vCfg.getBasicBlockEdges()) {
+				VpcLocation sourceAddr = (VpcLocation)e.getSource(); 
+				VpcLocation targetAddr = (VpcLocation)e.getTarget();
 				BasicBlock bb = vCfg.getBasicBlock(sourceAddr);
 				assert(bb != null);
 				
@@ -626,7 +623,8 @@ public class ProgramGraphWriter {
 
 		logger.info("Writing VPC-lifted CFG to " + gwriter.getFilename());
 		try {
-			for (VpcLocation vpcLoc : vCfg.getBasicBlockNodes()) {
+			for (Location loc : vCfg.getBasicBlockNodes()) {
+				VpcLocation vpcLoc = (VpcLocation)loc;
 				
 				AbsoluteAddress nodeAddr = vpcLoc.getLabel().getAddress();
 				String nodeName = vpcLoc.toString();
@@ -651,9 +649,9 @@ public class ProgramGraphWriter {
 				gwriter.writeNode(nodeName, labelBuilder.toString(), getNodeProperties(bb.getFirst().getLabel()));
 			}
 
-			for (Map.Entry<VpcLocation, VpcLocation> e : vCfg.getBasicBlockEdges()) {
-				VpcLocation sourceAddr = e.getKey(); 
-				VpcLocation targetAddr = e.getValue();
+			for (CFAEdge e : vCfg.getBasicBlockEdges()) {
+				VpcLocation sourceAddr = (VpcLocation)e.getSource(); 
+				VpcLocation targetAddr = (VpcLocation)e.getTarget();
 				BasicBlock bb = vCfg.getBasicBlock(sourceAddr);
 				assert(bb != null);
 				

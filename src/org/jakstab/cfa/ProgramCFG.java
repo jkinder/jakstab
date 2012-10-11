@@ -16,6 +16,8 @@ public class ProgramCFG extends ControlFlowGraph {
 		}
 		
 		buildBasicBlocks(findBasicBlockHeads());
+		
+		assert valid();
 	}
 
 	private Set<Location> findBasicBlockHeads() {

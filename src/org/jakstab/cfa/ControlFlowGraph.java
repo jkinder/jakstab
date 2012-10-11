@@ -48,7 +48,7 @@ public abstract class ControlFlowGraph {
 	}
 	
 	public Set<CFAEdge> getOutEdges(Location l) {
-		return Collections.unmodifiableSet(inEdges.get(l));
+		return Collections.unmodifiableSet(outEdges.get(l));
 	}
 	
 	public Set<Location> getSuccessorLocations(Location l) {
@@ -116,6 +116,7 @@ public abstract class ControlFlowGraph {
 			if (out != null) for (CFAEdge e : out) {
 				CFAEdge bbEdge = new CFAEdge(head, e.getTarget(), bb);
 				bbOutEdges.put(head, bbEdge);
+				assert basicBlocks.containsKey(e.getTarget()) : "Target not in basic block head list? " + bbEdge;
 				bbInEdges.put(e.getTarget(), bbEdge);
 			}
 		}
@@ -144,6 +145,67 @@ public abstract class ControlFlowGraph {
 		inEdges.put(e.getTarget(), e);
 		locations.add(e.getSource());
 		locations.add(e.getTarget());		
+	}
+	
+	protected boolean valid() {
+		
+		int errors = 0;
+		
+		for (CFAEdge e : outEdges.values()) {
+			if (!locations.contains(e.getSource()))
+				errors++;
+			if (!locations.contains(e.getTarget()))
+				errors++;
+			if (!inEdges.get(e.getTarget()).contains(e))
+				errors++;
+		}
+		
+		for (CFAEdge e : inEdges.values()) {
+			if (!locations.contains(e.getSource()))
+				errors++;
+			if (!locations.contains(e.getTarget()))
+				errors++;
+			if (!outEdges.get(e.getSource()).contains(e))
+				errors++;
+		}
+		
+		Set<Location> bbLocations = basicBlocks.keySet();
+
+		for (CFAEdge e : bbOutEdges.values()) {
+			if (!bbLocations.contains(e.getSource())) {
+				logger.error("Basicblock locations do not contain " + e.getSource() + " from edge " + e);
+				errors++;
+			}
+			if (!bbLocations.contains(e.getTarget())) {
+				logger.error("Basicblock locations do not contain " + e.getTarget() + " from edge " + e);
+				errors++;
+			}
+			if (!bbInEdges.get(e.getTarget()).contains(e)) {
+				logger.error("BB in-edges do not contain out-edge " + e);
+				errors++;
+			}
+		}
+		
+		for (CFAEdge e : bbInEdges.values()) {
+			if (!bbLocations.contains(e.getSource())) {
+				logger.error("Basicblock locations do not contain " + e.getSource() + " from edge " + e);
+				errors++;
+			}
+			if (!bbLocations.contains(e.getTarget())) {
+				logger.error("Basicblock locations do not contain " + e.getTarget() + " from edge " + e);
+				errors++;
+			}
+			if (!bbOutEdges.get(e.getSource()).contains(e)) {
+				logger.error("BB out-edges do not contain in-edge " + e);
+				errors++;
+			}
+		}
+		if (errors != 0) {
+			logger.error(errors + " errors in CFG audit.");
+			return false;
+		} else {
+			return true;
+		}
 	}
 	
 }

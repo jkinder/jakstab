@@ -214,11 +214,11 @@ public class CPAAlgorithm implements Algorithm {
 			
 			//logger.debug("Picked from worklist: " + a.getIdentifier());
 			
-			// getTransformers() and post() might throw exceptions
+			// getTransformers() might throw exceptions
 			try {
 				// For each outgoing edge
 				for (CFAEdge cfaEdge : transformerFactory.getTransformers(a)) {
-					
+
 					Precision targetPrecision = precisionMap.get(cfaEdge.getTarget());
 					if (targetPrecision == null) {
 						targetPrecision = cpa.initPrecision(cfaEdge.getTarget(), cfaEdge.getTransformer());
@@ -228,16 +228,28 @@ public class CPAAlgorithm implements Algorithm {
 					// Prefix everything by current location for easier debugging
 					//Logger.setGlobalPrefix(cfaEdge.getSource().toString());
 
+
 					// Calculate the set of abstract successors
-					Set<AbstractState> successors = cpa.post(a, cfaEdge, targetPrecision);
+					// post() might throw exceptions 
+					Set<AbstractState> successors;
+					try {
+						successors = cpa.post(a, cfaEdge, targetPrecision);
+					} catch (StateException e) {
+						if (e.getState() == null) {
+							e.setState(a);
+						}
+						if (art != null && !unadjustedState.equals(e.getState())) 
+							art.addChild(unadjustedState, cfaEdge, e.getState());
+						throw e;
+					}
 
 					if (successors.isEmpty()) {
 						logger.debug("No successors along edge " + cfaEdge + ", reached halt?");
 						continue;
 					}
-					
+
 					//logger.debug("via edge " + cfaEdge.toString() + " " + successors.size() + " successors.");
-					
+
 					// Process every successor
 					for (AbstractState succ : successors) {
 						//logger.debug("Processing new post state: " + succ.getIdentifier());
@@ -266,7 +278,7 @@ public class CPAAlgorithm implements Algorithm {
 							// Only add r to the worklist if it hasn't been reached yet
 							if (reached.add(r)) {
 								worklist.add(r);
-								if (art != null) art.addChild(unadjustedState, r);
+								if (art != null) art.addChild(unadjustedState, cfaEdge, r);
 							}
 						}
 
@@ -274,17 +286,17 @@ public class CPAAlgorithm implements Algorithm {
 						if (!cpa.stop(succ, reached, targetPrecision)) {
 							worklist.add(succ);
 							reached.add(succ);
-							if (art != null) art.addChild(unadjustedState, succ);
+							if (art != null) art.addChild(unadjustedState, cfaEdge, succ);
 						}
 					}
+
 					// end for each outgoing edge
-				}
+				} 
 			} catch (StateException e) {
+				// Fill in state for disassembly and unknownpointer exceptions
 				if (e.getState() == null) {
 					e.setState(a);
 				}
-				if (art != null && !unadjustedState.equals(e.getState())) 
-					art.addChild(unadjustedState, e.getState());
 				throw e;
 			}
 		}

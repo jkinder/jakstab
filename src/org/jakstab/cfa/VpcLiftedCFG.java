@@ -2,11 +2,9 @@ package org.jakstab.cfa;
 
 import java.util.Collections;
 import java.util.Deque;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import org.jakstab.AnalysisManager;
@@ -24,54 +22,48 @@ import org.jakstab.rtl.statements.RTLGoto;
 import org.jakstab.rtl.statements.RTLHalt;
 import org.jakstab.rtl.statements.RTLStatement;
 import org.jakstab.util.Logger;
+import org.jakstab.util.Pair;
 
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.SetMultimap;
-
-public class VpcLiftedCFG {
+public class VpcLiftedCFG extends ControlFlowGraph {
 	
 	@SuppressWarnings("unused")
 	private static final Logger logger = Logger.getLogger(VpcLiftedCFG.class);
 	
-	private SetMultimap<VpcLocation, VpcLocation> outEdges;
-	private SetMultimap<VpcLocation, VpcLocation> inEdges;
-	
-	private SetMultimap<VpcLocation, VpcLocation> bbOutEdges;
-	private SetMultimap<VpcLocation, VpcLocation> bbInEdges;
-	private Map<VpcLocation, BasicBlock> basicBlocks;
-	private Set<VpcLocation> locations;
-	
-	public VpcLiftedCFG(ControlFlowGraph cfg, AbstractReachabilityTree art) {
-		
-		outEdges = HashMultimap.create();
-		inEdges = HashMultimap.create();
-		locations = new HashSet<VpcLocation>();
-		
-		reconstructCFGFromVPC(cfg, art);
-		logger.debug(locations.size() + " VPC locations.");
-		logger.debug(outEdges.size() + " edges in the VPC-CFG.");
+	public VpcLiftedCFG(AbstractReachabilityTree art) {
 
-		bbOutEdges = HashMultimap.create();
-		bbInEdges = HashMultimap.create();
-		basicBlocks = new HashMap<VpcLocation, BasicBlock>();
-		Program program = Program.getProgram();
+		super();
+
+		reconstructCFGFromVPC(art);
+		logger.debug(getNodes().size() + " VPC locations.");
+		logger.debug(getEdges().size() + " edges in the VPC-CFG.");
+		
+		buildBasicBlocks(findBasicBlockHeads());
+		logger.debug(getBasicBlockEdges().size() + " basic block edges in the VPC-CFG.");
+
+		assert valid();
+	}
+	
+	private Set<Location> findBasicBlockHeads() {
+		Set<Location> result = new HashSet<Location>();
 		
 		// Find basic block heads
-		for (VpcLocation l : locations) {
-			Set<VpcLocation> in = inEdges.get(l);
+		for (Location loc : getNodes()) {
+			VpcLocation l = (VpcLocation)loc;
+			Set<CFAEdge> in = getInEdges(l);
 			// This can only NOT be a BB head if it has in-degree 1
 			if (in.size() == 1) {
-				VpcLocation e = in.iterator().next();
+				CFAEdge e = in.iterator().next();
+				VpcLocation predLoc = (VpcLocation)e.getSource();
 				// Out-degree of predecessor also has to be 1
-				if (outEdges.get(e).size() == 1) {
-
-					RTLStatement predStmt = program.getStatement(e.getLabel());
+				if (getOutEdges(predLoc).size() == 1) {
+					
+					RTLStatement predStmt = Program.getProgram().getStatement(predLoc.getLabel());
 					if (predStmt instanceof RTLGoto) {
 						RTLGoto g = (RTLGoto)predStmt;
 						if (g.getType() != RTLGoto.Type.CALL && 
 								g.getType() != RTLGoto.Type.RETURN) {
-							// If vpcs are equal, don't start a new head even for Gotos
-							if (e.getVPC().equals(l.getVPC()))
+							// Uncomment this to break blocks at VPC boundaries
+							//if (predLoc.getVPC().equals(l.getVPC()))
 								continue;
 						}
 					} else {
@@ -83,64 +75,14 @@ public class VpcLiftedCFG {
 			if (in.size() == 0) {
 				logger.debug("Orphan block at " + l);
 			}
-			// Create new basic block from location
-			BasicBlock bb = new BasicBlock();
-			basicBlocks.put(l, bb);
-		}
-		logger.debug(basicBlocks.size() + " basic blocks in the VPC-CFG.");
-		
-		
-		for (Map.Entry<VpcLocation, BasicBlock> entry : basicBlocks.entrySet()) {
-			VpcLocation head = entry.getKey();
-			BasicBlock bb = entry.getValue();
-			
-			bb.add(program.getStatement(head.getLabel()));
-			VpcLocation l = head;
-			Set<VpcLocation> out = outEdges.get(l);
-			while (out != null && out.size() == 1) {
-				l = out.iterator().next();
-				if (basicBlocks.containsKey(l))
-					break;
-				bb.add(program.getStatement(l.getLabel()));
-				out = outEdges.get(l);
-			}
-			
-			for (VpcLocation e : out) {
-				bbOutEdges.put(head, e);
-				bbInEdges.put(e, head);
-			}
-		}
-		
-		logger.debug(bbOutEdges.size() + " basic block edges in the VPC-CFG.");
 
+			result.add(l);
+		}
+		logger.debug(result.size() + " basic blocks in the VPC-CFG.");
+		return result;
 	}
 	
-	public Set<VpcLocation> getNodes() {
-		return Collections.unmodifiableSet(locations);
-	}
-	
-	public Set<Map.Entry<VpcLocation, VpcLocation>> getEdges() {
-		return outEdges.entries();
-	}
-	
-	public BasicBlock getBasicBlock(VpcLocation l) {
-		return basicBlocks.get(l);
-	}
-	
-	public Set<Map.Entry<VpcLocation, VpcLocation>> getBasicBlockEdges() {
-		return bbOutEdges.entries();
-	}
-	
-	public Set<VpcLocation> getBasicBlockNodes() {
-		return Collections.unmodifiableSet(basicBlocks.keySet());
-	}
-	
-	public Set<BasicBlock> getBasicBlocks() {
-		return Collections.unmodifiableSet(
-				new HashSet<BasicBlock>(basicBlocks.values()));
-	}
-	
-	private VpcLocation reconstructCFGFromVPC(ControlFlowGraph cfg, AbstractReachabilityTree art) {
+	private VpcLocation reconstructCFGFromVPC(AbstractReachabilityTree art) {
 		
 		AnalysisManager mgr = AnalysisManager.getInstance();
 		
@@ -160,16 +102,15 @@ public class VpcLiftedCFG {
 			AbstractState headState = worklist.removeFirst();
 			BasedNumberElement vpcVal = getVPC(headState, vpcAnalysis, vAnalysisPos);
 			VpcLocation headVpcLoc = new VpcLocation(vpcVal, (RTLLabel)headState.getLocation());
-			locations.add(headVpcLoc);
 
-			Set<AbstractState> successors = art.getChildren(headState);
-			for (AbstractState nextState : successors) {
-
+			Set<Pair<CFAEdge, AbstractState>> successors = art.getChildren(headState);
+			for (Pair<CFAEdge, AbstractState> sPair : successors) {
+				AbstractState nextState = sPair.getRight();
+				CFAEdge edge = sPair.getLeft();
+				
 				VpcLocation vpcLoc = headVpcLoc;
 				BasedNumberElement nextVpcVal = getVPC(nextState, vpcAnalysis, vAnalysisPos);
 				
-				CFAEdge edge = cfg.getEdgeBetween(headState.getLocation(), nextState.getLocation());
-
 				List<RTLStatement> stmtList;
 				if (Options.basicBlocks.getValue())
 					stmtList = (BasicBlock)edge.getTransformer();
@@ -179,10 +120,8 @@ public class VpcLiftedCFG {
 					if (stmt instanceof RTLHalt)
 						break;
 					VpcLocation nextVpcLoc = new VpcLocation(nextVpcVal, stmt.getNextLabel());
-					assert cfg.getSuccessorLocations(vpcLoc.getLabel()).contains(nextVpcLoc.getLabel());
-					outEdges.put(vpcLoc, nextVpcLoc);
-					inEdges.put(nextVpcLoc, vpcLoc);
-					locations.add(nextVpcLoc);
+
+					addEdge(new CFAEdge(vpcLoc, nextVpcLoc, stmt));
 					
 					vpcLoc = nextVpcLoc;
 				}
