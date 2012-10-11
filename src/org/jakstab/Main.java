@@ -289,15 +289,15 @@ public class Main {
 			graphWriter.writeDisassembly(baseFileName + "_jak.asm");
 			
 			if (Options.cpas.getValue().contains("v")) {
-				//graphWriter.writeVpcGraph(baseFileName + "_vilcfg", cfr.getART());
-				graphWriter.writeVpcBBGraph(baseFileName + "_vcfg", cfr.getART());
-				graphWriter.writeVpcAsmBBGraph(baseFileName + "_asmvcfg", cfr.getART());
+				graphWriter.writeVpcGraph(baseFileName + "_vilcfg", cfr.getART());
+				graphWriter.writeVpcBasicBlockGraph(baseFileName + "_vcfg", cfr.getART());
+				graphWriter.writeVpcAssemblyBasicBlockGraph(baseFileName + "_asmvcfg", cfr.getART());
 			}
 
 			if (!(cfr.isCompleted() && Options.secondaryCPAs.getValue().length() > 0)) {
 				if (!Options.noGraphs.getValue()) {
-					graphWriter.writeControlFlowAutomaton(baseFileName + "_cfa");
-					graphWriter.writeAssemblyBBCFG(baseFileName + "_asmcfg");
+					graphWriter.writeControlFlowAutomaton(program.getCFG(), baseFileName + "_cfa");
+					graphWriter.writeAssemblyBasicBlockGraph(program.getCFG(), baseFileName + "_asmcfg");
 					//graphWriter.writeAssemblyCFG(baseFileName + "_asmcfg");
 				}
 				//if (Options.errorTrace) graphWriter.writeART(baseFileName + "_art", cfr.getART());
@@ -343,7 +343,7 @@ public class Main {
 				long customAnalysisEndTime = System.currentTimeMillis();
 
 				if (!Options.noGraphs.getValue())
-					graphWriter.writeControlFlowAutomaton(baseFileName + "_cfa", cpaAlg.getReachedStates().select(1));
+					graphWriter.writeControlFlowAutomaton(program.getCFG(), baseFileName + "_cfa", cpaAlg.getReachedStates().select(1));
 
 				logger.error(Characters.DOUBLE_LINE_FULL_WIDTH);
 				logger.error( "   Statistics for " + Options.secondaryCPAs.getValue());

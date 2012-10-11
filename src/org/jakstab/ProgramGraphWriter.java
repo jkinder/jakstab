@@ -57,13 +57,12 @@ public class ProgramGraphWriter {
 	private Program program;
 	
 	private Set<Location> mustLeaves;
-	private ControlFlowGraph cfg;
 	private VpcLiftedCFG vcfg;
 
 	public ProgramGraphWriter(Program program) {
 		this.program = program;
 
-		cfg = program.getCFG();
+		ControlFlowGraph cfg = program.getCFG();
 		
 		mustLeaves = new HashSet<Location>();
 		
@@ -93,51 +92,6 @@ public class ProgramGraphWriter {
 		
 	}
 	
-	private GraphWriter createGraphWriter(String filename) {
-		try {
-			if (Options.graphML.getValue()) {
-				return new GraphMLWriter(filename);
-			} else {
-				return new GraphvizWriter(filename);
-			}
-		} catch (IOException e) {
-			logger.error("Cannot open output file!", e);
-			return null;
-		}
-	}
-
-	private Map<String,String> getNodeProperties(Location loc) {
-		RTLStatement curStmt = program.getStatement(loc.getLabel());
-		Map<String,String> properties = new HashMap<String, String>();
-
-		if (curStmt != null) {
-			if (curStmt.getLabel().getAddress().getValue() >= 0xFACE0000L) {
-				properties.put("color", "lightgrey");
-				properties.put("fillcolor", "lightgrey");
-			}
-
-			if (program.getUnresolvedBranches().contains(curStmt.getLabel())) {
-				properties.put("fillcolor", "red");
-			}
-			
-			if (mustLeaves.contains(loc)) {
-				properties.put("fillcolor", "green");
-			}
-
-			if (curStmt.getLabel().equals(program.getStart())) {
-				properties.put("color", "green");
-				properties.put("style", "filled,bold");
-			} else if (curStmt instanceof RTLHalt) {
-				properties.put("color", "orange");
-				properties.put("style", "filled,bold");
-			}
-		} else {
-			logger.info("No real statement for location " + loc);
-		}
-
-		return properties;
-	}
-
 	// Does not write a real graph, but still fits best into this class  
 	public void writeDisassembly(String filename) {
 		logger.info("Writing assembly file to " + filename);
@@ -145,7 +99,7 @@ public class ProgramGraphWriter {
 		SetMultimap<AbsoluteAddress, CFAEdge> branchEdges = HashMultimap.create(); 
 		SetMultimap<AbsoluteAddress, CFAEdge> branchEdgesRev = HashMultimap.create(); 
 		if (!Options.noGraphs.getValue()) {
-			for (CFAEdge e : cfg.getEdges()) {
+			for (CFAEdge e : program.getCFG().getEdges()) {
 				AbsoluteAddress sourceAddr = e.getSource().getAddress(); 
 				AbsoluteAddress targetAddr = e.getTarget().getAddress();
 				if (program.getInstruction(sourceAddr) instanceof BranchInstruction && !sourceAddr.equals(targetAddr)) {
@@ -211,79 +165,7 @@ public class ProgramGraphWriter {
 		}
 	}
 	
-	public void writeAssemblyBBCFG(String filename) {
-		ControlFlowGraph cfg = program.getCFG();
-
-		// Create dot file
-		GraphWriter gwriter = createGraphWriter(filename);
-		if (gwriter == null) return;
-
-		logger.info("Writing assembly CFG to " + gwriter.getFilename());
-		try {
-			for (BasicBlock bb : cfg.getBasicBlocks()) {
-				AbsoluteAddress nodeAddr = bb.getFirst().getAddress();
-				String nodeName = nodeAddr.toString();
-				StringBuilder labelBuilder = new StringBuilder();
-				String locLabel = program.getSymbolFor(nodeAddr);
-				if (locLabel.length() > 20) locLabel = locLabel.substring(0, 20) + "...";
-				labelBuilder.append(locLabel).append("\\n");
-
-				for (Iterator<AbsoluteAddress> addrIt = bb.addressIterator(); addrIt.hasNext();) {
-					AbsoluteAddress curAddr = addrIt.next();
-					Instruction instr = program.getInstruction(curAddr);
-					if (instr != null) {
-						String instrString = program.getInstructionString(curAddr);
-						instrString = instrString.replace("\t", " ");
-						labelBuilder.append(instrString + "\\l");
-					} else {
-						//labelBuilder.append(curAddr.toString() + "\\l");
-					}
-					gwriter.writeNode(nodeName, labelBuilder.toString(), getNodeProperties(bb.getFirst().getLabel()));
-				}
-			}
-			
-			for (CFAEdge e : cfg.getBasicBlockEdges()) {
-				if (e.getKind() == null) logger.error("Null kind? " + e);
-				AbsoluteAddress sourceAddr = e.getSource().getAddress(); 
-				AbsoluteAddress targetAddr = e.getTarget().getAddress();
-				BasicBlock bb = (BasicBlock)e.getTransformer();
-				
-				String label = null;
-				RTLLabel lastLoc = bb.getLast().getLabel();
-				Instruction instr = program.getInstruction(lastLoc.getAddress());
-				
-				if (instr instanceof BranchInstruction) {
-					BranchInstruction bi = (BranchInstruction)instr;
-					if (bi.isConditional()) {
-						// Get the original goto from the program (not the converted assume) 
-						RTLStatement rtlGoto = program.getStatement(lastLoc);
-						
-						// If this is the fall-through edge, output F, otherwise T
-						label = targetAddr.equals(rtlGoto.getNextLabel().getAddress()) ? "F" : "T";
-					}
-				}
-				
-				if (label != null)
-					gwriter.writeLabeledEdge(sourceAddr.toString(), 
-							targetAddr.toString(), 
-							label,
-							e.getKind().equals(CFAEdge.Kind.MAY) ? Color.BLACK : Color.GREEN);
-				else
-					gwriter.writeEdge(sourceAddr.toString(), 
-							targetAddr.toString(), 
-							e.getKind().equals(CFAEdge.Kind.MAY) ? Color.BLACK : Color.GREEN);
-
-			}
-
-			gwriter.close();
-		} catch (IOException e) {
-			logger.error("Cannot write to output file", e);
-			return;
-		}
-	}
-
-	
-	public void writeAssemblyCFG(String filename) {
+	public void writeAssemblyCFG(ControlFlowGraph cfg, String filename) {
 		Set<CFAEdge> edges = new HashSet<CFAEdge>(); 
 		Set<RTLLabel> nodes = new HashSet<RTLLabel>();
 		for (CFAEdge e : cfg.getEdges()) {
@@ -356,207 +238,40 @@ public class ProgramGraphWriter {
 		
 	}
 
-	public void writeControlFlowAutomaton(String filename) {
-		writeControlFlowAutomaton(filename, (ReachedSet)null);
-	}
-
-	public void writeControlFlowAutomaton(String filename, ReachedSet reached) {
-
-		// Create dot file
-		GraphWriter gwriter = createGraphWriter(filename);
-		if (gwriter == null) return;
-
-		logger.info("Writing CFA to " + gwriter.getFilename());
-		try {
-			for (Location node : cfg.getNodes()) {
-				String nodeName = node.toString();
-				StringBuilder labelBuilder = new StringBuilder();
-				labelBuilder.append(nodeName);
-				if (reached != null) {
-					labelBuilder.append("\n");
-					if (reached.where(node).isEmpty()) {
-						logger.warn("No reached states for location " + node);
-					}
-					for (AbstractState a : reached.where(node)) {
-						labelBuilder.append(a.toString());
-						labelBuilder.append("\n");
-					}
-				}
-				gwriter.writeNode(nodeName, labelBuilder.toString(), getNodeProperties(node));
-			}
-
-			for (CFAEdge e : cfg.getEdges()) {
-				if (e.getKind() == null) logger.error("Null kind? " + e);
-				gwriter.writeLabeledEdge(e.getSource().toString(), 
-						e.getTarget().toString(), 
-						e.getTransformer().toString(),
-						e.getKind().equals(CFAEdge.Kind.MAY) ? Color.BLACK : Color.GREEN);
-			}
-
-			gwriter.close();
-		} catch (IOException e) {
-			logger.error("Cannot write to output file", e);
-			return;
-		}
+	public void writeAssemblyBasicBlockGraph(ControlFlowGraph cfg, String filename) {
+		logger.info("Writing assembly basic block graph to " + filename);
+		writeAssemblyBBCFG(cfg, filename);
 	}
 	
-	public void writeControlFlowAutomaton(String filename, Map<RTLLabel, Object> reached) {
-
-		// Create dot file
-		GraphWriter gwriter = createGraphWriter(filename);
-		if (gwriter == null) return;
-
-		logger.info("Writing CFA to " + gwriter.getFilename());
-		try {
-			for (Location node : cfg.getNodes()) {
-				String nodeName = node.toString();
-				StringBuilder labelBuilder = new StringBuilder();
-				labelBuilder.append(nodeName);
-				if (reached != null) {
-					labelBuilder.append("\n");
-					Object info = reached.get(node);
-					if (info == null)
-						logger.warn("No information for location " + node);
-					else
-						labelBuilder.append(info.toString());
-				}
-				gwriter.writeNode(nodeName, labelBuilder.toString(), getNodeProperties(node));
-			}
-
-			for (CFAEdge e : cfg.getEdges()) {
-				if (e.getKind() == null) logger.error("Null kind? " + e);
-				gwriter.writeLabeledEdge(e.getSource().toString(), 
-						e.getTarget().toString(), 
-						e.getTransformer().toString(),
-						e.getKind().equals(CFAEdge.Kind.MAY) ? Color.BLACK : Color.GREEN);
-			}
-
-			gwriter.close();
-		} catch (IOException e) {
-			logger.error("Cannot write to output file", e);
-			return;
-		}
-	}
-	
-	public void writeCallGraph(String filename, SetMultimap<Location, Location> callGraph) {
-		// Create dot file
-		GraphWriter gwriter = createGraphWriter(filename);
-		if (gwriter == null) return;
-		
-		Set<Location> nodes = new HashSet<Location>();
-		
-		logger.info("Writing callgraph to " + gwriter.getFilename());
-		try {
-			for (Map.Entry<Location, Location> e : callGraph.entries()) {
-				nodes.add(e.getKey());
-				nodes.add(e.getValue());
-				gwriter.writeEdge(e.getKey().toString(), 
-						e.getValue().toString());
-			}
-			
-			for (Location node : nodes) {
-				gwriter.writeNode(node.toString(), node.toString(), getNodeProperties(node));
-			}
-
-			gwriter.close();
-		} catch (IOException e) {
-			logger.error("Cannot write to output file", e);
-			return;
-		}		
+	public void writeControlFlowAutomaton(ControlFlowGraph cfg, String filename) {
+		writeControlFlowAutomaton(cfg, filename, (ReachedSet)null);
 	}
 
-	public void writeART(String filename, AbstractReachabilityTree art) {
-		Map<String,String> startNode = new HashMap<String, String>();
-		Map<String,String> endNode = new HashMap<String, String>();
-		startNode.put("color", "green");
-		startNode.put("style", "filled,bold");
-		endNode.put("color", "red");
-		endNode.put("style", "filled,bold");
-
-		// Create dot file
-		GraphWriter gwriter = createGraphWriter(filename);
-		if (gwriter == null) return;
-
-		logger.info("Writing ART to " + gwriter.getFilename());
-		try {
-			Deque<AbstractState> worklist = new LinkedList<AbstractState>();
-			//Set<AbstractState> visited = new HashSet<AbstractState>();
-			worklist.add(art.getRoot());
-			//visited.addAll(worklist);
-			while (!worklist.isEmpty()) {
-				AbstractState curState = worklist.removeFirst();
-
-				String nodeName = curState.getIdentifier();
-				Map<String, String> properties = null;
-				if (curState == art.getRoot())
-					properties = startNode;
-				if (program.getStatement((RTLLabel)curState.getLocation()) instanceof RTLHalt)
-					properties = endNode;
-				StringBuilder nodeLabel = new StringBuilder();
-				nodeLabel.append(curState.getIdentifier());
-
-				gwriter.writeNode(nodeName, nodeLabel.toString(), properties);
-
-				for (Pair<CFAEdge, AbstractState> sPair : art.getChildren(curState)) {
-					AbstractState nextState = sPair.getRight();
-					//if (!visited.contains(nextState)) {
-					worklist.add(nextState);
-					//visited.add(nextState);
-					gwriter.writeEdge(nodeName, nextState.getIdentifier());
-					//}
-				}
-			}			
-			gwriter.close();
-		} catch (IOException e) {
-			logger.error("Cannot write to output file", e);
-			return;
-		}
-
+	public void writeControlFlowAutomaton(ControlFlowGraph cfg, String filename, ReachedSet reached) {
+		logger.info("Writing CFA to " + filename);
+		writeControlFlowGraph(cfg, filename, reached);
 	}
-	
-	private VpcLiftedCFG getVpcGraph(AbstractReachabilityTree art) {
-		if (vcfg == null)
-			vcfg = new VpcLiftedCFG(art);
-		return vcfg;
+
+	public void writeVpcAssemblyBasicBlockGraph(String filename, AbstractReachabilityTree art) {
+		VpcLiftedCFG vCfg = getVpcGraph(art);
+		logger.info("Writing VPC-lifted assembly CFG to " + filename);
+		writeAssemblyBBCFG(vCfg, filename);
 	}
-	
+
 	public void writeVpcGraph(String filename, AbstractReachabilityTree art) {
-		VpcLiftedCFG vCfg = getVpcGraph(art);
-		// Create dot file
-		GraphWriter gwriter = createGraphWriter(filename);
-		if (gwriter == null) return;
-		
-		logger.info("Writing VPC-lifted CFA to " + gwriter.getFilename());
-		try {
-			for (Location node : vCfg.getNodes()) {
-				String nodeName = node.toString();
-				StringBuilder labelBuilder = new StringBuilder();
-				labelBuilder.append(nodeName);
-				gwriter.writeNode(nodeName, labelBuilder.toString(), getNodeProperties(node.getLabel()));
-			}
-
-			for (CFAEdge e : vCfg.getEdges()) {
-				gwriter.writeLabeledEdge(e.getSource().toString(), 
-						e.getTarget().toString(), 
-						program.getStatement(e.getSource().getLabel()).toString());
-			}
-
-			gwriter.close();
-		} catch (IOException e) {
-			logger.error("Cannot write to output file", e);
-			return;
-		}
+		VpcLiftedCFG vCfg = getVpcGraph(art);		
+		logger.info("Writing VPC-lifted CFG to " + filename);
+		writeControlFlowGraph(vCfg, filename, null);
 	}
 
-	public void writeVpcBBGraph(String filename, AbstractReachabilityTree art) {
+	public void writeVpcBasicBlockGraph(String filename, AbstractReachabilityTree art) {
 		
-		VpcLiftedCFG vCfg = getVpcGraph(art);
-		
+		VpcLiftedCFG vCfg = getVpcGraph(art);		
 		// Create dot file
 		GraphWriter gwriter = createGraphWriter(filename);
 		if (gwriter == null) return;
 
-		logger.info("Writing VPC-lifted CFG to " + gwriter.getFilename());
+		logger.info("Writing VPC-lifted basic block graph to " + gwriter.getFilename());
 		try {
 			for (Location loc : vCfg.getBasicBlockNodes()) {
 				VpcLocation vpcLoc = (VpcLocation)loc;
@@ -613,28 +328,185 @@ public class ProgramGraphWriter {
 
 
 	
-	public void writeVpcAsmBBGraph(String filename, AbstractReachabilityTree art) {
-		
-		VpcLiftedCFG vCfg = getVpcGraph(art);
-		
+	public void writeART(String filename, AbstractReachabilityTree art) {
+		Map<String,String> startNode = new HashMap<String, String>();
+		Map<String,String> endNode = new HashMap<String, String>();
+		startNode.put("color", "green");
+		startNode.put("style", "filled,bold");
+		endNode.put("color", "red");
+		endNode.put("style", "filled,bold");
+	
 		// Create dot file
 		GraphWriter gwriter = createGraphWriter(filename);
 		if (gwriter == null) return;
-
-		logger.info("Writing VPC-lifted CFG to " + gwriter.getFilename());
+	
+		logger.info("Writing ART to " + gwriter.getFilename());
 		try {
-			for (Location loc : vCfg.getBasicBlockNodes()) {
-				VpcLocation vpcLoc = (VpcLocation)loc;
-				
-				AbsoluteAddress nodeAddr = vpcLoc.getLabel().getAddress();
-				String nodeName = vpcLoc.toString();
+			Deque<AbstractState> worklist = new LinkedList<AbstractState>();
+			//Set<AbstractState> visited = new HashSet<AbstractState>();
+			worklist.add(art.getRoot());
+			//visited.addAll(worklist);
+			while (!worklist.isEmpty()) {
+				AbstractState curState = worklist.removeFirst();
+	
+				String nodeName = curState.getIdentifier();
+				Map<String, String> properties = null;
+				if (curState == art.getRoot())
+					properties = startNode;
+				if (program.getStatement((RTLLabel)curState.getLocation()) instanceof RTLHalt)
+					properties = endNode;
+				StringBuilder nodeLabel = new StringBuilder();
+				nodeLabel.append(curState.getIdentifier());
+	
+				gwriter.writeNode(nodeName, nodeLabel.toString(), properties);
+	
+				for (Pair<CFAEdge, AbstractState> sPair : art.getChildren(curState)) {
+					AbstractState nextState = sPair.getRight();
+					//if (!visited.contains(nextState)) {
+					worklist.add(nextState);
+					//visited.add(nextState);
+					gwriter.writeEdge(nodeName, nextState.getIdentifier());
+					//}
+				}
+			}			
+			gwriter.close();
+		} catch (IOException e) {
+			logger.error("Cannot write to output file", e);
+			return;
+		}
+	
+	}
+
+	public void writeCallGraph(String filename, SetMultimap<Location, Location> callGraph) {
+		// Create dot file
+		GraphWriter gwriter = createGraphWriter(filename);
+		if (gwriter == null) return;
+		
+		Set<Location> nodes = new HashSet<Location>();
+		
+		logger.info("Writing callgraph to " + gwriter.getFilename());
+		try {
+			for (Map.Entry<Location, Location> e : callGraph.entries()) {
+				nodes.add(e.getKey());
+				nodes.add(e.getValue());
+				gwriter.writeEdge(e.getKey().toString(), 
+						e.getValue().toString());
+			}
+			
+			for (Location node : nodes) {
+				gwriter.writeNode(node.toString(), node.toString(), getNodeProperties(node));
+			}
+	
+			gwriter.close();
+		} catch (IOException e) {
+			logger.error("Cannot write to output file", e);
+			return;
+		}		
+	}
+
+	private GraphWriter createGraphWriter(String filename) {
+		try {
+			if (Options.graphML.getValue()) {
+				return new GraphMLWriter(filename);
+			} else {
+				return new GraphvizWriter(filename);
+			}
+		} catch (IOException e) {
+			logger.error("Cannot open output file!", e);
+			return null;
+		}
+	}
+
+	private Map<String,String> getNodeProperties(Location loc) {
+		RTLStatement curStmt = program.getStatement(loc.getLabel());
+		Map<String,String> properties = new HashMap<String, String>();
+	
+		if (curStmt != null) {
+			if (curStmt.getLabel().getAddress().getValue() >= 0xFACE0000L) {
+				properties.put("color", "lightgrey");
+				properties.put("fillcolor", "lightgrey");
+			}
+	
+			if (program.getUnresolvedBranches().contains(curStmt.getLabel())) {
+				properties.put("fillcolor", "red");
+			}
+			
+			if (mustLeaves.contains(loc)) {
+				properties.put("fillcolor", "green");
+			}
+	
+			if (curStmt.getLabel().equals(program.getStart())) {
+				properties.put("color", "green");
+				properties.put("style", "filled,bold");
+			} else if (curStmt instanceof RTLHalt) {
+				properties.put("color", "orange");
+				properties.put("style", "filled,bold");
+			}
+		} else {
+			logger.info("No real statement for location " + loc);
+		}
+	
+		return properties;
+	}
+
+	private VpcLiftedCFG getVpcGraph(AbstractReachabilityTree art) {
+		if (vcfg == null)
+			vcfg = new VpcLiftedCFG(art);
+		return vcfg;
+	}
+
+	private void writeControlFlowGraph(ControlFlowGraph cfg, String filename, ReachedSet reached) {
+		// Create dot file
+		GraphWriter gwriter = createGraphWriter(filename);
+		if (gwriter == null) return;
+	
+		try {
+			for (Location node : cfg.getNodes()) {
+				String nodeName = node.toString();
+				StringBuilder labelBuilder = new StringBuilder();
+				labelBuilder.append(nodeName);
+				if (reached != null) {
+					labelBuilder.append("\n");
+					if (reached.where(node).isEmpty()) {
+						logger.warn("No reached states for location " + node);
+					}
+					for (AbstractState a : reached.where(node)) {
+						labelBuilder.append(a.toString());
+						labelBuilder.append("\n");
+					}
+				}
+				gwriter.writeNode(nodeName, labelBuilder.toString(), getNodeProperties(node));
+			}
+	
+			for (CFAEdge e : cfg.getEdges()) {
+				if (e.getKind() == null) logger.error("Null kind? " + e);
+				gwriter.writeLabeledEdge(e.getSource().toString(), 
+						e.getTarget().toString(), 
+						e.getTransformer().toString(),
+						e.getKind().equals(CFAEdge.Kind.MAY) ? Color.BLACK : Color.GREEN);
+			}
+	
+			gwriter.close();
+		} catch (IOException e) {
+			logger.error("Cannot write to output file", e);
+			return;
+		}
+	}
+
+	private void writeAssemblyBBCFG(ControlFlowGraph cfg, String filename) {
+		// Create dot file
+		GraphWriter gwriter = createGraphWriter(filename);
+		if (gwriter == null) return;
+	
+		try {
+			for (BasicBlock bb : cfg.getBasicBlocks()) {
+				AbsoluteAddress nodeAddr = bb.getFirst().getAddress();
+				String nodeName = nodeAddr.toString();
 				StringBuilder labelBuilder = new StringBuilder();
 				String locLabel = program.getSymbolFor(nodeAddr);
 				if (locLabel.length() > 20) locLabel = locLabel.substring(0, 20) + "...";
-				labelBuilder.append(locLabel).append(" @ ").append(vpcLoc.getVPC()).append("\\n");
-				
-				BasicBlock bb = vCfg.getBasicBlock(vpcLoc);
-
+				labelBuilder.append(locLabel).append("\\n");
+	
 				for (Iterator<AbsoluteAddress> addrIt = bb.addressIterator(); addrIt.hasNext();) {
 					AbsoluteAddress curAddr = addrIt.next();
 					Instruction instr = program.getInstruction(curAddr);
@@ -643,17 +515,17 @@ public class ProgramGraphWriter {
 						instrString = instrString.replace("\t", " ");
 						labelBuilder.append(instrString + "\\l");
 					} else {
-						//labelBuilder.append("no instruction\\l");
+						//labelBuilder.append(curAddr.toString() + "\\l");
 					}
+					gwriter.writeNode(nodeName, labelBuilder.toString(), getNodeProperties(bb.getFirst().getLabel()));
 				}
-				gwriter.writeNode(nodeName, labelBuilder.toString(), getNodeProperties(bb.getFirst().getLabel()));
 			}
-
-			for (CFAEdge e : vCfg.getBasicBlockEdges()) {
-				VpcLocation sourceAddr = (VpcLocation)e.getSource(); 
-				VpcLocation targetAddr = (VpcLocation)e.getTarget();
-				BasicBlock bb = vCfg.getBasicBlock(sourceAddr);
-				assert(bb != null);
+			
+			for (CFAEdge e : cfg.getBasicBlockEdges()) {
+				if (e.getKind() == null) logger.error("Null kind? " + e);
+				AbsoluteAddress sourceAddr = e.getSource().getAddress(); 
+				AbsoluteAddress targetAddr = e.getTarget().getAddress();
+				BasicBlock bb = (BasicBlock)e.getTransformer();
 				
 				String label = null;
 				RTLLabel lastLoc = bb.getLast().getLabel();
@@ -664,23 +536,24 @@ public class ProgramGraphWriter {
 					if (bi.isConditional()) {
 						// Get the original goto from the program (not the converted assume) 
 						RTLStatement rtlGoto = program.getStatement(lastLoc);
-						assert(rtlGoto instanceof RTLGoto);
 						
 						// If this is the fall-through edge, output F, otherwise T
-						label = targetAddr.getLabel().equals(rtlGoto.getNextLabel()) ? "F" : "T";
+						label = targetAddr.equals(rtlGoto.getNextLabel().getAddress()) ? "F" : "T";
 					}
 				}
 				
 				if (label != null)
 					gwriter.writeLabeledEdge(sourceAddr.toString(), 
 							targetAddr.toString(), 
-							label);
+							label,
+							e.getKind().equals(CFAEdge.Kind.MAY) ? Color.BLACK : Color.GREEN);
 				else
 					gwriter.writeEdge(sourceAddr.toString(), 
-							targetAddr.toString());
-
+							targetAddr.toString(), 
+							e.getKind().equals(CFAEdge.Kind.MAY) ? Color.BLACK : Color.GREEN);
+	
 			}
-
+	
 			gwriter.close();
 		} catch (IOException e) {
 			logger.error("Cannot write to output file", e);
