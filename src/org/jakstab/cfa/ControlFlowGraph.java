@@ -6,8 +6,9 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import org.jakstab.Program;
 import org.jakstab.rtl.statements.BasicBlock;
+import org.jakstab.rtl.statements.RTLAssume;
+import org.jakstab.rtl.statements.RTLSkip;
 import org.jakstab.rtl.statements.RTLStatement;
 import org.jakstab.util.FastSet;
 import org.jakstab.util.Logger;
@@ -85,6 +86,10 @@ public abstract class ControlFlowGraph {
 				new HashSet<CFAEdge>(bbOutEdges.values()));
 	}
 	
+	public Set<CFAEdge> getBasicBlockOutEdges(Location l) {
+		return bbOutEdges.get(l);
+	}
+	
 	public Map<Location, BasicBlock> getBasicBlocks() {
 		return Collections.unmodifiableMap(basicBlocks);
 	}
@@ -112,8 +117,6 @@ public abstract class ControlFlowGraph {
 	}
 	
 	protected void buildBasicBlocks(Set<Location> basicBlockHeads) {
-		Program program = Program.getProgram();
-		
 		bbOutEdges = HashMultimap.create();
 		bbInEdges = HashMultimap.create();
 		basicBlocks = new HashMap<Location, BasicBlock>();
@@ -125,19 +128,38 @@ public abstract class ControlFlowGraph {
 			Location head = entry.getKey();
 			BasicBlock bb = entry.getValue();
 			
-			bb.add(program.getStatement(head.getLabel()));
+			//bb.add(program.getStatement(head.getLabel()));
 			Location l = head;
 			Set<CFAEdge> out = outEdges.get(l);
-			while (out != null && out.size() == 1) {
-				l = out.iterator().next().getTarget();
+			while (out.size() == 1) {
+				CFAEdge edge = out.iterator().next();				
+				bb.add((RTLStatement)edge.getTransformer());
+				l = edge.getTarget();
 				if (basicBlocks.containsKey(l))
 					break;
-				bb.add(program.getStatement(l.getLabel()));
+				//bb.add(program.getStatement(l.getLabel()));
 				out = outEdges.get(l);
 			}
+			// If there's no statement (because there's an immediate jump), add a skip
+			if (bb.isEmpty()) {
+				RTLStatement dummy = new RTLSkip();
+				dummy.setLabel(l.getLabel());
+				if (!out.isEmpty())
+					dummy.setNextLabel(out.iterator().next().getTarget().getLabel());
+				bb.add(dummy);
+			}
 			
-			if (out != null) for (CFAEdge e : out) {
-				CFAEdge bbEdge = new CFAEdge(head, e.getTarget(), bb);
+			for (CFAEdge e : out) {
+				RTLStatement edgeStmt;
+				if (out.size() > 1 && e.getTransformer() instanceof RTLAssume) {
+					edgeStmt = (RTLStatement)e.getTransformer();
+				} else {
+					edgeStmt = new RTLSkip();
+					RTLStatement oldStmt = (RTLStatement)e.getTransformer();
+					edgeStmt.setLabel(oldStmt.getLabel());
+					edgeStmt.setNextLabel(oldStmt.getNextLabel());
+				}
+				CFAEdge bbEdge = new CFAEdge(head, e.getTarget(), edgeStmt);
 				bbOutEdges.put(head, bbEdge);
 				assert basicBlocks.containsKey(e.getTarget()) : "Target not in basic block head list? " + bbEdge;
 				bbInEdges.put(e.getTarget(), bbEdge);

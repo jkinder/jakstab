@@ -34,10 +34,9 @@ import org.jakstab.cfa.ControlFlowGraph;
 import org.jakstab.cfa.Location;
 import org.jakstab.cfa.RTLLabel;
 import org.jakstab.cfa.VpcLocation;
-import org.jakstab.rtl.expressions.ExpressionFactory;
 import org.jakstab.rtl.statements.BasicBlock;
-import org.jakstab.rtl.statements.RTLGoto;
 import org.jakstab.rtl.statements.RTLHalt;
+import org.jakstab.rtl.statements.RTLSkip;
 import org.jakstab.rtl.statements.RTLStatement;
 import org.jakstab.util.*;
 
@@ -293,29 +292,13 @@ public class ProgramGraphWriter {
 			for (CFAEdge e : vCfg.getBasicBlockEdges()) {
 				VpcLocation sourceAddr = (VpcLocation)e.getSource(); 
 				VpcLocation targetAddr = (VpcLocation)e.getTarget();
-				BasicBlock bb = vCfg.getBasicBlock(sourceAddr);
-				assert(bb != null);
-				
-				String label = null;
-				RTLStatement terminator = bb.getLast();
-				
-				if (terminator instanceof RTLGoto) {
-					RTLGoto bi = (RTLGoto)terminator;
-					if (!bi.getCondition().equals(ExpressionFactory.TRUE)) {
-						// Get the original goto from the program (not the converted assume) 
-						// If this is the fall-through edge, output F, otherwise T
-						label = targetAddr.getLabel().equals(bi.getNextLabel()) ? "F" : "T";
-					}
-				}
-				
-				if (label != null)
-					gwriter.writeLabeledEdge(sourceAddr.toString(), 
-							targetAddr.toString(), 
-							label);
-				else
+				if (e.getTransformer() instanceof RTLSkip)
 					gwriter.writeEdge(sourceAddr.toString(), 
 							targetAddr.toString());
-
+				else
+					gwriter.writeLabeledEdge(sourceAddr.toString(), 
+							targetAddr.toString(), 
+							e.getTransformer().toString());
 			}
 
 			gwriter.close();
@@ -515,22 +498,31 @@ public class ProgramGraphWriter {
 					if (instr != null) {
 						String instrString = program.getInstructionString(curAddr);
 						instrString = instrString.replace("\t", " ");
-						labelBuilder.append(instrString + "\\l");
+						labelBuilder.append(instrString).append("\\l");
 					} else {
 						//labelBuilder.append(curAddr.toString() + "\\l");
 					}
-					gwriter.writeNode(nodeName, labelBuilder.toString(), getNodeProperties(bb.getFirst().getLabel()));
 				}
+				
+				// Print the conditional/indirect jump, if there is any
+				Set<CFAEdge> outEdges = cfg.getBasicBlockOutEdges(nodeLoc);				
+				if (outEdges.size() > 1) {
+					RTLStatement stmt = (RTLStatement)outEdges.iterator().next().getTransformer();
+					labelBuilder.append(program.getInstructionString(
+							stmt.getAddress())).append("\\l");
+				}
+				
+				gwriter.writeNode(nodeName, labelBuilder.toString(), getNodeProperties(bb.getFirst().getLabel()));
 			}
 			
 			for (CFAEdge e : cfg.getBasicBlockEdges()) {
 				if (e.getKind() == null) logger.error("Null kind? " + e);
 				Location sourceLoc = e.getSource(); 
 				Location targetLoc = e.getTarget();
-				BasicBlock bb = (BasicBlock)e.getTransformer();
+				RTLStatement stmt = (RTLStatement)e.getTransformer();
 				
 				String label = null;
-				RTLLabel lastLoc = bb.getLast().getLabel();
+				RTLLabel lastLoc = stmt.getLabel();
 				Instruction instr = program.getInstruction(lastLoc.getAddress());
 				
 				if (instr instanceof BranchInstruction) {
@@ -540,7 +532,9 @@ public class ProgramGraphWriter {
 						RTLStatement rtlGoto = program.getStatement(lastLoc);
 						
 						// If this is the fall-through edge, output F, otherwise T
-						label = targetLoc.getAddress().equals(rtlGoto.getNextLabel().getAddress()) ? "F" : "T";
+						//label = targetLoc.getAddress().equals(rtlGoto.getNextLabel().getAddress()) ? "F" : "T";
+						// If the assume in the edge has the same nextlabel as Goto, then it's the fall-through
+						label = stmt.getNextLabel().equals(rtlGoto.getNextLabel()) ? "F" : "T";
 					}
 				}
 				

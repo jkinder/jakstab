@@ -41,14 +41,13 @@ public class DeadCodeElimination implements CFATransformation {
 	@SuppressWarnings("unused")
 	private final static Logger logger = Logger.getLogger(DeadCodeElimination.class);
 
-
 	private Map<Location,SetOfVariables> liveVars;
 	private SetOfVariables liveInSinks;
 	private Set<CFAEdge> cfa;
 	private Program program;
-	@SuppressWarnings("unused")
-	private volatile boolean stop = false;
 	private long removalCount;
+	private boolean enableJumpThreading;
+	private volatile boolean stop = false;
 	
 	
 	public Set<CFAEdge> getCFA() {
@@ -59,14 +58,15 @@ public class DeadCodeElimination implements CFATransformation {
 		return removalCount;
 	}
 
-	public DeadCodeElimination(Set<CFAEdge> cfa) {
+	public DeadCodeElimination(Set<CFAEdge> cfa, boolean enableJumpThreading) {
 		super();
 		this.cfa = new TreeSet<CFAEdge>(cfa);
 		this.program = Program.getProgram();
+		this.enableJumpThreading = enableJumpThreading;
 
 		liveVars = new TreeMap<Location, SetOfVariables>();
 		liveInSinks = new SetOfVariables();
-		liveInSinks.addAll(program.getArchitecture().getRegisters());
+		liveInSinks.addAll(program.getArchitecture().getRegisters());		
 	}
 
 	private boolean isDeadEdge(CFAEdge edge) {
@@ -76,15 +76,16 @@ public class DeadCodeElimination implements CFATransformation {
 			RTLVariable lhs = a.getLeftHandSide();
 			if (!liveVars.get(edge.getTarget()).contains(lhs))
 				return true;
-		}
-		// Don't remove assumes, we need them for procedure detection!
-		/*else if (t instanceof RTLAssume) {
-			RTLAssume a = (RTLAssume)edge.getTransformer();
-			if (a.getAssumption().equals(factory.TRUE)) {
+		} else if (enableJumpThreading) {
+			// Don't remove assumes when doing procedure detection!
+			if (t instanceof RTLAssume) {
+				RTLAssume a = (RTLAssume)edge.getTransformer();
+				if (a.getAssumption().equals(ExpressionFactory.TRUE)) {
+					return true;
+				}
+			} else if (t instanceof RTLSkip) {
 				return true;
 			}
-		} */else if (t instanceof RTLSkip) {
-			return true;
 		}
 		return false;
 	}
@@ -178,8 +179,18 @@ public class DeadCodeElimination implements CFATransformation {
 				if (isDeadEdge(edge)) {
 					deadEdges.add(edge);
 				}
-			}
-			
+				// Remove jumps that have just one target
+				if (enableJumpThreading &&
+						edge.getTransformer() instanceof RTLAssume && 
+						outEdges.get(edge.getSource()).size() == 1) {
+					RTLAssume a = (RTLAssume)edge.getTransformer();
+					switch (a.getSource().getType()) {
+					default:					
+						deadEdges.add(edge);
+					case CALL: case RETURN:
+					}
+				}
+			}			
 			
 			// Delete the dead edges
 			for (CFAEdge deadEdge : deadEdges) {

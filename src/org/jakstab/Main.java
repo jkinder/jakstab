@@ -313,7 +313,7 @@ public class Main {
 				runAlgorithm(subst);
 				Set<CFAEdge> edges = subst.getCFA();
 				do {
-					dce = new DeadCodeElimination(edges); 
+					dce = new DeadCodeElimination(edges, false); 
 					runAlgorithm(dce);
 					edges = dce.getCFA();					
 					totalRemoved += dce.getRemovalCount();

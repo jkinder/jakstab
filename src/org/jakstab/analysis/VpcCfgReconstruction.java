@@ -3,6 +3,7 @@ package org.jakstab.analysis;
 import java.util.Set;
 
 import org.jakstab.Algorithm;
+import org.jakstab.Options;
 import org.jakstab.cfa.CFAEdge;
 import org.jakstab.cfa.ControlFlowGraph;
 import org.jakstab.cfa.ProgramCFG;
@@ -34,25 +35,42 @@ public class VpcCfgReconstruction implements Algorithm {
 		return transformedCfg;
 	}
 
+	@SuppressWarnings("unused")
 	@Override
 	public void run() {
-		ControlFlowGraph vcfg = new VpcLiftedCFG(art);
-		
+		transformedCfg = new VpcLiftedCFG(art);
+
 		// Simplify CFA
-		logger.info("=== Simplifying reconstructed CFA ===");
-		DeadCodeElimination dce;
-		long totalRemoved = 0;
-		ExpressionSubstitution subst = new ExpressionSubstitution(vcfg);
-		subst.run();
-		Set<CFAEdge> edges = subst.getCFA();
-		do {
-			dce = new DeadCodeElimination(edges); 
-			dce.run();
-			edges = dce.getCFA();					
-			totalRemoved += dce.getRemovalCount();
-		} while (dce.getRemovalCount() > 0);				
-		logger.info("=== Finished CFA simplification, removed " + totalRemoved + " edges. ===");
-		transformedCfg = new ProgramCFG(edges);		
+		if (Options.simplifyVCFG.getValue() > 0) {
+			logger.info("=== Simplifying reconstructed CFA ===");
+			DeadCodeElimination dce;
+			long totalRemoved = 0;
+			Set<CFAEdge> edges = transformedCfg.getEdges();
+			do {
+				dce = new DeadCodeElimination(edges, true); 
+				dce.run();
+				edges = dce.getCFA();					
+				totalRemoved += dce.getRemovalCount();
+			} while (dce.getRemovalCount() > 0);
+
+			transformedCfg = new ProgramCFG(edges);
+
+			if (Options.simplifyVCFG.getValue() > 1) {
+				ExpressionSubstitution subst = new ExpressionSubstitution(transformedCfg);
+				subst.run();
+				edges = subst.getCFA();
+
+				do {
+					dce = new DeadCodeElimination(edges, true); 
+					dce.run();
+					edges = dce.getCFA();					
+					totalRemoved += dce.getRemovalCount();
+				} while (dce.getRemovalCount() > 0);
+
+				logger.info("=== Finished CFA simplification, removed " + totalRemoved + " edges. ===");
+				transformedCfg = new ProgramCFG(edges);		
+			}
+		}
 	}
 
 	@Override
