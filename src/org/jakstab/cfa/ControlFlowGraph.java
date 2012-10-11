@@ -8,7 +8,6 @@ import java.util.Set;
 
 import org.jakstab.Program;
 import org.jakstab.rtl.statements.BasicBlock;
-import org.jakstab.rtl.statements.RTLGoto;
 import org.jakstab.rtl.statements.RTLStatement;
 import org.jakstab.util.FastSet;
 import org.jakstab.util.Logger;
@@ -16,7 +15,7 @@ import org.jakstab.util.Logger;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.SetMultimap;
 
-public class ControlFlowGraph {
+public abstract class ControlFlowGraph {
 	
 	@SuppressWarnings("unused")
 	private static final Logger logger = Logger.getLogger(ControlFlowGraph.class);
@@ -29,53 +28,10 @@ public class ControlFlowGraph {
 	private Map<Location, BasicBlock> basicBlocks;
 	private Set<Location> locations;
 	
-	public ControlFlowGraph(Set<CFAEdge> edges) {
+	public ControlFlowGraph() {
 		outEdges = HashMultimap.create();
 		inEdges = HashMultimap.create();
 		locations = new HashSet<Location>();
-		
-		for (CFAEdge e : edges) {
-			addEdge(e);
-		}
-		
-		bbOutEdges = HashMultimap.create();
-		bbInEdges = HashMultimap.create();
-		basicBlocks = new HashMap<Location, BasicBlock>();
-		Program program = Program.getProgram();
-		
-		for (Location l : locations) {
-			Set<CFAEdge> in = inEdges.get(l);
-			if (in != null && in.size() == 1) {
-				CFAEdge e = in.iterator().next();
-				if (!(program.getStatement(e.getSource().getLabel()) instanceof RTLGoto))
-					continue;
-			}
-			// Create new basic block from location
-			BasicBlock bb = new BasicBlock();
-			basicBlocks.put(l, bb);
-		}
-		
-		for (Map.Entry<Location, BasicBlock> entry : basicBlocks.entrySet()) {
-			Location head = entry.getKey();
-			BasicBlock bb = entry.getValue();
-			
-			bb.add(program.getStatement(head.getLabel()));
-			Location l = head;
-			Set<CFAEdge> out = outEdges.get(l);
-			while (out != null && out.size() == 1) {
-				l = out.iterator().next().getTarget();
-				if (basicBlocks.containsKey(l))
-					break;
-				bb.add(program.getStatement(l.getLabel()));
-				out = outEdges.get(l);
-			}
-			
-			if (out != null) for (CFAEdge e : out) {
-				CFAEdge bbEdge = new CFAEdge(head, e.getTarget(), bb);
-				bbOutEdges.put(head, bbEdge);
-				bbInEdges.put(e.getTarget(), bbEdge);
-			}
-		}
 	}
 	
 	public Set<Location> getNodes() {
@@ -119,8 +75,54 @@ public class ControlFlowGraph {
 		return Collections.unmodifiableSet(
 				new HashSet<BasicBlock>(basicBlocks.values()));
 	}
+	
+	public CFAEdge getEdgeBetween(Location src, Location tgt) {
+		Set<CFAEdge> out = outEdges.get(src);
+		if (out != null) for (CFAEdge e : out)
+			if (e.getTarget().equals(tgt))
+				return e;
+		return null;
+	}
 
-	private void addEdge(CFAEdge e) {
+	public int numEdges() {
+		return outEdges.size();
+	}
+	
+	protected void buildBasicBlocks(Set<Location> basicBlockHeads) {
+		Program program = Program.getProgram();
+		
+		bbOutEdges = HashMultimap.create();
+		bbInEdges = HashMultimap.create();
+		basicBlocks = new HashMap<Location, BasicBlock>();
+
+		for (Location l : basicBlockHeads)
+			basicBlocks.put(l, new BasicBlock());
+		
+		for (Map.Entry<Location, BasicBlock> entry : basicBlocks.entrySet()) {
+			Location head = entry.getKey();
+			BasicBlock bb = entry.getValue();
+			
+			bb.add(program.getStatement(head.getLabel()));
+			Location l = head;
+			Set<CFAEdge> out = outEdges.get(l);
+			while (out != null && out.size() == 1) {
+				l = out.iterator().next().getTarget();
+				if (basicBlocks.containsKey(l))
+					break;
+				bb.add(program.getStatement(l.getLabel()));
+				out = outEdges.get(l);
+			}
+			
+			if (out != null) for (CFAEdge e : out) {
+				CFAEdge bbEdge = new CFAEdge(head, e.getTarget(), bb);
+				bbOutEdges.put(head, bbEdge);
+				bbInEdges.put(e.getTarget(), bbEdge);
+			}
+		}
+		
+	}
+
+	protected void addEdge(CFAEdge e) {
 		
 		if (e.getTransformer() instanceof BasicBlock) {
 			BasicBlock bb = (BasicBlock)e.getTransformer();
@@ -144,16 +146,4 @@ public class ControlFlowGraph {
 		locations.add(e.getTarget());		
 	}
 	
-	public CFAEdge getEdgeBetween(Location src, Location tgt) {
-		Set<CFAEdge> out = outEdges.get(src);
-		if (out != null) for (CFAEdge e : out)
-			if (e.getTarget().equals(tgt))
-				return e;
-		return null;
-	}
-
-	public int numEdges() {
-		return outEdges.size();
-	}
-
 }
