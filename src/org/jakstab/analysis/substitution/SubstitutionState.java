@@ -21,7 +21,6 @@ import java.util.*;
 
 import org.jakstab.analysis.*;
 import org.jakstab.cfa.Location;
-import org.jakstab.cfa.RTLLabel;
 import org.jakstab.cfa.StateTransformer;
 import org.jakstab.rtl.*;
 import org.jakstab.rtl.expressions.*;
@@ -317,10 +316,6 @@ public final class SubstitutionState implements AbstractState {
 		}
 	}
 	
-	public RTLLabel getProgramCounter() {
-		return null;
-	}
-
 	public SubstitutionElement getValue(Writable v) {
 		if (isTop()) return SubstitutionElement.TOP;
 		if (isBot()) return SubstitutionElement.BOT;
