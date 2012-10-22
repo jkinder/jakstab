@@ -46,7 +46,7 @@ public class Main {
 
 	private static Logger logger = Logger.getLogger(Main.class);;
 
-	private final static String version = "0.8.4-devel";
+	public final static String version = "0.8.4-devel";
 
 	private static volatile Algorithm activeAlgorithm;
 	private static volatile Thread mainThread;

@@ -74,6 +74,8 @@ public class Options {
 	public static String mainFilename = null;
 	public static List<String> moduleFilenames = new LinkedList<String>();
 
+	public static String arguments;
+
 	public static JOption<String> sslFilename = JOption.create("ssl", "file", jakstabHome + "/ssl/pentium.ssl", "Use <file> instead of pentium.ssl.");
 	public static JOption<Long> startAddress = JOption.create("a", "address", -1L, "Start analysis at given virtual address.");
 	public static JOption<Boolean> wdm = JOption.create("wdm", "WDM mode, export main function as DriverMain.");
@@ -116,6 +118,13 @@ public class Options {
 		// Pre-load analyses so that they can register their options
 		AnalysisManager.getInstance();
 		
+		StringBuilder argStringBuilder = new StringBuilder();
+		for (int i = 0; i < args.length - 1; i++) {
+			argStringBuilder.append(args[i]).append(" ");
+		}
+		argStringBuilder.append(args[args.length - 1]);
+		arguments = argStringBuilder.toString();
+		
 		for (int i = 0; i < args.length; i++) {
 			String arg = args[i].toLowerCase();
 			// Dash (-) arguments
@@ -155,7 +164,7 @@ public class Options {
 				moduleFilenames.add(arg);
 			}
 		}
-
+		
 		if (mainFilename == null) {
 			logger.fatal("No main file specified!");
 			logger.fatal("");
