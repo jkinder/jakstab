@@ -72,6 +72,11 @@ public class BasedNumberElement implements AbstractDomainElement, BitVectorType 
 		this(MemoryRegion.GLOBAL, new NumberElement(v));
 	}
 	
+	/**
+	 * Checks whether the offset part of this based value is TOP. The caller has
+	 * to make sure that the region is valid (not TOP).
+	 * @return
+	 */
 	public boolean isNumberTop() {
 		assert (!isTop()) : "TOP BasedNumberElement has no number!";
 		return value.isTop();
