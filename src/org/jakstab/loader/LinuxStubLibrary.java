@@ -24,7 +24,6 @@ import org.jakstab.Program;
 import org.jakstab.asm.AbsoluteAddress;
 import org.jakstab.asm.DummySymbolFinder;
 import org.jakstab.asm.SymbolFinder;
-import org.jakstab.cfa.RTLLabel;
 import org.jakstab.rtl.expressions.ExpressionFactory;
 import org.jakstab.rtl.expressions.RTLExpression;
 import org.jakstab.rtl.expressions.RTLSpecialExpression;
@@ -44,19 +43,17 @@ public class LinuxStubLibrary implements StubProvider {
 	private Map<String,AbsoluteAddress> activeStubs;
 	private int impId;
 	private Architecture arch;
-	private RTLExpression arg0;
 	//private RTLExpression arg1;
 
 	public LinuxStubLibrary(Architecture arch) {
 		this.arch = arch;
 		activeStubs = new HashMap<String, AbsoluteAddress>();
 		impId = 0;
-		arg0 = ExpressionFactory.createMemoryLocation(ExpressionFactory.createPlus(arch.stackPointer(), ExpressionFactory.createNumber(4, 32)), 32);
-		//arg1 = ExpressionFactory.createMemoryLocation(ExpressionFactory.createPlus(arch.stackPointer(), ExpressionFactory.createNumber(8, 32)), 32);
+		//arg1 = ExpressionFactory.createMemoryLocation(ExpressionFactory.createPlus(arch.stackPointer(), 8), 32);
 	}
 	
 	private AbsoluteAddress createStubInstance(String library, String function) {
-		int stackIncrement = 0;
+
 		boolean returns = true;
 		if (function.equals("exit")) {
 			returns = false;
@@ -65,20 +62,43 @@ public class LinuxStubLibrary implements StubProvider {
 		impId += 0x10;
 		AbsoluteAddress address = new AbsoluteAddress(STUB_BASE + impId);
 		
-		// pop PC
-		stackIncrement += arch.programCounter().getBitWidth() / 8;
-		
 		StatementSequence seq = new StatementSequence();
+		ILBuilder builder = ILBuilder.getInstance();
 		
 		// start_main is special
 		if (function.equals("__libc_start_main")) {
+			
+			// env
+			builder.createPush(ExpressionFactory.nondet(arch.getAddressBitWidth()), seq);
+			// argv
+			builder.createPush(ExpressionFactory.nondet(arch.getAddressBitWidth()), seq);
+			// argc
+			builder.createPush(ExpressionFactory.nondet(arch.getAddressBitWidth()), seq);
+
+			// return address (use epilogue to directly jump to halt)
+			builder.createPush(ExpressionFactory.createNumber(DefaultHarness.epilogueAddress), seq);
+
+			// address of program main is passed as arg0 to __libc_start_main
+			// args0 is 5 dwords from esp: 3 for main's args, 1 for the return address, and 1 
+			// for the return address from the entry point code   
+			RTLExpression arg0 = ExpressionFactory.createMemoryLocation(ExpressionFactory.createPlus(
+					arch.stackPointer(), 
+					5 * arch.getAddressBitWidth() / 8),
+					32);
 			seq.addLast(new RTLGoto(arg0, Type.CALL));
-		} else if (function.equals("printf")) {
+			
+			// Complete pseudo call to main  
+			builder.linkAndStoreSequence(address, seq);
+			return address;
+		}
+		// manual printf stub, helps debugging
+		else if (function.equals("printf")) {
 			seq.addLast(new RTLDebugPrint("Call to printf, format @ %esp =", 
 					ExpressionFactory.createSpecialExpression(RTLSpecialExpression.DBG_PRINTF, 
-							ExpressionFactory.createPlus(arch.stackPointer(),
-									ExpressionFactory.createNumber(4, arch.getAddressBitWidth())))));
-		} else {
+							ExpressionFactory.createPlus(arch.stackPointer(), 4))));
+		} 
+		// Any other function clobbers eax, ecx, edx by default
+		else {
 			seq.addLast(new RTLVariableAssignment(32, ExpressionFactory.createVariable("%eax"), ExpressionFactory.nondet(32)));
 			seq.addLast(new RTLVariableAssignment(32, ExpressionFactory.createVariable("%ecx"), ExpressionFactory.nondet(32)));
 			seq.addLast(new RTLVariableAssignment(32, ExpressionFactory.createVariable("%edx"), ExpressionFactory.nondet(32)));
@@ -92,15 +112,11 @@ public class LinuxStubLibrary implements StubProvider {
 			));
 		}
 
-		
+		// pop PC
+		int stackIncrement = arch.programCounter().getBitWidth() / 8;
+
 		// adjust stack pointer
-		seq.addLast(new RTLVariableAssignment(arch.stackPointer().getBitWidth(), 
-				arch.stackPointer(), 
-				ExpressionFactory.createPlus( 
-						arch.stackPointer(), 
-						ExpressionFactory.createNumber(stackIncrement, arch.stackPointer().getBitWidth())
-				)
-		));
+		builder.createSPIncrement(stackIncrement, seq);
 
 		if (returns) {
 			// Read return address from temporary variable
@@ -110,17 +126,8 @@ public class LinuxStubLibrary implements StubProvider {
 			seq.addLast(new RTLHalt());
 		}
 		
-		int rtlId = 0;
-		for (RTLStatement stmt : seq) {
-			stmt.setLabel(address, rtlId++);
-			stmt.setNextLabel(new RTLLabel(address, rtlId));
-		}
-		seq.getLast().setNextLabel(null);
-
-		// add stub statements to program
-		for (RTLStatement s : seq)
-			Program.getProgram().putStatement(s);
-
+		builder.linkAndStoreSequence(address, seq);
+		
 		return address;
 	}
 
