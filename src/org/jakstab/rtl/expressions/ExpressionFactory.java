@@ -130,6 +130,10 @@ public final class ExpressionFactory {
 		}
 		return new RTLNumber(value, bitWidth);
 	}
+	
+	public static RTLNumber createNumber(AbsoluteAddress addr) {
+		return new RTLNumber(addr.getValue(), addr.getBitWidth());
+	}
 
 	/**
 	 * Generic creation method that calls more specific methods depending on the
@@ -159,6 +163,10 @@ public final class ExpressionFactory {
 	
 	public static RTLExpression createPlus(RTLExpression... operands) {
 		return createOperation(Operator.PLUS, operands);
+	}
+	
+	public static RTLExpression createPlus(RTLExpression op1, long op2) {
+		return createPlus(op1, createNumber(op2, op1.getBitWidth()));
 	}
 
 	public static RTLExpression createMinus(RTLExpression op1, RTLExpression op2) {
