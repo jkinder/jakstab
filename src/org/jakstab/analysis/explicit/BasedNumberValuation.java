@@ -182,8 +182,12 @@ public final class BasedNumberValuation implements AbstractState {
 			if (abstractAddress.getRegion() != MemoryRegion.GLOBAL)
 				return BasedNumberElement.getTop(m.getBitWidth());
 			BasedNumberElement segmentValue = abstractEval(m.getSegmentRegister());
-			assert segmentValue.getNumber().intValue() == 0 : "Segment " + m.getSegmentRegister() + " has been assigned a value!";
-			abstractAddress = new BasedNumberElement(segmentValue.getRegion(), abstractAddress.getNumber());
+			if (segmentValue.isTop() || segmentValue.isNumberTop() || segmentValue.getNumber().intValue() != 0) {
+				logger.warn("Segment " + m.getSegmentRegister() + " has been assigned a value!");
+				abstractAddress = BasedNumberElement.getTop(m.getAddress().getBitWidth());
+			} else {
+				abstractAddress = new BasedNumberElement(segmentValue.getRegion(), abstractAddress.getNumber());
+			}
 		}
 		return abstractAddress;
 	}
