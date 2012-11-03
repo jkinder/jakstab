@@ -363,11 +363,71 @@ public class ELFModule implements ExecutableImage {
 		logger.debug("No value can be read from image for address " + m);
 		return null;
 	}
+	
+	protected boolean isCodeSection(int sec) {
+		return elf.sections[sec].sh_type == Elf.Section.SHT_PROGBITS;
+	}
 
 	@Override
 	public Iterator<AbsoluteAddress> codeBytesIterator() {
-		throw new UnsupportedOperationException("Code iteration not yet implemented for " + this.getClass().getSimpleName() + "!");
+		return new Iterator<AbsoluteAddress>() {
+			
+			long fp = 0;
+			int sec = -1;
+			
+			{
+				moveToNextCodeSection();
+			}
+			
+			private void moveToNextCodeSection() {
+				sec++;
+				logger.info("Iterating over code section " + elf.sections[sec].toString() + 
+						" of size " + elf.sections[sec].sh_size + " bytes.");
+				
+				while (sec < elf.sections.length && !isCodeSection(sec)) {
+					sec++;
+				}
+				if (sec >= elf.sections.length) {
+					fp = -1;
+					sec = -1;
+				} else {
+					fp = elf.sections[sec].sh_offset;
+				}
+			}
+			
+			private void moveToNextCodeByte() {
+				
+				fp++;
+				
+				if (fp >= elf.sections[sec].sh_offset + elf.sections[sec].sh_size) {
+					moveToNextCodeSection();
+					if (sec < 0) {
+						return;
+					}
+				}
+				
+			}
+
+			@Override
+			public boolean hasNext() {
+				return (fp >= 0);
+			}
+
+			@Override
+			public AbsoluteAddress next() {
+				if (!hasNext()) throw new IndexOutOfBoundsException();
+				AbsoluteAddress res = getVirtualAddress(fp);
+				moveToNextCodeByte();
+				return res;
+			}
+
+			@Override
+			public void remove() {
+				throw new UnsupportedOperationException();
+			}
+		};
 	}
+
 
 	@Override
 	public byte[] getByteArray() {
