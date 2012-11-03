@@ -447,6 +447,16 @@ public class RTLOperation extends AbstractRTLExpression implements RTLExpression
 				case XOR:
 					result = op1 ^ op2;
 					break;
+				case DIV:
+					// TODO: Check if this is correct
+					result = op1 / op2;
+					//logger.debug("Integer division: " + op1 + " DIV " + op2 + " = " + result);
+					break;
+				case MOD:
+					// TODO: Check if this is correct
+					result = op1 % op2;
+					//logger.debug("Integer remainder: " + op1 + " MOD " + op2 + " = " + result);
+					break;
 				default:
 					logger.info("Missing operand handler for \"" + this.operator + 
 					"\"! Cannot determine numeric result in evaluation.");
