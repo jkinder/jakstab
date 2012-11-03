@@ -449,18 +449,24 @@ public class RTLOperation extends AbstractRTLExpression implements RTLExpression
 					break;
 				case DIV:
 					// TODO: Check if this is correct
-					result = op1 / op2;
+					if (op2 != 0)
+						result = op1 / op2;
+					else
+						return ExpressionFactory.createOperation(this.operator, evaledOperands);
 					//logger.debug("Integer division: " + op1 + " DIV " + op2 + " = " + result);
 					break;
 				case MOD:
 					// TODO: Check if this is correct
-					result = op1 % op2;
+					if (op2 != 0)
+						result = op1 % op2;
+					else
+						return ExpressionFactory.createOperation(this.operator, evaledOperands);
 					//logger.debug("Integer remainder: " + op1 + " MOD " + op2 + " = " + result);
 					break;
 				default:
 					logger.info("Missing operand handler for \"" + this.operator + 
 					"\"! Cannot determine numeric result in evaluation.");
-				return ExpressionFactory.createOperation(this.operator, evaledOperands);
+					return ExpressionFactory.createOperation(this.operator, evaledOperands);
 				}
 			}
 			
