@@ -160,9 +160,13 @@ public abstract class ControlFlowGraph {
 					edgeStmt.setNextLabel(oldStmt.getNextLabel());
 				}
 				CFAEdge bbEdge = new CFAEdge(head, e.getTarget(), edgeStmt);
-				bbOutEdges.put(head, bbEdge);
-				assert basicBlocks.containsKey(e.getTarget()) : "Target not in basic block head list? " + bbEdge;
-				bbInEdges.put(e.getTarget(), bbEdge);
+				if (!basicBlocks.containsKey(e.getTarget())) {
+					logger.error("Target not in basic block head list? " + bbEdge);
+				} else {
+					bbOutEdges.put(head, bbEdge);
+					//assert basicBlocks.containsKey(e.getTarget()) : "Target not in basic block head list? " + bbEdge;
+					bbInEdges.put(e.getTarget(), bbEdge);
+				}
 			}
 		}
 		
