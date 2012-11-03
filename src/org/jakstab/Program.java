@@ -34,6 +34,7 @@ import org.jakstab.loader.elf.ELFModule;
 import org.jakstab.loader.pe.*;
 import org.jakstab.rtl.expressions.SetOfVariables;
 import org.jakstab.rtl.statements.RTLHalt;
+import org.jakstab.rtl.statements.RTLSkip;
 import org.jakstab.rtl.statements.RTLStatement;
 import org.jakstab.rtl.statements.StatementSequence;
 import org.jakstab.ssl.Architecture;
@@ -308,9 +309,18 @@ public final class Program {
 				if (Options.debug.getValue())
 					throw new DisassemblyException("Disassembly failed at " + address);
 			} else {
-				StatementSequence seq = arch.getRTLEquivalent(address, instr);
-				for (RTLStatement s : seq) {
-					putStatement(s);
+				try {
+					StatementSequence seq = arch.getRTLEquivalent(address, instr);
+					for (RTLStatement s : seq) {
+						putStatement(s);
+					}
+				} catch (Exception e) {
+					logger.error("Error during translation of instruction to IL");
+					e.printStackTrace();
+					RTLStatement skip = new RTLSkip();
+					skip.setLabel(label);
+					skip.setNextLabel(new RTLLabel(new AbsoluteAddress(address.getValue() + 1)));
+					putStatement(skip);
 				}
 				assert statementMap.containsKey(label) : "Disassembly did not produce label: " + label;
 			}
