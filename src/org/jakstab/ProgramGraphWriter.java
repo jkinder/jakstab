@@ -38,6 +38,7 @@ import org.jakstab.rtl.statements.BasicBlock;
 import org.jakstab.rtl.statements.RTLHalt;
 import org.jakstab.rtl.statements.RTLSkip;
 import org.jakstab.rtl.statements.RTLStatement;
+import org.jakstab.transformation.VpcCfgReconstruction;
 import org.jakstab.util.*;
 
 import com.google.common.collect.HashMultimap;

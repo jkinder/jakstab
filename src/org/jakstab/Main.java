@@ -51,14 +51,7 @@ public class Main {
 	private static volatile Algorithm activeAlgorithm;
 	private static volatile Thread mainThread;
 	
-	public static void main(String[] args) {
-
-		mainThread = Thread.currentThread();
-		StatsTracker stats = StatsTracker.getInstance();
-
-		// Parse command line
-		Options.parseOptions(args);
-
+	public static void logBanner() {
 		logger.error(Characters.DOUBLE_LINE_FULL_WIDTH);
 		logger.error("   Jakstab " + version);
 		logger.error("   Copyright 2007-2012  Johannes Kinder  <johannes.kinder@epfl.ch>");
@@ -67,6 +60,17 @@ public class Main {
 		logger.error("   and you are welcome to redistribute it under certain conditions.");
 		logger.error("   Refer to LICENSE for details.");
 		logger.error(Characters.DOUBLE_LINE_FULL_WIDTH);
+	}
+	
+	public static void main(String[] args) {
+
+		mainThread = Thread.currentThread();
+		StatsTracker stats = StatsTracker.getInstance();
+		
+		// Parse command line before first use of logger
+		Options.parseOptions(args);
+		
+		logBanner();
 
 		/////////////////////////
 		// Parse SSL file

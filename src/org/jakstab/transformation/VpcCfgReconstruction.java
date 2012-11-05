@@ -1,15 +1,15 @@
-package org.jakstab.analysis;
+package org.jakstab.transformation;
 
 import java.util.Set;
 
 import org.jakstab.Algorithm;
 import org.jakstab.Options;
+import org.jakstab.VpcCfgMain;
+import org.jakstab.analysis.AbstractReachabilityTree;
 import org.jakstab.cfa.CFAEdge;
 import org.jakstab.cfa.ControlFlowGraph;
 import org.jakstab.cfa.ProgramCFG;
 import org.jakstab.cfa.VpcLiftedCFG;
-import org.jakstab.transformation.DeadCodeElimination;
-import org.jakstab.transformation.ExpressionSubstitution;
 import org.jakstab.util.Logger;
 
 
@@ -71,6 +71,9 @@ public class VpcCfgReconstruction implements Algorithm {
 				transformedCfg = new ProgramCFG(edges);		
 			}
 		}
+		
+		VpcCfgMain.fanOut = (double)transformedCfg.getBasicBlockEdges().size() / 
+				(double)transformedCfg.getBasicBlockNodes().size();
 	}
 
 	@Override
