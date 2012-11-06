@@ -122,7 +122,8 @@ public class Options {
 		for (int i = 0; i < args.length - 1; i++) {
 			argStringBuilder.append(args[i]).append(" ");
 		}
-		argStringBuilder.append(args[args.length - 1]);
+		if (args.length > 0)
+			argStringBuilder.append(args[args.length - 1]);
 		arguments = argStringBuilder.toString();
 		
 		for (int i = 0; i < args.length; i++) {
