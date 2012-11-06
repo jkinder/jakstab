@@ -105,7 +105,7 @@ public final class PartitionedMemory<A extends AbstractValue> implements Lattice
 	
 	public void setTop() {
 		if (Options.ignoreWeakUpdates.getValue()) {
-			logger.warn("Ignoring weak universal update!");
+			logger.info("Ignoring weak universal update!");
 			return;
 		}
 		store.clear();
@@ -122,7 +122,7 @@ public final class PartitionedMemory<A extends AbstractValue> implements Lattice
 		}
 
 		if (Options.ignoreWeakUpdates.getValue()) {
-			logger.warn("Ignoring weak update to " + region);
+			logger.info("Ignoring weak update to " + region);
 			return;
 		}
 

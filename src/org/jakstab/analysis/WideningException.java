@@ -1,21 +1,20 @@
 package org.jakstab.analysis;
 
-import org.jakstab.rtl.expressions.RTLExpression;
 
 public class WideningException extends RuntimeException {
 
 	private static final long serialVersionUID = 1L;
 	
-	private final RTLExpression widenedLocation;
+	private final ValueContainer widenedLocation;
 	private final AbstractState state;
 
-	public WideningException(AbstractState s, RTLExpression widenedLocation) {
+	public WideningException(AbstractState s, ValueContainer widenedLocation) {
 		super();
 		this.widenedLocation = widenedLocation;
 		this.state = s;
 	}
 
-	public RTLExpression getWidenedExpression() {
+	public ValueContainer getWidenedExpression() {
 		return widenedLocation;
 	}
 

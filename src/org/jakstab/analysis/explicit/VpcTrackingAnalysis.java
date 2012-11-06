@@ -31,12 +31,12 @@ import org.jakstab.analysis.MemoryRegion;
 import org.jakstab.analysis.PartitionedMemory;
 import org.jakstab.analysis.Precision;
 import org.jakstab.analysis.ReachedSet;
+import org.jakstab.analysis.ValueContainer;
 import org.jakstab.cfa.CFAEdge;
 import org.jakstab.cfa.Location;
 import org.jakstab.cfa.RTLLabel;
 import org.jakstab.cfa.StateTransformer;
 import org.jakstab.rtl.expressions.ExpressionFactory;
-import org.jakstab.rtl.expressions.RTLExpression;
 import org.jakstab.rtl.expressions.RTLVariable;
 import org.jakstab.rtl.statements.RTLStatement;
 import org.jakstab.util.Logger;
@@ -59,9 +59,9 @@ public class VpcTrackingAnalysis implements ConfigurableProgramAnalysis {
 	public static JOption<String> vpcName = JOption.create("vpc", "r", "esi", "Register to be used as virtual program counter.");
 	
 	// FIXME: Ugly interface for automatic setting of VPC
-	public static RTLExpression useAsVpc;
+	public static ValueContainer useAsVpc;
 	
-	private RTLExpression vpc;
+	private ValueContainer vpc;
 	
 	public VpcTrackingAnalysis() {
 		if (vpcName.getValue() != null)
@@ -73,7 +73,7 @@ public class VpcTrackingAnalysis implements ConfigurableProgramAnalysis {
 		logger.debug("Using VPC " + vpc);
 	}
 	
-	public RTLExpression getVPC(RTLLabel l) {
+	public ValueContainer getVPC(RTLLabel l) {
 		return vpc;
 	}
 	
@@ -93,7 +93,7 @@ public class VpcTrackingAnalysis implements ConfigurableProgramAnalysis {
 	public Set<AbstractState> post(AbstractState state, CFAEdge cfaEdge, Precision precision) {
 		BasedNumberValuation b = (BasedNumberValuation)state;
 		return ((BasedNumberValuation)state).abstractPost((RTLStatement)cfaEdge.getTransformer(), 
-				((VpcPrecision)precision).getPrecision(b.abstractEval(vpc)));
+				((VpcPrecision)precision).getPrecision(b.getValue(vpc)));
 	}
 	
 	@Override
@@ -109,7 +109,7 @@ public class VpcTrackingAnalysis implements ConfigurableProgramAnalysis {
 		
 		VpcPrecision vprec = (VpcPrecision)precision;
 		BasedNumberValuation widenedState = (BasedNumberValuation)s;
-		BasedNumberElement vpcValue = widenedState.abstractEval(vpc);
+		BasedNumberElement vpcValue = widenedState.getValue(vpc);
 		//BasedNumberElement vpcValue = widenedState.getStore().get(MemoryRegion.STACK, -340, 32); //Stack,-340
 		ExplicitPrecision eprec = vprec.getPrecision(vpcValue);
 

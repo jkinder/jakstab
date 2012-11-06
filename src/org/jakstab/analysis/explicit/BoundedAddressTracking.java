@@ -30,7 +30,6 @@ import org.jakstab.cfa.CFAEdge;
 import org.jakstab.cfa.Location;
 import org.jakstab.cfa.StateTransformer;
 import org.jakstab.rtl.expressions.ExpressionFactory;
-import org.jakstab.rtl.expressions.RTLExpression;
 import org.jakstab.rtl.expressions.RTLVariable;
 import org.jakstab.rtl.statements.RTLStatement;
 import org.jakstab.util.*;
@@ -147,7 +146,7 @@ public class BoundedAddressTracking implements ConfigurableProgramAnalysis {
 				if (existingValues.size() > threshold) {
 					if (countRegions(existingValues) > 5*threshold) {
 						eprec.stopTracking(region, offset);
-						recordWidening(widenedState, region, offset);
+						recordWidening(widenedState, region, offset, value.getBitWidth());
 						if (!changed) {
 							widenedState = new BasedNumberValuation(widenedState);
 							changed = true;
@@ -157,7 +156,7 @@ public class BoundedAddressTracking implements ConfigurableProgramAnalysis {
 								BasedNumberElement.getTop(value.getBitWidth()));
 					} else {
 						eprec.trackRegionOnly(region, offset);
-						recordWidening(widenedState, region, offset);
+						recordWidening(widenedState, region, offset, value.getBitWidth());
 						if (!changed) {
 							widenedState = new BasedNumberValuation(widenedState);
 							changed = true;
@@ -222,39 +221,17 @@ public class BoundedAddressTracking implements ConfigurableProgramAnalysis {
 		return regions.size();
 	}
 	
-	private void recordWidening(BasedNumberValuation s, RTLExpression e) {
+	private void recordWidening(BasedNumberValuation s, ValueContainer e) {
 		if (!stopOnFirstWidening.getValue())
 			return;
 		throw new WideningException(s, e);
 	}
 	
-	private void recordWidening(BasedNumberValuation s, MemoryRegion r, long offset) {
+	private void recordWidening(BasedNumberValuation s, MemoryRegion r, long offset, int bitwidth) {
 		if (!stopOnFirstWidening.getValue())
 			return;
-		if (!r.equals(MemoryRegion.STACK)) {
-			logger.warn("First widening did not occur in stack region, ignoring.");
-			return;
-		}
 		
-		RTLVariable esp = Program.getProgram().getArchitecture().stackPointer();
-		
-		BasedNumberElement espVal = s.abstractEval(esp);
-		if (!espVal.getRegion().equals(MemoryRegion.STACK)) {
-			logger.warn("ESP not known to point to stack, ignoring current widening.");
-			return;
-		}
-		
-		if (espVal.isNumberTop()) {
-			logger.warn("No precise ESP value known, ignoring current widening.");
-			return;
-		}
-		
-		long relOffset = offset - espVal.getNumber().longValue();
-		recordWidening(s, ExpressionFactory.createMemoryLocation(
-				ExpressionFactory.createPlus(
-						esp, 
-						ExpressionFactory.createNumber(relOffset, 32)), 
-						32));
+		recordWidening(s, new MemoryReference(r, offset, bitwidth));
 	}
 
 

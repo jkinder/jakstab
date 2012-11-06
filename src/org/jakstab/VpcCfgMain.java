@@ -148,7 +148,11 @@ public class VpcCfgMain {
 		// Necessary to stop shutdown thread on exceptions being thrown
 		try {
 
-			Options.cpas.setValue("x");			
+			int kParam = BoundedAddressTracking.varThreshold.getValue();
+			int khParam = BoundedAddressTracking.heapThreshold.getValue();
+			BoundedAddressTracking.varThreshold.setValue(30);
+			BoundedAddressTracking.heapThreshold.setValue(30);
+			Options.cpas.setValue("x");
 			BoundedAddressTracking.stopOnFirstWidening.setValue(true);
 
 			logger.error("Initial analysis.");
@@ -171,16 +175,16 @@ public class VpcCfgMain {
 
 			// Always do VPC sensitive BAT here
 			Options.cpas.setValue("v");
+			BoundedAddressTracking.varThreshold.setValue(kParam);
+			BoundedAddressTracking.heapThreshold.setValue(khParam);
 			// No need to be sound
-			Options.ignoreWeakUpdates.setValue(Boolean.TRUE);
+			//Options.ignoreWeakUpdates.setValue(Boolean.TRUE);
 			BoundedAddressTracking.stopOnFirstWidening.setValue(false);
 			VpcTrackingAnalysis.vpcName.setValue(null);
 
-			/*VpcTrackingAnalysis.useAsVpc = ExpressionFactory.createMemoryLocation(
-					ExpressionFactory.createPlus(Program.getProgram().getArchitecture().stackPointer(), 
-							ExpressionFactory.createNumber(0x13c, 32)), 
-							32);*/
-			logger.error("Attempting analysis with VPC " + VpcTrackingAnalysis.useAsVpc);
+			logger.error(Characters.DOUBLE_LINE_FULL_WIDTH);
+			logger.error("== Attempting reconstruction with VPC " + VpcTrackingAnalysis.useAsVpc + " ==");
+			
 			stats.record("VPC", VpcTrackingAnalysis.useAsVpc);
 
 			cfr = new ControlFlowReconstruction(program);
@@ -195,10 +199,6 @@ public class VpcCfgMain {
 				logger.error("WARNING: Analysis interrupted, CFG might be incomplete!");
 			}
 
-			if (!cfr.isSound()) {
-				logger.error("WARNING: Analysis was unsound!");
-			}
-
 			logger.error("Reconstructing VPC CFG");
 
 			ProgramGraphWriter graphWriter = new ProgramGraphWriter(program);
@@ -206,7 +206,10 @@ public class VpcCfgMain {
 
 
 			long overallEndTime = System.currentTimeMillis();
-			logger.error( "Total Runtime:                     " + String.format("%8dms", (overallEndTime - overallStartTime)));
+			
+			graphWriter.writeDisassembly(baseFileName + "_jak.asm");
+
+			logger.error("Total runtime for reconstruction: " + String.format("%8dms", (overallEndTime - overallStartTime)));
 
 			stats.record(Options.basicBlocks.getValue() ? "y" : "n");
 			stats.record(Options.summarizeRep.getValue() ? "y" : "n" );

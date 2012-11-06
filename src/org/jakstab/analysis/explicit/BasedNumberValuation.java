@@ -833,6 +833,16 @@ public final class BasedNumberValuation implements AbstractState {
 
 		});
 	}
+	
+	public BasedNumberElement getValue(ValueContainer var) {
+		if (var instanceof RTLVariable) {
+			return getValue((RTLVariable)var);
+		} else {
+			assert var instanceof MemoryReference;
+			MemoryReference ref = (MemoryReference)var;
+			return aStore.get(ref.getRegion(), ref.getOffset(), ref.getBitWidth());
+		}
+	}
 
 	public BasedNumberElement getValue(RTLVariable var) {
 		return aVarVal.get(var);
