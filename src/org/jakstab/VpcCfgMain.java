@@ -19,10 +19,6 @@
 package org.jakstab;
 
 import java.io.*;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 import org.jakstab.util.*;
 import org.jakstab.analysis.*;
@@ -49,9 +45,6 @@ public class VpcCfgMain {
 
 		// Parse command line
 		Options.parseOptions(args);
-
-		// Always do VPC sensitive BAT here
-		Options.cpas.setValue("v");
 
 		Main.logBanner();
 
@@ -152,57 +145,69 @@ public class VpcCfgMain {
 			eclipseShutdownThread.start();
 		}
 
-		List<String> vpcCandidates = Arrays.asList(new String[]{ 
-				"eax", "ebx", "ecx", "edx", "esi", "edi", "ebp" 
-		});
-		Map<String, Double> fanOutMap = new HashMap<String, Double>();
-
 		// Necessary to stop shutdown thread on exceptions being thrown
 		try {
 
-			for (String vpc : vpcCandidates) {
+			Options.cpas.setValue("x");			
+			BoundedAddressTracking.stopOnFirstWidening.setValue(true);
 
-				logger.error("Attempting analysis with VPC " + vpc);
-				VpcTrackingAnalysis.vpcName.setValue(vpc);
-
-				ControlFlowReconstruction cfr = new ControlFlowReconstruction(program);
-				try {
-					runAlgorithm(cfr);
-				} catch (RuntimeException r) {
-					logger.error("!! Runtime exception during Control Flow Reconstruction! Trying to shut down gracefully.");
-					r.printStackTrace();
-				}
-
-				if (!cfr.isCompleted()) {
-					logger.error("WARNING: Analysis interrupted, CFG might be incomplete!");
-				}
-
-				if (!cfr.isSound()) {
-					logger.error("WARNING: Analysis was unsound!");
-				}
-
-				logger.error("Reconstructing VPC CFG");
-
-				ProgramGraphWriter graphWriter = new ProgramGraphWriter(program);
-				graphWriter.writeVpcAssemblyBasicBlockGraph(baseFileName + "_asmvcfg_" + vpc, cfr.getART());
-				fanOutMap.put(vpc, fanOut);
+			logger.error("Initial analysis.");
+			ControlFlowReconstruction cfr = new ControlFlowReconstruction(program);
+			try {
+				runAlgorithm(cfr);
+			} catch (WideningException e) {
+				logger.error("Initial widening recorded at " + e.getWidenedExpression());
+				VpcTrackingAnalysis.useAsVpc = e.getWidenedExpression();
+			} catch (RuntimeException r) {
+				logger.error("!! Runtime exception during Control Flow Reconstruction! Trying to shut down gracefully.");
+				r.printStackTrace();
+			}
+			
+			if (VpcTrackingAnalysis.useAsVpc == null) {
+				logger.fatal("There was no widening, so no VPC was detected!");
+				System.exit(1);
 			}
 
-			double minFanOut = Double.POSITIVE_INFINITY;
-			String minVpc = "NONE";
-			for (Map.Entry<String, Double> entry : fanOutMap.entrySet()) {
-				logger.info("VPC: " + entry.getKey() + " FanOut: " + entry.getValue());
-				if (entry.getValue() < minFanOut) {
-					minVpc = entry.getKey();
-					minFanOut = entry.getValue();
-				}
+
+			// Always do VPC sensitive BAT here
+			Options.cpas.setValue("v");
+			// No need to be sound
+			Options.ignoreWeakUpdates.setValue(Boolean.TRUE);
+			BoundedAddressTracking.stopOnFirstWidening.setValue(false);
+			VpcTrackingAnalysis.vpcName.setValue(null);
+
+			/*VpcTrackingAnalysis.useAsVpc = ExpressionFactory.createMemoryLocation(
+					ExpressionFactory.createPlus(Program.getProgram().getArchitecture().stackPointer(), 
+							ExpressionFactory.createNumber(0x13c, 32)), 
+							32);*/
+			logger.error("Attempting analysis with VPC " + VpcTrackingAnalysis.useAsVpc);
+			stats.record("VPC", VpcTrackingAnalysis.useAsVpc);
+
+			cfr = new ControlFlowReconstruction(program);
+			try {
+				runAlgorithm(cfr);
+			} catch (RuntimeException r) {
+				logger.error("!! Runtime exception during Control Flow Reconstruction! Trying to shut down gracefully.");
+				r.printStackTrace();
 			}
-			logger.error("Assuming VPC is " + minVpc + ", which causes fan out of " + minFanOut);
+
+			if (!cfr.isCompleted()) {
+				logger.error("WARNING: Analysis interrupted, CFG might be incomplete!");
+			}
+
+			if (!cfr.isSound()) {
+				logger.error("WARNING: Analysis was unsound!");
+			}
+
+			logger.error("Reconstructing VPC CFG");
+
+			ProgramGraphWriter graphWriter = new ProgramGraphWriter(program);
+			graphWriter.writeVpcAssemblyBasicBlockGraph(baseFileName + "_asmvcfg", cfr.getART());
+
 
 			long overallEndTime = System.currentTimeMillis();
 			logger.error( "Total Runtime:                     " + String.format("%8dms", (overallEndTime - overallStartTime)));
 
-			stats.record("VPC", minVpc);
 			stats.record(Options.basicBlocks.getValue() ? "y" : "n");
 			stats.record(Options.summarizeRep.getValue() ? "y" : "n" );
 			stats.record(BoundedAddressTracking.varThreshold.getValue());

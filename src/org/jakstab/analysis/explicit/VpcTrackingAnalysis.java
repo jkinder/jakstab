@@ -36,6 +36,7 @@ import org.jakstab.cfa.Location;
 import org.jakstab.cfa.RTLLabel;
 import org.jakstab.cfa.StateTransformer;
 import org.jakstab.rtl.expressions.ExpressionFactory;
+import org.jakstab.rtl.expressions.RTLExpression;
 import org.jakstab.rtl.expressions.RTLVariable;
 import org.jakstab.rtl.statements.RTLStatement;
 import org.jakstab.util.Logger;
@@ -57,15 +58,22 @@ public class VpcTrackingAnalysis implements ConfigurableProgramAnalysis {
 	}
 	public static JOption<String> vpcName = JOption.create("vpc", "r", "esi", "Register to be used as virtual program counter.");
 	
-	private RTLVariable vpc;
+	// FIXME: Ugly interface for automatic setting of VPC
+	public static RTLExpression useAsVpc;
+	
+	private RTLExpression vpc;
 	
 	public VpcTrackingAnalysis() {
-		vpc = ExpressionFactory.createVariable(vpcName.getValue().toLowerCase());
-		StatsTracker.getInstance().record("VPC", VpcTrackingAnalysis.vpcName.getValue());
+		if (vpcName.getValue() != null)
+			vpc = ExpressionFactory.createVariable(vpcName.getValue().toLowerCase());
+		else
+			vpc = useAsVpc;
+
+		StatsTracker.getInstance().record("VPC", vpc.toString());
 		logger.debug("Using VPC " + vpc);
 	}
 	
-	public RTLVariable getVPC(RTLLabel l) {
+	public RTLExpression getVPC(RTLLabel l) {
 		return vpc;
 	}
 	
@@ -84,7 +92,8 @@ public class VpcTrackingAnalysis implements ConfigurableProgramAnalysis {
 	@Override
 	public Set<AbstractState> post(AbstractState state, CFAEdge cfaEdge, Precision precision) {
 		BasedNumberValuation b = (BasedNumberValuation)state;
-		return ((BasedNumberValuation)state).abstractPost((RTLStatement)cfaEdge.getTransformer(), ((VpcPrecision)precision).getPrecision(b.getValue(vpc)));
+		return ((BasedNumberValuation)state).abstractPost((RTLStatement)cfaEdge.getTransformer(), 
+				((VpcPrecision)precision).getPrecision(b.abstractEval(vpc)));
 	}
 	
 	@Override
@@ -100,7 +109,9 @@ public class VpcTrackingAnalysis implements ConfigurableProgramAnalysis {
 		
 		VpcPrecision vprec = (VpcPrecision)precision;
 		BasedNumberValuation widenedState = (BasedNumberValuation)s;
-		ExplicitPrecision eprec = vprec.getPrecision(widenedState.getValue(vpc));
+		BasedNumberElement vpcValue = widenedState.abstractEval(vpc);
+		//BasedNumberElement vpcValue = widenedState.getStore().get(MemoryRegion.STACK, -340, 32); //Stack,-340
+		ExplicitPrecision eprec = vprec.getPrecision(vpcValue);
 
 		// Only check value counts if we have at least enough states to reach it
 		if (reached.size() > Math.min(BoundedAddressTracking.varThreshold.getValue(), BoundedAddressTracking.heapThreshold.getValue())) {

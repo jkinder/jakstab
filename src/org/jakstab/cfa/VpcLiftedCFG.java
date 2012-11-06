@@ -16,7 +16,7 @@ import org.jakstab.analysis.composite.CompositeState;
 import org.jakstab.analysis.explicit.BasedNumberElement;
 import org.jakstab.analysis.explicit.BasedNumberValuation;
 import org.jakstab.analysis.explicit.VpcTrackingAnalysis;
-import org.jakstab.rtl.expressions.RTLVariable;
+import org.jakstab.rtl.expressions.RTLExpression;
 import org.jakstab.rtl.statements.BasicBlock;
 import org.jakstab.rtl.statements.RTLGoto;
 import org.jakstab.rtl.statements.RTLHalt;
@@ -139,9 +139,9 @@ public class VpcLiftedCFG extends ControlFlowGraph {
 
 	private BasedNumberElement getVPC(AbstractState s, VpcTrackingAnalysis vpcAnalysis, int vAnalysisPos) {
 		RTLLabel l = (RTLLabel)s.getLocation();				
-		RTLVariable vpcVar = vpcAnalysis.getVPC(l);
+		RTLExpression vpcVar = vpcAnalysis.getVPC(l);
 		CompositeState cState = (CompositeState)s;
-		BasedNumberElement vpcVal = ((BasedNumberValuation)cState.getComponent(vAnalysisPos)).getValue(vpcVar);
+		BasedNumberElement vpcVal = ((BasedNumberValuation)cState.getComponent(vAnalysisPos)).abstractEval(vpcVar);
 		return vpcVal;
 	}
 	

@@ -199,7 +199,7 @@ public final class BasedNumberValuation implements AbstractState {
 	 * @param e the expression to be evaluated.
 	 * @return the abstract value of the expression in the abstract state.
 	 */
-	protected BasedNumberElement abstractEval(RTLExpression e) {
+	public BasedNumberElement abstractEval(RTLExpression e) {
 		ExpressionVisitor<BasedNumberElement> visitor = new ExpressionVisitor<BasedNumberElement>() {
 			
 			@Override

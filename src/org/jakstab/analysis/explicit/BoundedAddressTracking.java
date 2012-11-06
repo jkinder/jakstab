@@ -30,6 +30,7 @@ import org.jakstab.cfa.CFAEdge;
 import org.jakstab.cfa.Location;
 import org.jakstab.cfa.StateTransformer;
 import org.jakstab.rtl.expressions.ExpressionFactory;
+import org.jakstab.rtl.expressions.RTLExpression;
 import org.jakstab.rtl.expressions.RTLVariable;
 import org.jakstab.rtl.statements.RTLStatement;
 import org.jakstab.util.*;
@@ -56,6 +57,7 @@ public class BoundedAddressTracking implements ConfigurableProgramAnalysis {
 	public static JOption<Integer> heapThreshold = JOption.create("heap-threshold", "k", 5, "Explicit threshold for data stored on the heap.");
 	public static JOption<Boolean> repPrecBoost = JOption.create("rep-prec-boost", "Increase precision for rep-prefixed instructions.");
 	public static JOption<Boolean> keepDeadStack = JOption.create("keep-dead-stack", "Do not discard stack contents below current stack pointer.");
+	public static JOption<Boolean> stopOnFirstWidening = JOption.create("stop-on-first-widening", "Stop on first widening, useful only for debugging.");
 	
 	public BoundedAddressTracking() {
 	}
@@ -107,6 +109,7 @@ public class BoundedAddressTracking implements ConfigurableProgramAnalysis {
 					// intercepted by the precision-aware setValue)
 					if (countRegions(existingValues) > threshold) {
 						eprec.stopTracking(v);
+						recordWidening(widenedState, v);
 						if (!changed) {
 							widenedState = new BasedNumberValuation(widenedState);
 							changed = true;
@@ -114,6 +117,7 @@ public class BoundedAddressTracking implements ConfigurableProgramAnalysis {
 						widenedState.setValue(v, BasedNumberElement.getTop(v.getBitWidth()));
 					} else {
 						eprec.trackRegionOnly(v);
+						recordWidening(widenedState, v);
 						if (!changed) {
 							widenedState = new BasedNumberValuation(widenedState);
 							changed = true;
@@ -143,6 +147,7 @@ public class BoundedAddressTracking implements ConfigurableProgramAnalysis {
 				if (existingValues.size() > threshold) {
 					if (countRegions(existingValues) > 5*threshold) {
 						eprec.stopTracking(region, offset);
+						recordWidening(widenedState, region, offset);
 						if (!changed) {
 							widenedState = new BasedNumberValuation(widenedState);
 							changed = true;
@@ -152,6 +157,7 @@ public class BoundedAddressTracking implements ConfigurableProgramAnalysis {
 								BasedNumberElement.getTop(value.getBitWidth()));
 					} else {
 						eprec.trackRegionOnly(region, offset);
+						recordWidening(widenedState, region, offset);
 						if (!changed) {
 							widenedState = new BasedNumberValuation(widenedState);
 							changed = true;
@@ -215,5 +221,41 @@ public class BoundedAddressTracking implements ConfigurableProgramAnalysis {
 			regions.add(e.getRegion());
 		return regions.size();
 	}
+	
+	private void recordWidening(BasedNumberValuation s, RTLExpression e) {
+		if (!stopOnFirstWidening.getValue())
+			return;
+		throw new WideningException(s, e);
+	}
+	
+	private void recordWidening(BasedNumberValuation s, MemoryRegion r, long offset) {
+		if (!stopOnFirstWidening.getValue())
+			return;
+		if (!r.equals(MemoryRegion.STACK)) {
+			logger.warn("First widening did not occur in stack region, ignoring.");
+			return;
+		}
+		
+		RTLVariable esp = Program.getProgram().getArchitecture().stackPointer();
+		
+		BasedNumberElement espVal = s.abstractEval(esp);
+		if (!espVal.getRegion().equals(MemoryRegion.STACK)) {
+			logger.warn("ESP not known to point to stack, ignoring current widening.");
+			return;
+		}
+		
+		if (espVal.isNumberTop()) {
+			logger.warn("No precise ESP value known, ignoring current widening.");
+			return;
+		}
+		
+		long relOffset = offset - espVal.getNumber().longValue();
+		recordWidening(s, ExpressionFactory.createMemoryLocation(
+				ExpressionFactory.createPlus(
+						esp, 
+						ExpressionFactory.createNumber(relOffset, 32)), 
+						32));
+	}
+
 
 }
