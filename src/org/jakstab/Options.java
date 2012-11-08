@@ -127,7 +127,7 @@ public class Options {
 		arguments = argStringBuilder.toString();
 		
 		for (int i = 0; i < args.length; i++) {
-			String arg = args[i].toLowerCase();
+			String arg = args[i];
 			// Dash (-) arguments
 			if (arg.startsWith("-")) {
 				
