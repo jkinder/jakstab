@@ -93,6 +93,7 @@ public class Options {
 	public static JOption<Boolean> heuristicEntryPoints = JOption.create("h", "Use heuristics to determine additional procedures and add pseudo-calls to include them in disassembly.");
 	public static JOption<Boolean> ignoreWeakUpdates = JOption.create("ignore-weak-updates", "Do not perform weak store updates (unsound).");
 	public static JOption<Boolean> initHeapToBot = JOption.create("bot-heap", "Initialize heap cells to BOT to force strong updates.");
+	public static JOption<Boolean> malloc = JOption.create("malloc", "Use simple default stub for malloc that always succeeds.");
 	public static JOption<Boolean> summarizeRep = JOption.create("summarize-rep", "Use summarizing transformer for string instructions.");
 	public static JOption<Boolean> basicBlocks = JOption.create("basicblocks", "Build CFA from basic-blocks instead of single statements.");
 	public static JOption<Integer> simplifyVCFG = JOption.create("simplifyVCFG", "l", 1, "In VPC-CFG reconstruction, simplify the reconstructed graph using (0) nothing (1) DCE (2) DCE + Expression Substitution");

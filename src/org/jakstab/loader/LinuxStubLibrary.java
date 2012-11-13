@@ -20,6 +20,7 @@ package org.jakstab.loader;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.jakstab.Options;
 import org.jakstab.Program;
 import org.jakstab.asm.AbsoluteAddress;
 import org.jakstab.asm.DummySymbolFinder;
@@ -96,11 +97,11 @@ public class LinuxStubLibrary implements StubProvider {
 			seq.addLast(new RTLDebugPrint("Call to printf, format @ %esp =", 
 					ExpressionFactory.createSpecialExpression(RTLSpecialExpression.DBG_PRINTF, 
 							ExpressionFactory.createPlus(arch.stackPointer(), 4))));
-		} /*else if (function.equals("malloc")) {
+		} else if (function.equals("malloc") && Options.malloc.getValue()) {
 			seq.addLast(new RTLAlloc(ExpressionFactory.createVariable("%eax")));
 			seq.addLast(new RTLVariableAssignment(32, ExpressionFactory.createVariable("%ecx"), ExpressionFactory.nondet(32)));
 			seq.addLast(new RTLVariableAssignment(32, ExpressionFactory.createVariable("%edx"), ExpressionFactory.nondet(32)));
-		}*/
+		}
 		// Any other function clobbers eax, ecx, edx by default
 		else {
 			seq.addLast(new RTLVariableAssignment(32, ExpressionFactory.createVariable("%eax"), ExpressionFactory.nondet(32)));
