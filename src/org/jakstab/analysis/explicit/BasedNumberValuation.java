@@ -331,7 +331,7 @@ public final class BasedNumberValuation implements AbstractState {
 								RTLExpression negOp = ((RTLOperation)eOperand).getOperands()[0];
 								BasedNumberElement aNegOp = negOp.accept(this);
 								if (aNegOp.getRegion() == region) {
-									logger.debug("Subtracting pointer from another one to the same region (" + region + ").");
+									//logger.debug("Subtracting pointer from another one to the same region (" + region + ").");
 									// We are subtracting the same region, so reset region to global 
 									// since just the offset difference remains										
 									region = MemoryRegion.GLOBAL;
