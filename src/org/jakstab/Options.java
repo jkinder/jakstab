@@ -60,7 +60,7 @@ public class Options {
 	});
 	
 	static void addOption(JOption<?> o) {
-		String name = o.getName().toLowerCase();
+		String name = o.getName();
 		if (options.containsKey(name)) {
 			logger.fatal("Option " + name + " already present!");
 			System.exit(1);
@@ -150,10 +150,8 @@ public class Options {
 					}
 				}			
 				// Arguments which require arguments
-				else if (i + 1 < args.length) {
-					if (arg.equals("-m")) {
-						mainFilename = args[++i];
-					} 
+				else if (arg.equals("-m")) {
+					mainFilename = args[++i];
 				} else {
 					logger.fatal("Invalid command line argument: " + arg);
 					logger.fatal("");
