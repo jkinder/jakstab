@@ -433,4 +433,17 @@ public class ELFModule implements ExecutableImage {
 	public byte[] getByteArray() {
 		return inBuf.getByteArray();
 	}
+
+	@Override
+	public boolean isImportArea(AbsoluteAddress va) {
+		long a = va.getValue();
+		for (Elf.Section section : elf.sections) {
+			if (a >= section.sh_addr.getValue().longValue() && 
+					a <= section.sh_addr.getValue().longValue() + section.sh_size) {
+				return (section.toString().equals(".plt")); 
+			}
+		}
+		// Section not found
+		return false;
+	}
 }

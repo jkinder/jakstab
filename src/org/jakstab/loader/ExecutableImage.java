@@ -97,6 +97,15 @@ public interface ExecutableImage {
 	public boolean isCodeArea(AbsoluteAddress va);
 	
 	/**
+	 * Checks whether the specified virtual address is inside an import section of this executable
+	 * (plt for ELF, import table for PE)  
+	 * 
+	 * @param va The virtual address to check.
+	 * @return True if the address points to a import area, false otherwise.
+	 */
+	public boolean isImportArea(AbsoluteAddress va);
+	
+	/**
 	 * Read a static memory location, i.e., the initial value of a global variable or a constant.
 	 *   
 	 * @param m The absolute virtual address in IL syntax as an {@code RTLMemoryLocation} object. 

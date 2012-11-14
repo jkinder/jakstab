@@ -126,4 +126,9 @@ public class RawModule implements ExecutableImage {
 		return inBuf.getByteArray();
 	}
 
+	@Override
+	public boolean isImportArea(AbsoluteAddress va) {
+		return false;
+	}
+
 }

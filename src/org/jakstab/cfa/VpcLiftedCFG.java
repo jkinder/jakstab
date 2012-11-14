@@ -143,7 +143,7 @@ public class VpcLiftedCFG extends ControlFlowGraph {
 		RTLLabel l = (RTLLabel)s.getLocation();
 
 		// Do not assign a VPC value to stub methods - make them all share TOP 
-		if (Program.getProgram().isStub(l.getAddress()))
+		if (Program.getProgram().isImport(l.getAddress()))
 			return BasedNumberElement.getTop(32);
 		
 		ValueContainer vpcVar = vpcAnalysis.getVPC(l);

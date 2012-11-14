@@ -215,6 +215,15 @@ public final class Program {
 		return a.getValue() >= StubProvider.STUB_BASE;
 	}
 	
+	public boolean isImport(AbsoluteAddress a) {
+		if (isStub(a))
+			return true;
+		ExecutableImage m = getModule(a);
+		if (m == null)
+			return false;
+		return m.isImportArea(a);
+	}
+	
 	/**
 	 * For all unresolved symbols, install simple stubs.
 	 */

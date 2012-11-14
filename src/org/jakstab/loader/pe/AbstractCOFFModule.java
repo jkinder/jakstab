@@ -249,4 +249,14 @@ public abstract class AbstractCOFFModule implements ExecutableImage {
 		}
 		return disassembler;
 	}
+
+	@Override
+	public boolean isImportArea(AbsoluteAddress va) {
+		int section = getSectionNumber(va);
+		if (section < 0) return false;
+		else {
+			// FIXME: Implement this
+			return false;
+		}
+	}
 }
