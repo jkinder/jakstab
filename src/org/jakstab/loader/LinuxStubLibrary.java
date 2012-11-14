@@ -23,7 +23,6 @@ import java.util.Map;
 import org.jakstab.Options;
 import org.jakstab.Program;
 import org.jakstab.asm.AbsoluteAddress;
-import org.jakstab.asm.DummySymbolFinder;
 import org.jakstab.asm.SymbolFinder;
 import org.jakstab.rtl.expressions.ExpressionFactory;
 import org.jakstab.rtl.expressions.RTLExpression;
@@ -44,10 +43,13 @@ public class LinuxStubLibrary implements StubProvider {
 	private Map<String,AbsoluteAddress> activeStubs;
 	private int impId;
 	private Architecture arch;
+	private SymbolFinder symFinder;
+	private Map<AbsoluteAddress,String> addressMap;
 
 	public LinuxStubLibrary(Architecture arch) {
 		this.arch = arch;
 		activeStubs = new HashMap<String, AbsoluteAddress>();
+		addressMap = new HashMap<AbsoluteAddress, String>();
 		impId = 0;
 	}
 	
@@ -144,6 +146,7 @@ public class LinuxStubLibrary implements StubProvider {
 			// create a new stub instance
 			functionAddress = createStubInstance(library, symbol);
 			activeStubs.put(symbol, functionAddress);
+			addressMap.put(functionAddress, symbol);
 			logger.debug("Created new stub for " + symbol + "@" + library);
 		}
 		return functionAddress;
@@ -151,7 +154,28 @@ public class LinuxStubLibrary implements StubProvider {
 
 	@Override
 	public SymbolFinder getSymbolFinder() {
-		return new DummySymbolFinder();
+		if (symFinder == null) {
+			symFinder = new SymbolFinder() {
+				
+				@Override
+				public boolean hasSymbolFor(AbsoluteAddress va) {
+					return addressMap.containsKey(va);
+				}
+				
+				@Override
+				public String getSymbolFor(AbsoluteAddress va) {
+					String sym = addressMap.get(va);
+					if (sym == null) return va.toString();
+					else return sym;
+				}
+				
+				@Override
+				public String getSymbolFor(long address) {
+					return getSymbolFor(new AbsoluteAddress(address));
+				}
+			};
+		}
+		return symFinder;
 	}
 
 }
