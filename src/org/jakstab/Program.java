@@ -211,6 +211,10 @@ public final class Program {
 		}
 	}
 	
+	public boolean isStub(AbsoluteAddress a) {
+		return a.getValue() >= StubProvider.STUB_BASE;
+	}
+	
 	/**
 	 * For all unresolved symbols, install simple stubs.
 	 */
@@ -371,7 +375,7 @@ public final class Program {
 			return instr;
 		} else {
 			// No real instructions in prologue/epilogue
-			if (harness.contains(address) || address.getValue() >= StubProvider.STUB_BASE)
+			if (harness.contains(address) || isStub(address))
 				return null;
 			
 			ExecutableImage module = getModule(address);
@@ -440,7 +444,7 @@ public final class Program {
 	}
 	
 	private SymbolFinder symbolFinder(AbsoluteAddress addr) {
-		if (addr.getValue() >= StubProvider.STUB_BASE)
+		if (isStub(addr))
 			return stubLibrary.getSymbolFinder();
 		
 		ExecutableImage module = getModule(addr);

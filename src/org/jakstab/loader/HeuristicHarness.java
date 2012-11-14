@@ -45,12 +45,7 @@ public class HeuristicHarness implements Harness {
 		{ 0x55, -0x75, -0x14 }
 	};
 	
-	private long PROLOGUE_BASE = 0xface0000L;
-	private long EPILOGUE_BASE = 0xfee70000L;
-	private AbsoluteAddress prologueAddress = new AbsoluteAddress(PROLOGUE_BASE);
-	private AbsoluteAddress epilogueAddress = new AbsoluteAddress(EPILOGUE_BASE);
 	private AbsoluteAddress lastAddress;
-
 
 	private RTLVariable esp = Program.getProgram().getArchitecture().stackPointer();
 	

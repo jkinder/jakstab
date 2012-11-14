@@ -27,6 +27,11 @@ import org.jakstab.asm.AbsoluteAddress;
  */
 public interface Harness {
 
+	public static final long PROLOGUE_BASE = 0xface0000L;
+	public static final long EPILOGUE_BASE = 0xfee70000L;
+	public static final AbsoluteAddress prologueAddress = new AbsoluteAddress(PROLOGUE_BASE);
+	public static final AbsoluteAddress epilogueAddress = new AbsoluteAddress(EPILOGUE_BASE);
+
 	public void install(Program program);
 	
 	public boolean contains(AbsoluteAddress a);

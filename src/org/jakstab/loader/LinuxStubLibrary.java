@@ -44,13 +44,11 @@ public class LinuxStubLibrary implements StubProvider {
 	private Map<String,AbsoluteAddress> activeStubs;
 	private int impId;
 	private Architecture arch;
-	//private RTLExpression arg1;
 
 	public LinuxStubLibrary(Architecture arch) {
 		this.arch = arch;
 		activeStubs = new HashMap<String, AbsoluteAddress>();
 		impId = 0;
-		//arg1 = ExpressionFactory.createMemoryLocation(ExpressionFactory.createPlus(arch.stackPointer(), 8), 32);
 	}
 	
 	private AbsoluteAddress createStubInstance(String library, String function) {
@@ -77,7 +75,7 @@ public class LinuxStubLibrary implements StubProvider {
 			builder.createPush(ExpressionFactory.nondet(arch.getAddressBitWidth()), seq);
 
 			// return address (use epilogue to directly jump to halt)
-			builder.createPush(ExpressionFactory.createNumber(DefaultHarness.epilogueAddress), seq);
+			builder.createPush(ExpressionFactory.createNumber(Harness.epilogueAddress), seq);
 
 			// address of program main is passed as arg0 to __libc_start_main
 			// args0 is 5 dwords from esp: 3 for main's args, 1 for the return address, and 1 
@@ -136,10 +134,6 @@ public class LinuxStubLibrary implements StubProvider {
 		return address;
 	}
 
-
-	/*
-	 * @see org.jakstab.loader.StubProvider#resolveSymbol(java.lang.String, java.lang.String)
-	 */
 	@Override
 	public AbsoluteAddress resolveSymbol(String library, String symbol) {
 		if (library == null) return null;

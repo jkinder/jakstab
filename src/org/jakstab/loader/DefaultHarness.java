@@ -34,16 +34,10 @@ public class DefaultHarness implements Harness {
 	@SuppressWarnings("unused")
 	private static final Logger logger = Logger.getLogger(DefaultHarness.class);
 
-	public static long PROLOGUE_BASE = 0xface0000L;
-	public static long EPILOGUE_BASE = 0xfee70000L;
-	public static AbsoluteAddress prologueAddress = new AbsoluteAddress(PROLOGUE_BASE);
-	public static AbsoluteAddress epilogueAddress = new AbsoluteAddress(EPILOGUE_BASE);
-
-	private RTLVariable esp = Program.getProgram().getArchitecture().stackPointer(); 
-	
 	@Override
 	public void install(Program program) {
 
+		RTLVariable esp = Program.getProgram().getArchitecture().stackPointer();
 		StatementSequence seq = new StatementSequence();
 		seq.addLast(new RTLVariableAssignment(1, ExpressionFactory.createVariable("%DF", 1), ExpressionFactory.FALSE));
 		seq.addLast(new RTLAlloc(esp, MemoryRegion.STACK.toString()));
