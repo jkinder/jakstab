@@ -38,49 +38,46 @@ public class VpcLiftedCFG extends ControlFlowGraph {
 		logger.debug(getEdges().size() + " edges in the VPC-CFG.");
 		
 		findEntryPoint();
-		buildBasicBlocks(findBasicBlockHeads());
+		buildBasicBlocks();
 		logger.debug(getBasicBlockEdges().size() + " basic block edges in the VPC-CFG.");
 
 		assert valid();
 	}
-	
-	private Set<Location> findBasicBlockHeads() {
-		Set<Location> result = new HashSet<Location>();
-		
-		// Find basic block heads
-		for (Location loc : getNodes()) {
-			VpcLocation l = (VpcLocation)loc;
-			Set<CFAEdge> in = getInEdges(l);
-			// This can only NOT be a BB head if it has in-degree 1
-			if (in.size() == 1) {
-				CFAEdge e = in.iterator().next();
-				VpcLocation predLoc = (VpcLocation)e.getSource();
-				// Out-degree of predecessor also has to be 1
-				if (getOutEdges(predLoc).size() == 1) {
-					
-					RTLStatement predStmt = Program.getProgram().getStatement(predLoc.getLabel());
-					if (predStmt instanceof RTLGoto) {
-						RTLGoto g = (RTLGoto)predStmt;
-						if (g.getType() != RTLGoto.Type.CALL && 
-								g.getType() != RTLGoto.Type.RETURN) {
-							// Uncomment this to break blocks at VPC boundaries
-							//if (predLoc.getVPC().equals(l.getVPC()))
-								continue;
-						}
-					} else {
-						// Non-goto
-						continue;
-					}
-				}
-			}
-			if (in.size() == 0) {
-				logger.debug("Orphan block at " + l);
-			}
 
-			result.add(l);
+	
+	protected boolean isBasicBlockHead(Location loc) {
+		VpcLocation l = (VpcLocation)loc;
+		Set<CFAEdge> in = getInEdges(l);
+
+		if (in.size() == 0) {
+			logger.debug("Orphan block at " + l);
+			return true;
 		}
-		logger.debug(result.size() + " basic blocks in the VPC-CFG.");
-		return result;
+		
+		// If it has in-degree greater than 1, it's a head
+		if (in.size() > 1) {
+			return true;
+		}
+		
+		// There's only one edge
+		CFAEdge e = in.iterator().next();
+		VpcLocation predLoc = (VpcLocation)e.getSource();
+		// If out-degree of predecessor is greater than 1, this is a head
+		if (getOutDegree(predLoc) > 1)
+			return true;
+
+		RTLStatement predStmt = Program.getProgram().getStatement(predLoc.getLabel());
+		if (!(predStmt instanceof RTLGoto))
+			return false;
+		
+		RTLGoto g = (RTLGoto)predStmt;
+		switch (g.getType()) {
+		case CALL: 
+		case RETURN: 
+			return true;
+		default: 
+			return false;
+		}
 	}
 	
 	private VpcLocation reconstructCFGFromVPC(AbstractReachabilityTree art) {

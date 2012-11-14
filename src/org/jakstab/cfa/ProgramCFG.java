@@ -1,6 +1,5 @@
 package org.jakstab.cfa;
 
-import java.util.HashSet;
 import java.util.Set;
 
 import org.jakstab.rtl.statements.RTLAssume;
@@ -15,24 +14,21 @@ public class ProgramCFG extends ControlFlowGraph {
 		}
 		
 		findEntryPoint();		
-		buildBasicBlocks(findBasicBlockHeads());
+		buildBasicBlocks();
 		assert valid();
 	}
+	
+	protected boolean isBasicBlockHead(Location l) {
+		Set<CFAEdge> in = getInEdges(l);
+		if (in.size() != 1)
+			return true;
+		CFAEdge e = in.iterator().next();
+		if ((e.getTransformer() instanceof RTLAssume))
+			return true;
+		//if (!(Program.getProgram().getStatement(e.getSource().getLabel()) instanceof RTLGoto))
+		//  return true;
 
-	private Set<Location> findBasicBlockHeads() {
-		Set<Location> result = new HashSet<Location>();
-		for (Location l : getNodes()) {
-			Set<CFAEdge> in = getInEdges(l);
-			if (in != null && in.size() == 1) {
-				CFAEdge e = in.iterator().next();
-				if (!(e.getTransformer() instanceof RTLAssume))
-					continue;
-				//if (!(Program.getProgram().getStatement(e.getSource().getLabel()) instanceof RTLGoto))
-					//continue;
-			}
-			result.add(l);
-		}
-		return result;
+		return false;
 	}
 
 }

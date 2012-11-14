@@ -37,6 +37,8 @@ public abstract class ControlFlowGraph {
 		locations = new HashSet<Location>();
 	}
 	
+	protected abstract boolean isBasicBlockHead(Location l);
+	
 	public Location getEntryPoint() {
 		return entryPoint;
 	}
@@ -116,7 +118,22 @@ public abstract class ControlFlowGraph {
 		assert entryPoint != null : "No entry point found! First statement in cycle?";
 	}
 	
-	protected void buildBasicBlocks(Set<Location> basicBlockHeads) {
+	private Set<Location> findBasicBlockHeads() {
+		Set<Location> result = new HashSet<Location>();
+		
+		// Find basic block heads
+		for (Location l : getNodes()) {
+			if (isBasicBlockHead(l))
+				result.add(l);
+		}
+		logger.debug(result.size() + " basic blocks in the VPC-CFG.");
+		return result;
+	}
+	
+	protected void buildBasicBlocks() {
+		
+		Set<Location> basicBlockHeads = findBasicBlockHeads();
+		
 		bbOutEdges = HashMultimap.create();
 		bbInEdges = HashMultimap.create();
 		basicBlocks = new HashMap<Location, BasicBlock>();
