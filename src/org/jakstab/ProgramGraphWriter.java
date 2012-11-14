@@ -192,9 +192,9 @@ public class ProgramGraphWriter {
 				if (instr != null) {
 					String instrString = program.getInstructionString(nodeAddr);
 					instrString = instrString.replace("\t", " ");
-					gwriter.writeNode(nodeName, nodeLabel + "\\n" + instrString, getNodeProperties(node));
+					gwriter.writeNode(nodeName, nodeLabel + "\\n" + instrString, getNodeProperties(cfg, node));
 				} else {
-					gwriter.writeNode(nodeName, nodeLabel, getNodeProperties(node));
+					gwriter.writeNode(nodeName, nodeLabel, getNodeProperties(cfg, node));
 				}
 			}
 
@@ -287,7 +287,7 @@ public class ProgramGraphWriter {
 				for (RTLStatement stmt : bb) {
 					labelBuilder.append(stmt.toString() + "\\l");
 				}
-				gwriter.writeNode(nodeName, labelBuilder.toString(), getNodeProperties(bb.getFirst().getLabel()));
+				gwriter.writeNode(nodeName, labelBuilder.toString(), getNodeProperties(vCfg, vpcLoc));
 			}
 
 			for (CFAEdge e : vCfg.getBasicBlockEdges()) {
@@ -377,7 +377,7 @@ public class ProgramGraphWriter {
 			}
 			
 			for (Location node : nodes) {
-				gwriter.writeNode(node.toString(), node.toString(), getNodeProperties(node));
+				gwriter.writeNode(node.toString(), node.toString(), getNodeProperties(null, node));
 			}
 	
 			gwriter.close();
@@ -400,25 +400,27 @@ public class ProgramGraphWriter {
 		}
 	}
 
-	private Map<String,String> getNodeProperties(Location loc) {
+	private Map<String,String> getNodeProperties(ControlFlowGraph cfg, Location loc) {
 		RTLStatement curStmt = program.getStatement(loc.getLabel());
 		Map<String,String> properties = new HashMap<String, String>();
 	
-		if (curStmt != null) {
-			if (curStmt.getLabel().getAddress().getValue() >= 0xFACE0000L) {
+		if (curStmt != null) {			
+			AbsoluteAddress curAddr = loc.getAddress();
+			if (program.isStub(curAddr) || program.getHarness().contains(curAddr)) {
 				properties.put("color", "lightgrey");
 				properties.put("fillcolor", "lightgrey");
 			}
 	
-			if (program.getUnresolvedBranches().contains(curStmt.getLabel())) {
+			if (program.getUnresolvedBranches().contains(loc.getLabel())) {
 				properties.put("fillcolor", "red");
 			}
 			
-			if (mustLeaves.contains(loc)) {
+			if (mustLeaves.contains(loc.getLabel())) {
 				properties.put("fillcolor", "green");
 			}
 	
-			if (curStmt.getLabel().equals(program.getStart())) {
+			logger.info(cfg.getEntryPoint());
+			if (loc.equals(cfg.getEntryPoint())) {
 				properties.put("color", "green");
 				properties.put("style", "filled,bold");
 			} else if (curStmt instanceof RTLHalt) {
@@ -458,7 +460,7 @@ public class ProgramGraphWriter {
 						labelBuilder.append("\n");
 					}
 				}
-				gwriter.writeNode(nodeName, labelBuilder.toString(), getNodeProperties(node));
+				gwriter.writeNode(nodeName, labelBuilder.toString(), getNodeProperties(cfg, node));
 			}
 	
 			for (CFAEdge e : cfg.getEdges()) {
@@ -513,7 +515,7 @@ public class ProgramGraphWriter {
 							stmt.getAddress())).append("\\l");
 				}
 				
-				gwriter.writeNode(nodeName, labelBuilder.toString(), getNodeProperties(bb.getFirst().getLabel()));
+				gwriter.writeNode(nodeName, labelBuilder.toString(), getNodeProperties(cfg, nodeLoc));
 			}
 			
 			for (CFAEdge e : cfg.getBasicBlockEdges()) {
