@@ -36,8 +36,6 @@ public class VpcCfgMain {
 	private static volatile Algorithm activeAlgorithm;
 	private static volatile Thread mainThread;
 	
-	public static Double fanOut;
-
 	public static void main(String[] args) {
 
 		mainThread = Thread.currentThread();
