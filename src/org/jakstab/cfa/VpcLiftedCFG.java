@@ -75,9 +75,14 @@ public class VpcLiftedCFG extends ControlFlowGraph {
 		case CALL: 
 		case RETURN: 
 			return true;
-		default: 
-			return false;
 		}
+		Program program = Program.getProgram();
+		if (!program.isStub(g.getLabel().getAddress()) &&
+				program.isStub(l.getAddress())) {
+			return true;
+		}
+		
+		return false;
 	}
 	
 	private VpcLocation reconstructCFGFromVPC(AbstractReachabilityTree art) {
@@ -135,7 +140,12 @@ public class VpcLiftedCFG extends ControlFlowGraph {
 	}
 
 	private BasedNumberElement getVPC(AbstractState s, VpcTrackingAnalysis vpcAnalysis, int vAnalysisPos) {
-		RTLLabel l = (RTLLabel)s.getLocation();				
+		RTLLabel l = (RTLLabel)s.getLocation();
+
+		// Do not assign a VPC value to stub methods - make them all share TOP 
+		if (Program.getProgram().isStub(l.getAddress()))
+			return BasedNumberElement.getTop(32);
+		
 		ValueContainer vpcVar = vpcAnalysis.getVPC(l);
 		CompositeState cState = (CompositeState)s;
 		BasedNumberElement vpcVal = ((BasedNumberValuation)cState.getComponent(vAnalysisPos)).getValue(vpcVar);

@@ -48,7 +48,8 @@ public class DeadCodeElimination implements CFATransformation {
 	private long removalCount;
 	private boolean enableJumpThreading;
 	private volatile boolean stop = false;
-	
+	private SetMultimap<Location, CFAEdge> inEdges;
+	private SetMultimap<Location, CFAEdge> outEdges;
 	
 	public Set<CFAEdge> getCFA() {
 		return cfa;
@@ -66,7 +67,10 @@ public class DeadCodeElimination implements CFATransformation {
 
 		liveVars = new TreeMap<Location, SetOfVariables>();
 		liveInSinks = new SetOfVariables();
-		liveInSinks.addAll(program.getArchitecture().getRegisters());		
+		liveInSinks.addAll(program.getArchitecture().getRegisters());
+		
+		inEdges = HashMultimap.create();
+		outEdges = HashMultimap.create();
 	}
 
 	private boolean isDeadEdge(CFAEdge edge) {
@@ -80,8 +84,27 @@ public class DeadCodeElimination implements CFATransformation {
 			// Don't remove assumes when doing procedure detection!
 			if (t instanceof RTLAssume) {
 				RTLAssume a = (RTLAssume)edge.getTransformer();
-				if (a.getAssumption().equals(ExpressionFactory.TRUE)) {
-					return true;
+				// Not needed if we remove every jump where we have just one out edge
+				//if (a.getAssumption().equals(ExpressionFactory.TRUE)) {
+				//	return true;
+				//}
+				// Remove jumps that have just one target
+				if (outEdges.get(edge.getSource()).size() == 1) {
+					switch (a.getSource().getType()) {
+					case CALL: case RETURN:
+						return false;
+					default:
+						// If this goes into or out of a stub, it's not a dead edge 
+						if (program.isStub(edge.getSource().getAddress()) ^ 
+								program.isStub(edge.getTarget().getAddress()))
+							return false;
+						if (program.getHarness().contains(edge.getSource().getAddress()) ^ 
+								program.getHarness().contains(edge.getTarget().getAddress())) {
+							return false;
+						}
+
+						return true;
+					}
 				}
 			} else if (t instanceof RTLSkip) {
 				return true;
@@ -96,9 +119,6 @@ public class DeadCodeElimination implements CFATransformation {
 		long startTime = System.currentTimeMillis();
 
 		FastSet<Location> worklist = new FastSet<Location>();
-
-		SetMultimap<Location, CFAEdge> inEdges = HashMultimap.create();
-		SetMultimap<Location, CFAEdge> outEdges = HashMultimap.create();
 
 		for (CFAEdge e : cfa) {
 			inEdges.put(e.getTarget(), e);
@@ -124,8 +144,6 @@ public class DeadCodeElimination implements CFATransformation {
 					liveVars.put(l, new SetOfVariables(liveInSinks));
 				}
 			}
-
-			
 			
 			oldRemovalCount = removalCount;
 			iterations++;
@@ -178,17 +196,6 @@ public class DeadCodeElimination implements CFATransformation {
 			for (CFAEdge edge : cfa) {
 				if (isDeadEdge(edge)) {
 					deadEdges.add(edge);
-				}
-				// Remove jumps that have just one target
-				if (enableJumpThreading &&
-						edge.getTransformer() instanceof RTLAssume && 
-						outEdges.get(edge.getSource()).size() == 1) {
-					RTLAssume a = (RTLAssume)edge.getTransformer();
-					switch (a.getSource().getType()) {
-					default:					
-						deadEdges.add(edge);
-					case CALL: case RETURN:
-					}
 				}
 			}			
 			
