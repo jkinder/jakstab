@@ -204,7 +204,7 @@ public abstract class ControlFlowGraph {
 		
 		// Check if edge already exists (equality on edges uses not only source & target)
 		Set<CFAEdge> existingEdges = outEdges.get(e.getSource());
-		if (existingEdges != null) for (CFAEdge existing : existingEdges) {
+		for (CFAEdge existing : existingEdges) {
 			if (existing.getTarget().equals(e.getTarget()))
 				return;
 		}
@@ -228,6 +228,10 @@ public abstract class ControlFlowGraph {
 				logger.error("Locations do not contain " + e.getTarget() + " from edge " + e);
 				errors++;
 			}
+			if (!outEdges.get(e.getSource()).contains(e)) {
+				logger.error("Out-edges do not contain out-edge " + e + " with statement " + e.getTransformer() + " and hashcode " + e.hashCode());
+				errors++;
+			}
 			if (!inEdges.get(e.getTarget()).contains(e)) {
 				logger.error("In-edges do not contain out-edge " + e + " with statement " + e.getTransformer() + " and hashcode " + e.hashCode());
 				errors++;
@@ -245,6 +249,10 @@ public abstract class ControlFlowGraph {
 			}
 			if (!outEdges.get(e.getSource()).contains(e)) {
 				logger.error("Out-edges do not contain in-edge " + e + " with statement " + e.getTransformer() + " and hashcode " + e.hashCode());
+				errors++;
+			}
+			if (!inEdges.get(e.getTarget()).contains(e)) {
+				logger.error("In-edges do not contain in-edge " + e + " with statement " + e.getTransformer() + " and hashcode " + e.hashCode());
 				errors++;
 			}
 		}
