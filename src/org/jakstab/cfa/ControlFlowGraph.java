@@ -220,21 +220,33 @@ public abstract class ControlFlowGraph {
 		int errors = 0;
 		
 		for (CFAEdge e : outEdges.values()) {
-			if (!locations.contains(e.getSource()))
+			if (!locations.contains(e.getSource())) {
+				logger.error("Locations do not contain " + e.getSource() + " from edge " + e);
 				errors++;
-			if (!locations.contains(e.getTarget()))
+			}
+			if (!locations.contains(e.getTarget())) {
+				logger.error("Locations do not contain " + e.getTarget() + " from edge " + e);
 				errors++;
-			if (!inEdges.get(e.getTarget()).contains(e))
+			}
+			if (!inEdges.get(e.getTarget()).contains(e)) {
+				logger.error("In-edges do not contain out-edge " + e + " with statement " + e.getTransformer() + " and hashcode " + e.hashCode());
 				errors++;
+			}
 		}
 		
 		for (CFAEdge e : inEdges.values()) {
-			if (!locations.contains(e.getSource()))
+			if (!locations.contains(e.getSource())) {
+				logger.error("Locations do not contain " + e.getSource() + " from edge " + e);
 				errors++;
-			if (!locations.contains(e.getTarget()))
+			}
+			if (!locations.contains(e.getTarget())) {
+				logger.error("Locations do not contain " + e.getTarget() + " from edge " + e);
 				errors++;
-			if (!outEdges.get(e.getSource()).contains(e))
+			}
+			if (!outEdges.get(e.getSource()).contains(e)) {
+				logger.error("Out-edges do not contain in-edge " + e + " with statement " + e.getTransformer() + " and hashcode " + e.hashCode());
 				errors++;
+			}
 		}
 		
 		Set<Location> bbLocations = basicBlocks.keySet();
