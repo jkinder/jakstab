@@ -20,7 +20,6 @@ package org.jakstab;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.jakstab.rtl.expressions.ExpressionSimplifier;
 import org.jakstab.util.Logger;
 
 /**
@@ -42,7 +41,7 @@ public class StatsTracker {
 	
 	private StatsTracker() {
 		super();
-		logger = Logger.getLogger(ExpressionSimplifier.class);
+		logger = Logger.getLogger(StatsTracker.class);
 		statsBuilder = new StringBuffer();
 		namedVals = new HashMap<String, String>();
 	}
