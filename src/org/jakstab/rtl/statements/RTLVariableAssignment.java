@@ -38,6 +38,11 @@ public class RTLVariableAssignment extends AbstractRTLStatement implements RTLSt
 
 	private RTLVariable leftHandSide;
 	private RTLExpression rightHandSide;
+	
+	public RTLVariableAssignment(RTLVariable lhs, RTLExpression rhs) {
+		this(lhs.getBitWidth(), lhs, rhs);
+		assert(lhs.getBitWidth() > 0);
+	}
 
 	public RTLVariableAssignment(int bitWidth, RTLVariable leftHandSide, RTLExpression rightHandSide) {
 		super();
