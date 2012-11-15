@@ -88,8 +88,12 @@ public class BasedNumberElement implements AbstractDomainElement, BitVectorType 
 
 	@Override
 	public Set<RTLNumber> concretize() {
-		// Just pass down to number elements - value in TOPs are 
+		// Just pass down to number elements - value in (TOP,TOPs) are 
 		// corresponding NumerElement TOPs
+		if (!isUnbased() && !isTop()) {
+			// Make sure to concretize regioned values to all numbers
+			return getTop(getBitWidth()).concretize();
+		}
 		return value.concretize();
 	}
 
