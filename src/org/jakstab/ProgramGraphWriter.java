@@ -506,14 +506,6 @@ public class ProgramGraphWriter {
 					}
 				}
 				
-				// Print the conditional/indirect jump, if there is any
-				Set<CFAEdge> outEdges = cfg.getBasicBlockOutEdges(nodeLoc);				
-				if (outEdges.size() > 1) {
-					RTLStatement stmt = (RTLStatement)outEdges.iterator().next().getTransformer();
-					labelBuilder.append(program.getInstructionString(
-							stmt.getAddress())).append("\\l");
-				}
-				
 				gwriter.writeNode(nodeName, labelBuilder.toString(), getNodeProperties(cfg, nodeLoc));
 			}
 			

@@ -148,9 +148,11 @@ public abstract class ControlFlowGraph {
 			//bb.add(program.getStatement(head.getLabel()));
 			Location l = head;
 			Set<CFAEdge> out = outEdges.get(l);
-			while (out.size() == 1) {
+			while (!out.isEmpty()) {
 				CFAEdge edge = out.iterator().next();				
 				bb.add((RTLStatement)edge.getTransformer());
+				if (out.size() > 1)
+					break;
 				l = edge.getTarget();
 				if (basicBlocks.containsKey(l))
 					break;
