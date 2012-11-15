@@ -422,7 +422,7 @@ public final class BasedNumberValuation implements AbstractState {
 							}
 						}
 						sb.append(formatString.substring(lastMatch));
-						logger.info("DEBUG: printf output: " + sb.toString());
+						logger.info("DEBUG: printf output: \"" + sb.toString().replace("\n", "\\n") + "\"");
 						return new BasedNumberElement(firstArg.getNumber());
 					}
 				}
