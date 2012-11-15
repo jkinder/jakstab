@@ -419,7 +419,6 @@ public class ProgramGraphWriter {
 				properties.put("fillcolor", "green");
 			}
 	
-			logger.info(cfg.getEntryPoint());
 			if (loc.equals(cfg.getEntryPoint())) {
 				properties.put("color", "green");
 				properties.put("style", "filled,bold");
