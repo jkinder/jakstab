@@ -166,9 +166,9 @@ public class VpcCfgMain {
 			}
 			
 			if (VpcTrackingAnalysis.useAsVpc == null) {
-				logger.fatal("There was no widening, so no VPC was detected!");
-				System.exit(1);
-			}
+				logger.error("There was no widening, so no VPC was detected!");
+				StatsTracker.getInstance().record("VPC", "none");
+			} else {
 
 
 			// Always do VPC sensitive BAT here
@@ -201,13 +201,12 @@ public class VpcCfgMain {
 
 			ProgramGraphWriter graphWriter = new ProgramGraphWriter(program);
 			graphWriter.writeVpcAssemblyBasicBlockGraph(baseFileName + "_asmvcfg", cfr.getART());
-
-
-			long overallEndTime = System.currentTimeMillis();
+			//graphWriter.writeDisassembly(baseFileName + "_jak.asm");
+			}
 			
-			graphWriter.writeDisassembly(baseFileName + "_jak.asm");
+			long overallEndTime = System.currentTimeMillis();			
 
-			logger.error("Total runtime for reconstruction: " + String.format("%8dms", (overallEndTime - overallStartTime)));
+			logger.error("Total runtime for reconstruction: " + String.format("%8dms", (overallEndTime - overallStartTime)));			
 
 			stats.record(Options.basicBlocks.getValue() ? "y" : "n");
 			stats.record(Options.summarizeRep.getValue() ? "y" : "n" );
