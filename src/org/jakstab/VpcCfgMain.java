@@ -162,7 +162,8 @@ public class VpcCfgMain {
 				VpcTrackingAnalysis.useAsVpc = e.getWidenedExpression();
 			} catch (RuntimeException r) {
 				logger.error("!! Runtime exception during Control Flow Reconstruction! Trying to shut down gracefully.");
-				r.printStackTrace();
+				if (logger.isInfoEnabled())
+					r.printStackTrace();
 			}
 			
 			if (VpcTrackingAnalysis.useAsVpc == null) {

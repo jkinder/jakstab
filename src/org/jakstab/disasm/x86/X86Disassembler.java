@@ -129,7 +129,8 @@ public class X86Disassembler implements Disassembler, X86Opcodes {
 			byteIndex = instrDecoder.getCurrentIndex();
 		} catch (Exception exp) {
 			logger.error("Error during disassembly:", exp);
-			exp.printStackTrace();
+			if (logger.isInfoEnabled())
+				exp.printStackTrace();
 			return null;
 		}
 		return instr;
