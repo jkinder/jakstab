@@ -65,8 +65,8 @@ public class Logger {
 	}
 
 	public void log(Level level) {
-		if (level.ordinal() >= getDebugLevel())
-			out.println();
+		if (level.ordinal() <= getDebugLevel())
+			out.println(globalPrefix + prefix);
 	}
 
 	public void log(Level level, Object message) {
