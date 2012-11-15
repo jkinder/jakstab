@@ -12,4 +12,4 @@ esac
 # Adapt this to your needs
 JMEM_OPTS="-Xms1g -Xmx3g"
 
-java ${JMEM_OPTS} -ea -cp "${JSCLASSPATH}" org.jakstab.VpcCfgMain $*
+java ${JMEM_OPTS} -cp "${JSCLASSPATH}" org.jakstab.VpcCfgMain $*
