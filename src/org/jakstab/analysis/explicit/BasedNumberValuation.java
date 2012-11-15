@@ -488,10 +488,10 @@ public final class BasedNumberValuation implements AbstractState {
 							RTLVariable cv = (RTLVariable)ce.getCondition();
 							post.setValue(cv, BasedNumberElement.TRUE);
 							post2.setValue(cv, BasedNumberElement.FALSE);
-						}
-						BasedNumberElement evaledRhs = post.abstractEval(rhs);
+						}						
+						BasedNumberElement evaledRhs = post.abstractEval(ce.getTrueExpression());
 						post.setValue(lhs, evaledRhs, eprec);
-						evaledRhs = post2.abstractEval(rhs);
+						evaledRhs = post2.abstractEval(ce.getFalseExpression());
 						post2.setValue(lhs, evaledRhs, eprec);
 						Set<AbstractState> res = new FastSet<AbstractState>();
 						res.add(post);
