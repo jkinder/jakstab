@@ -20,7 +20,6 @@ package org.jakstab.loader;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.jakstab.Options;
 import org.jakstab.Program;
 import org.jakstab.asm.AbsoluteAddress;
 import org.jakstab.asm.SymbolFinder;
@@ -56,7 +55,7 @@ public class LinuxStubLibrary implements StubProvider {
 	private AbsoluteAddress createStubInstance(String library, String function) {
 
 		boolean returns = true;
-		if (function.equals("exit")) {
+		if (function.equals("exit") || function.equals("__stack_chk_fail")) {
 			returns = false;
 		}
 		
@@ -91,27 +90,34 @@ public class LinuxStubLibrary implements StubProvider {
 			// Complete pseudo call to main  
 			builder.linkAndStoreSequence(address, seq);
 			return address;
-		}
+		} 
 		// manual printf stub, helps debugging
 		else if (function.equals("printf")) {
 			seq.addLast(new RTLDebugPrint("Call to printf, format @ %esp =", 
 					ExpressionFactory.createSpecialExpression(RTLSpecialExpression.DBG_PRINTF, 
 							ExpressionFactory.createPlus(arch.stackPointer(), 4))));
-		} else if (function.equals("malloc") && Options.malloc.getValue()) {
+		} else if (function.equals("malloc")) {
+			// Simple stub that nondeterministically allocates memory or returns NULL
 			seq.addLast(new RTLAlloc(ExpressionFactory.createVariable("%eax")));
-			seq.addLast(new RTLVariableAssignment(32, ExpressionFactory.createVariable("%ecx"), ExpressionFactory.nondet(32)));
-			seq.addLast(new RTLVariableAssignment(32, ExpressionFactory.createVariable("%edx"), ExpressionFactory.nondet(32)));
+			seq.addLast(new RTLVariableAssignment(
+					ExpressionFactory.createVariable("%eax"),
+					ExpressionFactory.createConditionalExpression(
+							ExpressionFactory.nondet(1),					
+							ExpressionFactory.createVariable("%eax"),
+							ExpressionFactory.createNumber(0, 32))));
+			seq.addLast(new RTLVariableAssignment(ExpressionFactory.createVariable("%ecx"), ExpressionFactory.nondet(32)));
+			seq.addLast(new RTLVariableAssignment(ExpressionFactory.createVariable("%edx"), ExpressionFactory.nondet(32)));
 		}
 		// Any other function clobbers eax, ecx, edx by default
 		else {
-			seq.addLast(new RTLVariableAssignment(32, ExpressionFactory.createVariable("%eax"), ExpressionFactory.nondet(32)));
-			seq.addLast(new RTLVariableAssignment(32, ExpressionFactory.createVariable("%ecx"), ExpressionFactory.nondet(32)));
-			seq.addLast(new RTLVariableAssignment(32, ExpressionFactory.createVariable("%edx"), ExpressionFactory.nondet(32)));
+			seq.addLast(new RTLVariableAssignment(ExpressionFactory.createVariable("%eax"), ExpressionFactory.nondet(32)));
+			seq.addLast(new RTLVariableAssignment(ExpressionFactory.createVariable("%ecx"), ExpressionFactory.nondet(32)));
+			seq.addLast(new RTLVariableAssignment(ExpressionFactory.createVariable("%edx"), ExpressionFactory.nondet(32)));
 		}
 		
 		// store return address in retaddr
 		if (returns) {
-			seq.addLast(new RTLVariableAssignment(32, arch.returnAddressVariable(), 
+			seq.addLast(new RTLVariableAssignment(arch.returnAddressVariable(), 
 					ExpressionFactory.createMemoryLocation(arch.stackPointer(), 
 							arch.stackPointer().getBitWidth())
 			));
