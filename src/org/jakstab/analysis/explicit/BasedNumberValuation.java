@@ -477,8 +477,34 @@ public final class BasedNumberValuation implements AbstractState {
 
 				RTLVariable lhs = stmt.getLeftHandSide();
 				RTLExpression rhs = stmt.getRightHandSide();
+				
+				// Special case for conditional assignments, not very nice
+				if (rhs instanceof RTLConditionalExpression) {
+					RTLConditionalExpression ce = (RTLConditionalExpression)rhs;
+					// If the condition is unknown, split state and return 2 successors
+					if (abstractEval(ce.getCondition()).isTop()) {
+						BasedNumberValuation post2 = new BasedNumberValuation(post);
+						if (ce.getCondition() instanceof RTLVariable) {
+							RTLVariable cv = (RTLVariable)ce.getCondition();
+							post.setValue(cv, BasedNumberElement.TRUE);
+							post2.setValue(cv, BasedNumberElement.FALSE);
+						}
+						BasedNumberElement evaledRhs = post.abstractEval(rhs);
+						post.setValue(lhs, evaledRhs, eprec);
+						evaledRhs = post2.abstractEval(rhs);
+						post2.setValue(lhs, evaledRhs, eprec);
+						Set<AbstractState> res = new FastSet<AbstractState>();
+						res.add(post);
+						res.add(post2);
+						logger.debug(statement.getLabel() + ": Split state into");
+						logger.debug(post);
+						logger.debug(post2);
+						return res;
+					}
+				}
+				
 				BasedNumberElement evaledRhs = abstractEval(rhs);
-
+				
 				// Check for stackpointer alignment assignments (workaround for gcc compiled files)
 				RTLVariable sp = Program.getProgram().getArchitecture().stackPointer();
 				if (lhs.equals(sp) && rhs instanceof RTLOperation) {
