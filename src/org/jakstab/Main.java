@@ -303,6 +303,7 @@ public class Main {
 				if (!Options.noGraphs.getValue()) {
 					graphWriter.writeControlFlowAutomaton(program.getCFG(), baseFileName + "_cfa");
 					graphWriter.writeAssemblyBasicBlockGraph(program.getCFG(), baseFileName + "_asmcfg");
+					graphWriter.writeTopologyGraph(program.getCFG(), baseFileName + "_topo");
 					//graphWriter.writeAssemblyCFG(baseFileName + "_asmcfg");
 				}
 				//if (Options.errorTrace) graphWriter.writeART(baseFileName + "_art", cfr.getART());

@@ -237,6 +237,11 @@ public class ProgramGraphWriter {
 		writeAssemblyBBCFG(cfg, filename);
 	}
 	
+	public void writeTopologyGraph(ControlFlowGraph cfg, String filename) {
+		logger.info("Writing toplogy graph to " + filename);
+		writeTopologicalBBCFG(cfg, filename);
+	}
+	
 	public void writeControlFlowAutomaton(ControlFlowGraph cfg, String filename) {
 		writeControlFlowAutomaton(cfg, filename, (ReachedSet)null);
 	}
@@ -250,6 +255,12 @@ public class ProgramGraphWriter {
 		ControlFlowGraph vCfg = getVpcGraph(art);
 		logger.info("Writing VPC-lifted assembly basic block graph to " + filename);
 		writeAssemblyBBCFG(vCfg, filename);
+	}
+
+	public void writeVpcTopologyGraph(String filename, AbstractReachabilityTree art) {
+		ControlFlowGraph vCfg = getVpcGraph(art);
+		logger.info("Writing VPC-lifted topology graph to " + filename);
+		writeTopologicalBBCFG(vCfg, filename);
 	}
 
 	public void writeVpcGraph(String filename, AbstractReachabilityTree art) {
@@ -544,5 +555,62 @@ public class ProgramGraphWriter {
 		}
 	}
 
+	private void writeTopologicalBBCFG(ControlFlowGraph cfg, String filename) {
+		// Create dot file
+		GraphWriter gwriter = createGraphWriter(filename);
+		if (gwriter == null) return;
+	
+		try {
+			for (Map.Entry<Location, BasicBlock> entry : cfg.getBasicBlocks().entrySet()) {
+				
+				Location nodeLoc = entry.getKey();
+				
+				String nodeName = nodeLoc.toString();
+				StringBuilder labelBuilder = new StringBuilder();
+				String locLabel = program.getSymbolFor(nodeLoc.getAddress());
+				if (locLabel.length() > 20) locLabel = locLabel.substring(0, 20) + "...";
+				labelBuilder.append(locLabel).append("\\n");
+	
+				gwriter.writeNode(nodeName, labelBuilder.toString(), getNodeProperties(cfg, nodeLoc));
+			}
+			
+			for (CFAEdge e : cfg.getBasicBlockEdges()) {
+				if (e.getKind() == null) logger.error("Null kind? " + e);
+				Location sourceLoc = e.getSource(); 
+				Location targetLoc = e.getTarget();
+				RTLStatement stmt = (RTLStatement)e.getTransformer();
+				
+				String label = null;
+				RTLLabel lastLoc = stmt.getLabel();
+				Instruction instr = program.getInstruction(lastLoc.getAddress());
+				
+				if (instr instanceof BranchInstruction) {
+					BranchInstruction bi = (BranchInstruction)instr;
+					if (bi.isConditional()) {
+						// Get the original goto from the program (not the converted assume) 
+						RTLStatement rtlGoto = program.getStatement(lastLoc);
+						
+						// If this is the fall-through edge, output F, otherwise T
+						//label = targetLoc.getAddress().equals(rtlGoto.getNextLabel().getAddress()) ? "F" : "T";
+						// If the assume in the edge has the same nextlabel as Goto, then it's the fall-through
+						label = stmt.getNextLabel().equals(rtlGoto.getNextLabel()) ? "F" : "T";
+					}
+				}
+				
+				gwriter.writeEdge(
+						sourceLoc.toString(), 
+						targetLoc.toString(), 
+						label,
+						e.getKind().equals(CFAEdge.Kind.MAY) ? Color.BLACK : Color.GREEN
+						);
+	
+			}
+	
+			gwriter.close();
+		} catch (IOException e) {
+			logger.error("Cannot write to output file", e);
+			return;
+		}
+	}
 
 }
