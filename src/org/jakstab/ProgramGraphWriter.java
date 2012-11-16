@@ -217,15 +217,10 @@ public class ProgramGraphWriter {
 					}
 				}
 				
-				if (label != null)
-					gwriter.writeLabeledEdge(sourceAddr.toString(), 
-							targetAddr.toString(), 
-							label,
-							e.getKind().equals(CFAEdge.Kind.MAY) ? Color.BLACK : Color.GREEN);
-				else
-					gwriter.writeEdge(sourceAddr.toString(), 
-							targetAddr.toString(), 
-							e.getKind().equals(CFAEdge.Kind.MAY) ? Color.BLACK : Color.GREEN);
+				gwriter.writeEdge(sourceAddr.toString(), 
+						targetAddr.toString(), 
+						label,
+						e.getKind().equals(CFAEdge.Kind.MAY) ? Color.BLACK : Color.GREEN);
 			}
 
 			gwriter.close();
@@ -297,7 +292,7 @@ public class ProgramGraphWriter {
 					gwriter.writeEdge(sourceAddr.toString(), 
 							targetAddr.toString());
 				else
-					gwriter.writeLabeledEdge(sourceAddr.toString(), 
+					gwriter.writeEdge(sourceAddr.toString(), 
 							targetAddr.toString(), 
 							e.getTransformer().toString());
 			}
@@ -432,7 +427,7 @@ public class ProgramGraphWriter {
 	
 		return properties;
 	}
-
+	
 	private ControlFlowGraph getVpcGraph(AbstractReachabilityTree art) {
 		if (vcfg == null)
 			vcfg = VpcCfgReconstruction.reconstruct(art);
@@ -464,7 +459,7 @@ public class ProgramGraphWriter {
 	
 			for (CFAEdge e : cfg.getEdges()) {
 				if (e.getKind() == null) logger.error("Null kind? " + e);
-				gwriter.writeLabeledEdge(e.getSource().toString(), 
+				gwriter.writeEdge(e.getSource().toString(), 
 						e.getTarget().toString(), 
 						e.getTransformer().toString(),
 						e.getKind().equals(CFAEdge.Kind.MAY) ? Color.BLACK : Color.GREEN);
@@ -532,15 +527,13 @@ public class ProgramGraphWriter {
 					}
 				}
 				
-				if (label != null)
-					gwriter.writeLabeledEdge(sourceLoc.toString(), 
-							targetLoc.toString(), 
-							label,
-							e.getKind().equals(CFAEdge.Kind.MAY) ? Color.BLACK : Color.GREEN);
-				else
-					gwriter.writeEdge(sourceLoc.toString(), 
-							targetLoc.toString(), 
-							e.getKind().equals(CFAEdge.Kind.MAY) ? Color.BLACK : Color.GREEN);
+				gwriter.writeEdge(
+						sourceLoc.toString(), 
+						targetLoc.toString(), 
+						label,
+						e.getKind().equals(CFAEdge.Kind.MAY) ? Color.BLACK : Color.GREEN//,
+						/*instr instanceof CallInstruction || instr instanceof ReturnInstruction*/
+						);
 	
 			}
 	

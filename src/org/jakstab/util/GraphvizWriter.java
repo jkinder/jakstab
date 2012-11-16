@@ -89,15 +89,37 @@ public class GraphvizWriter implements GraphWriter {
 	
 	@Override
 	public void writeEdge(String id1, String id2, Color color) throws IOException {
-		Map<String,String> map = new HashMap<String, String>();
-		if (color != null) {
-			map.put("color", colorConvert(color));
-		}
-		writeEdge(id1, id2, map);
+		writeEdge(id1, id2, null, null);
 	}
 
 	@Override
-	public final void writeEdge(String id1, String id2, Map<String,String> properties) throws IOException { 
+	public final void writeEdge(String id1, String id2, String label) throws IOException {
+		writeEdge(id1, id2, label, null);
+	}
+	
+	@Override
+	public final void writeEdge(String id1, String id2, String label, Color color) throws IOException {
+		writeEdge(id1, id2, label, color, false);
+	}
+
+	@Override
+	public void writeEdge(String id1, String id2, String label, Color color,
+			boolean weakEdge) throws IOException {
+		Map<String,String> map = new HashMap<String, String>();
+		if (label != null && !label.isEmpty()) {
+			map.put("label", label.replace("\n", "\\n"));
+		}
+		if (color != null) {
+			map.put("color", colorConvert(color));
+		}
+		if (weakEdge) {
+			map.put("constraint", "false");
+		}
+		writeEdge(id1, id2, map);
+		
+	}
+
+	private final void writeEdge(String id1, String id2, Map<String,String> properties) throws IOException { 
 		out.write(toIdentifier(id1));
 		out.write(" -> ");
 		out.write(toIdentifier(id2));
@@ -115,21 +137,6 @@ public class GraphvizWriter implements GraphWriter {
 			out.write("]");
 		}
 		out.write(";\n");
-	}
-
-	@Override
-	public final void writeLabeledEdge(String id1, String id2, String label) throws IOException {
-		writeLabeledEdge(id1, id2, label, null);
-	}
-	
-	@Override
-	public final void writeLabeledEdge(String id1, String id2, String label, Color color) throws IOException {
-		Map<String,String> map = new HashMap<String, String>();
-		map.put("label", label.replace("\n", "\\n"));
-		if (color != null) {
-			map.put("color", colorConvert(color));
-		}
-		writeEdge(id1, id2, map);
 	}
 
 	private static final String toIdentifier(String id) {

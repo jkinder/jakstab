@@ -88,7 +88,6 @@ public class GraphMLWriter implements GraphWriter {
 		writeEdge(id1, id2, (Map<String, String>)null);
 	}
 
-	@Override
 	public final void writeEdge(String id1, String id2, Map<String,String> properties) throws IOException {
 		out.write("<edge source=\""+toIdentifier(id1)+"\" target=\""+toIdentifier(id2)+"\">\n");
 		out.write("  <data key=\"d2\"><y:PolyLineEdge><y:Arrows source=\"none\" " +
@@ -118,18 +117,26 @@ public class GraphMLWriter implements GraphWriter {
 	}
 
 	@Override
-	public final void writeLabeledEdge(String id1, String id2, String label) throws IOException {
-		writeLabeledEdge(id1, id2, label, null);
+	public final void writeEdge(String id1, String id2, String label) throws IOException {
+		writeEdge(id1, id2, label, null);
 	}
 
 	@Override
-	public final void writeLabeledEdge(String id1, String id2, String label, Color color) throws IOException {
+	public final void writeEdge(String id1, String id2, String label, Color color) throws IOException {
 		Map<String,String> map = new HashMap<String, String>();
-		map.put("y:EdgeLabel", label);
+		if (label != null) {
+			map.put("y:EdgeLabel", label);
+		}
 		if (color != null) {
 			map.put("y:LineStyle", colorConvert(color));
 		}
 		writeEdge(id1, id2, map);
+	}
+
+	@Override
+	public void writeEdge(String id1, String id2, String label, Color color, 
+			boolean weakEdge) throws IOException {
+		writeEdge(id1, id2, label, color);		
 	}
 
 	private static final String toIdentifier(String id) {

@@ -33,11 +33,11 @@ public interface GraphWriter {
 
 	public void writeEdge(String id1, String id2, Color color) throws IOException;
 
-	public void writeEdge(String id1, String id2, Map<String, String> properties) throws IOException;
-
-	public void writeLabeledEdge(String id1, String id2, String label) throws IOException;
+	public void writeEdge(String id1, String id2, String label) throws IOException;
 	
-	public void writeLabeledEdge(String id1, String id2, String label, Color color) throws IOException;
+	public void writeEdge(String id1, String id2, String label, Color color) throws IOException;
+
+	public void writeEdge(String id1, String id2, String label, Color color, boolean weakEdge) throws IOException;
 
 	public String getFilename();
 
