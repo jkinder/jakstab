@@ -53,8 +53,8 @@ public class NumberElement implements AbstractValue, BitVectorType {
 	
 	public NumberElement(RTLNumber v) {
 		this.value = v;
+		assert value != null : "Null number passed into NumberElement constructor";
 		assert v.getBitWidth() > 0 : "Cannot create number element for " + v + " with unknown bitwidth!";
-		assert value != null;
 	}
 	
 	public RTLNumber getNumber() {

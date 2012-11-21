@@ -18,8 +18,6 @@
 
 package org.jakstab.ssl;
 
-import java.io.Serializable;
-
 import org.jakstab.rtl.expressions.ExpressionFactory;
 import org.jakstab.rtl.expressions.RTLVariable;
 import org.jakstab.rtl.statements.StatementSequence;
@@ -28,9 +26,7 @@ import org.jakstab.rtl.statements.StatementSequence;
 /**
  * @author Johannes Kinder
  */
-public final class SSLInstruction implements Serializable {
-
-	private static final long serialVersionUID = -8965196059524975177L;
+public final class SSLInstruction {
 
 	private final RTLVariable[] parameters;
 	private final String stringRep;

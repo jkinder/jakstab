@@ -162,6 +162,8 @@ public class BasedNumberElement implements AbstractDomainElement, BitVectorType 
 
 	@Override
 	public boolean equals(Object obj) {
+		if (obj == null)
+			return false;
 		BasedNumberElement other = (BasedNumberElement) obj;
 		return region.equals(other.region) && value.equals(other.value);
 	}

@@ -39,7 +39,7 @@ public class ControlFlowReconstructionTest {
 	@SuppressWarnings("unused")
 	private static final Logger logger = Logger.getLogger(ControlFlowReconstructionTest.class);
 
-	private static Architecture arch;
+	private Architecture arch;
 
 	/**
 	 * @throws java.lang.Exception

@@ -123,6 +123,8 @@ public class LazyTreeMap<K, V> extends AbstractMap<K, V> implements Map<K, V> {
 
 	@Override
 	public boolean equals(Object o) {
+		if (o == null)
+			return false;
 		LazyTreeMap<?, ?> other = (LazyTreeMap<?, ?>)o;
 		return innerMap.equals(other.innerMap);
 	}

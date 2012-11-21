@@ -113,6 +113,14 @@ public class SetOfVariables extends AbstractSet<RTLVariable> implements Set<RTLV
 		}
 	}
 
+	@Override
+	public boolean equals(Object o) {
+		if (o instanceof SetOfVariables)
+			return equals((SetOfVariables)o);
+		else
+			return super.equals(o);
+	}
+
 	public boolean equals(SetOfVariables vset) {
 		return vset != null && bitSet.equals(vset.bitSet);
 	}

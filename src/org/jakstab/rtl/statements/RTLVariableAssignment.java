@@ -55,10 +55,12 @@ public class RTLVariableAssignment extends AbstractRTLStatement implements RTLSt
 		invalidateCache();
 		RTLExpression evaldRHS = this.rightHandSide.evaluate(context);
 
-		if (evaldRHS == null) logger.warn("No more RHS after evaluation of " + this.toString());
-		
-		ExpressionSimplifier simplifier = ExpressionSimplifier.getInstance();
-		evaldRHS = simplifier.simplify(evaldRHS);
+		if (evaldRHS == null) {
+			logger.warn("No more RHS after evaluation of " + this.toString());
+		} else {		
+			ExpressionSimplifier simplifier = ExpressionSimplifier.getInstance();
+			evaldRHS = simplifier.simplify(evaldRHS);
+		}
 
 		// remove all killed assignments from the context
 		context.removeAssignment(leftHandSide.getDefinedVariablesOnWrite());

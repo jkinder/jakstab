@@ -181,6 +181,8 @@ public class CompositeState implements AbstractState {
 
 	@Override
 	public boolean equals(Object obj) {
+		if (obj == null)
+			return false;
 		CompositeState other = (CompositeState) obj;
 		if (!Arrays.equals(components, other.components))
 			return false;

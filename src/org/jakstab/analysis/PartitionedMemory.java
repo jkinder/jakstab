@@ -453,7 +453,10 @@ public final class PartitionedMemory<A extends AbstractValue> implements Lattice
 
 	@Override
 	public boolean equals(Object obj) {
-		if (this == obj) return true;
+		if (obj == null) 
+			return false;
+		if (this == obj) 
+			return true;
 		PartitionedMemory<?> other = (PartitionedMemory<?>) obj;		
 		return dataIsTop == other.dataIsTop && store.equals(other.store); 
 	}

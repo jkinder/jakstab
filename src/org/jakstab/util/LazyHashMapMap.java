@@ -174,6 +174,8 @@ public final class LazyHashMapMap<K, L, V> implements MapMap<K,L,V> {
 
 	@Override
 	public boolean equals(Object obj) {
+		if (obj == null) 
+			return false;
 		return innerMap.equals(((LazyHashMapMap<?,?,?>)obj).innerMap);
 	}
 
