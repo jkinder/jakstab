@@ -442,7 +442,7 @@ TO: "..";
 AT: '@';
 
 protected
-ASSIGNTYPE: '*' ('a'..'z')? ('0'..'9')* '*';
+ASSIGNTYPE: '*' ('a'..'z')? ('0'..'9')+ '*';
 
 ASSIGNTYPE_OR_MUL
 	: ( ASSIGNTYPE ) => ASSIGNTYPE { $setType(ASSIGNTYPE); }
@@ -799,7 +799,7 @@ rtl_expand
 		  (rt:rtl_expand
 			{
                 // do not nest RTL blocks
-                if (rt.getType() == RTL) {
+                if (rt != null && rt.getType() == RTL) {
                     if (rt.getFirstChild() != null)
                         ##.addChild(rt.getFirstChild());
                 } else
@@ -867,10 +867,13 @@ convertToRTL returns [ StatementSequence statements = new StatementSequence(); ]
 	  ! #( RTL (subStatements=convertToRTL { statements.addLast(subStatements); } )* )	
 	/* Almost all statements are assignments */ 
 	| ! #( type:ASSIGNTYPE { 
+			assert type != null : "Matched null assign type";
 			String aType = type.getText();
-			if (aType.length() >= 3) aType = aType.substring(1, aType.length() - 1);
-			else aType = "0";
-			if (aType.startsWith("f")) aType = aType.substring(1); // Float assigntype
+			assert aType.length() >=3 : "Parsed assign type which has less than 3 characters";
+			// cut of stars
+			aType = aType.substring(1, aType.length() - 1);
+			// Cut off 'f' from float assigntypes
+			if (aType.startsWith("f")) aType = aType.substring(1);
 			bitWidth = Integer.parseInt(aType);
 		}
 		// RHS-Bitwidths are differentiated by making them negative
