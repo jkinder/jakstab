@@ -244,36 +244,79 @@ public class Elf {
 			offset += 2;
 		}
 
-		private final short makeShort(byte[] val, int offset, boolean isle) throws BinaryParseException {
-			if (val.length < offset + 2)
-				throw new BinaryParseException("Offset out of range when reading Short.");
-			if (isle) {
-				return (short) ( (val[offset + 1] << 8) + val[offset + 0]);
-			}
-			return (short) ( (val[offset + 0] << 8) + val[offset + 1]);
+		/**
+		 * Concatenates two bytes to make a short
+		 * 
+		 * @param bytes
+		 *            collection of bytes; must provide a minimum of two bytes starting at [offset]
+		 * @param offset
+		 *            zero-based index into [bytes], identifying the first input byte
+		 * @param isle
+		 *            if true, bytes are concatenated in little-endian order (the first input byte in the
+		 *            collection represents the least-significant byte of the resulting short); otherwise
+		 *            big-endian
+		 * @return the resulting short
+		 * @throws IOException
+		 *             if an insufficient number of bytes are supplied
+		 */
+		public final short makeShort(byte[] bytes, int offset, boolean isle) throws BinaryParseException {
+			if (bytes.length < offset + 2)
+				throw new BinaryParseException("Offset out of range when reading short");
+			return isle ?
+				(short) ((bytes[offset + 1] << 8) | (bytes[offset + 0] & 0xff)) :
+				(short) ((bytes[offset + 0] << 8) | (bytes[offset + 1] & 0xff));
 		}
 
-		private final long makeInt(byte[] val, int offset, boolean isle) throws BinaryParseException {
-			if (val.length < offset + 4)
-				throw new BinaryParseException("Offset out of range when reading Int.");
-			if (isle) {
-				return ( (val[offset + 3] << 24) + (val[offset + 2] << 16) + (val[offset + 1] << 8) + val[offset + 0]);
-			}
-			return ( (val[offset + 0] << 24) + (val[offset + 1] << 16) + (val[offset + 2] << 8) + val[offset + 3]);
+		/**
+		 * Concatenates four bytes to make an int
+		 * 
+		 * @param bytes
+		 *            collection of bytes; must provide a minimum of four bytes starting at [offset]
+		 * @param offset
+		 *            zero-based index into [bytes], identifying the first input byte
+		 * @param isle
+		 *            if true, bytes are concatenated in little-endian order (the first input byte in the
+		 *            collection represents the least-significant byte of the resulting short); otherwise
+		 *            big-endian
+		 * @return the resulting int
+		 * @throws IOException
+		 *             if an insufficient number of bytes are supplied
+		 */
+		public final long makeInt(byte[] bytes, int offset, boolean isle) throws BinaryParseException {
+			if (bytes.length < offset + 4)
+				throw new BinaryParseException("Offset out of range when reading int");
+			return isle ?
+				(bytes[offset + 3] << 24) + ((bytes[offset + 2] & 0xff) << 16) + ((bytes[offset + 1] & 0xff) << 8) + (bytes[offset + 0] & 0xff) :
+				(bytes[offset + 0] << 24) + ((bytes[offset + 1] & 0xff) << 16) + ((bytes[offset + 2] & 0xff) << 8) + (bytes[offset + 3] & 0xff);
 		}
-
-		private final long makeLong(byte[] val, int offset, boolean isle) {
+		
+		/**
+		 * Concatenates eight bytes to make a long
+		 * 
+		 * @param bytes
+		 *            collection of bytes; must provide a minimum of eight bytes starting at [offset]
+		 * @param offset
+		 *            zero-based index into [bytes], identifying the first input byte
+		 * @param isle
+		 *            if true, bytes are concatenated in little-endian order (the first input byte in the
+		 *            collection represents the least-significant byte of the resulting short); otherwise
+		 *            big-endian
+		 * @return the resulting int
+		 * @throws IOException
+		 *             if an insufficient number of bytes are supplied
+		 */
+		public final long makeLong(byte[] bytes, int offset, boolean isle) throws BinaryParseException {
 			long result = 0;
 			int shift = 0;
 			if (isle)
 				for (int i = 7; i >= 0; i--) {
 					shift = i * 8;
-					result += ( ((long)val[offset + i]) << shift) & (0xffL << shift);
+					result += ( ((long)bytes[offset + i]) << shift) & (0xffL << shift);
 				}
 			else
 				for (int i = 0; i <= 7; i++) {
 					shift = (7 - i) * 8;
-					result += ( ((long)val[offset + i]) << shift) & (0xffL << shift);
+					result += ( ((long)bytes[offset + i]) << shift) & (0xffL << shift);
 				}
 			return result;
 		}
@@ -285,9 +328,7 @@ public class Elf {
 						" given offset is " + Long.toHexString(result)); //$NON-NLS-1$
 			}
 			return result;
-
 		}
-
 	}
 
 	public class Section {
