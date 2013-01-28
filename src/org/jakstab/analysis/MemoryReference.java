@@ -2,6 +2,11 @@ package org.jakstab.analysis;
 
 import org.jakstab.rtl.BitVectorType;
 
+/**
+ * A fixed reference to a memory location in a certain memory region.
+ * 
+ * @author Johannes Kinder
+ */
 public class MemoryReference implements ValueContainer, BitVectorType {
 
 	private final MemoryRegion region;

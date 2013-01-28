@@ -215,6 +215,11 @@ public abstract class ControlFlowGraph {
 		locations.add(e.getTarget());		
 	}
 	
+	/**
+	 * Audit method for checking validity of the CFG.
+	 * 
+	 * @return true if the CFG is error free, false otherwise.
+	 */
 	protected boolean valid() {
 		
 		int errors = 0;
