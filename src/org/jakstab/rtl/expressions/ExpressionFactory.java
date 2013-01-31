@@ -137,7 +137,7 @@ public final class ExpressionFactory {
 
 	/**
 	 * Generic creation method that calls more specific methods depending on the
-	 * type of the assembly operand passed as paramater.
+	 * type of the assembly operand passed as parameter.
 	 * 
 	 * @param iOp an operand of an assembly instruction 
 	 * @return a translation of the operand into an RTLExpression 
