@@ -2,9 +2,11 @@ package org.jakstab.transformation;
 
 import java.util.Collections;
 import java.util.Deque;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.jakstab.Algorithm;
@@ -20,15 +22,23 @@ import org.jakstab.analysis.explicit.BasedNumberValuation;
 import org.jakstab.analysis.explicit.VpcTrackingAnalysis;
 import org.jakstab.cfa.CFAEdge;
 import org.jakstab.cfa.ControlFlowGraph;
+import org.jakstab.cfa.Location;
 import org.jakstab.cfa.ProgramCFG;
 import org.jakstab.cfa.RTLLabel;
 import org.jakstab.cfa.VpcLiftedCFG;
 import org.jakstab.cfa.VpcLocation;
+import org.jakstab.rtl.Context;
+import org.jakstab.rtl.expressions.RTLVariable;
 import org.jakstab.rtl.statements.BasicBlock;
 import org.jakstab.rtl.statements.RTLHalt;
+import org.jakstab.rtl.statements.RTLSkip;
 import org.jakstab.rtl.statements.RTLStatement;
+import org.jakstab.util.Lattices;
 import org.jakstab.util.Logger;
 import org.jakstab.util.Pair;
+
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.SetMultimap;
 
 
 public class VpcCfgReconstruction implements Algorithm {
@@ -42,11 +52,17 @@ public class VpcCfgReconstruction implements Algorithm {
 		return rec.getTransformedCfg();
 	}
 
-	AbstractReachabilityTree art;
-	ControlFlowGraph transformedCfg;
+	private AbstractReachabilityTree art;
+	private ControlFlowGraph transformedCfg;
+	private VpcTrackingAnalysis vpcAnalysis;
+	private int vAnalysisPos;
 	
 	public VpcCfgReconstruction(AbstractReachabilityTree art) {
 		this.art = art;
+
+		AnalysisManager mgr = AnalysisManager.getInstance();
+		this.vpcAnalysis = (VpcTrackingAnalysis)mgr.getAnalysis(VpcTrackingAnalysis.class);
+		this.vAnalysisPos = 1 + Options.cpas.getValue().indexOf(mgr.getShorthand(VpcTrackingAnalysis.class));
 	}
 	
 	public ControlFlowGraph getTransformedCfg() {
@@ -57,7 +73,9 @@ public class VpcCfgReconstruction implements Algorithm {
 	@Override
 	public void run() {
 		
-		Set<CFAEdge> edges = reconstructCFGFromVPC(art);
+		Map<Location, AbstractState> constants = flattenArtOntoVpcLocations();
+		
+		Set<CFAEdge> edges = reconstructCFGFromVPC(constants);
 		
 		transformedCfg = new VpcLiftedCFG(edges);
 
@@ -95,27 +113,18 @@ public class VpcCfgReconstruction implements Algorithm {
 	
 	}
 	
-	private Set<CFAEdge> reconstructCFGFromVPC(AbstractReachabilityTree art) {
+	private Set<CFAEdge> reconstructCFGFromVPC(Map<Location, AbstractState> constants) {
 		
 		Set<CFAEdge> edges = new HashSet<CFAEdge>(1000);
-		
-		AnalysisManager mgr = AnalysisManager.getInstance();
-		
-		VpcTrackingAnalysis vpcAnalysis = (VpcTrackingAnalysis)mgr.getAnalysis(VpcTrackingAnalysis.class);
-		
-		int vAnalysisPos = 1 + Options.cpas.getValue().indexOf(mgr.getShorthand(VpcTrackingAnalysis.class));
 		
 		Deque<AbstractState> worklist = new LinkedList<AbstractState>();
 		worklist.add(art.getRoot());
 		Set<AbstractState> visited = new HashSet<AbstractState>();
 		visited.add(art.getRoot());
 		
-		/*VpcLocation root = new VpcLocation(getVPC(art.getRoot(), vpcAnalysis, vAnalysisPos), 
-				(RTLLabel)art.getRoot().getLocation());*/ 
-
 		while (!worklist.isEmpty()) {
 			AbstractState headState = worklist.removeFirst();
-			BasedNumberElement vpcVal = getVPC(headState, vpcAnalysis, vAnalysisPos);
+			BasedNumberElement vpcVal = getVPC(headState);
 			VpcLocation headVpcLoc = new VpcLocation(vpcVal, (RTLLabel)headState.getLocation());
 
 			Set<Pair<CFAEdge, AbstractState>> successors = art.getChildren(headState);
@@ -124,7 +133,7 @@ public class VpcCfgReconstruction implements Algorithm {
 				CFAEdge edge = sPair.getLeft();
 				
 				VpcLocation vpcLoc = headVpcLoc;
-				BasedNumberElement nextVpcVal = getVPC(nextState, vpcAnalysis, vAnalysisPos);
+				BasedNumberElement nextVpcVal = getVPC(nextState);
 				
 				List<RTLStatement> stmtList;
 				if (Options.basicBlocks.getValue())
@@ -135,7 +144,11 @@ public class VpcCfgReconstruction implements Algorithm {
 					if (stmt instanceof RTLHalt)
 						break;
 					VpcLocation nextVpcLoc = new VpcLocation(nextVpcVal, stmt.getNextLabel());
-
+					
+					AbstractState flattenedStateAtStart = constants.get(vpcLoc);
+					if (flattenedStateAtStart != null)
+						stmt = substituteStatement(stmt, flattenedStateAtStart);
+					
 					edges.add(new CFAEdge(vpcLoc, nextVpcLoc, stmt));
 					
 					vpcLoc = nextVpcLoc;
@@ -150,8 +163,50 @@ public class VpcCfgReconstruction implements Algorithm {
 		}
 		return edges;		
 	}
+	
+	/**
+	 * Fold ART into a map from VPC locations to sets of abstract states, and
+	 * then flatten the state sets into single abstract states by joining.
+	 * 
+	 * @return a map from VPC locations to the join of all abstract states at 
+	 * that VPC location
+	 */
+	private Map<Location, AbstractState> flattenArtOntoVpcLocations() {
 
-	private BasedNumberElement getVPC(AbstractState s, VpcTrackingAnalysis vpcAnalysis, int vAnalysisPos) {
+		SetMultimap<Location, AbstractState> vpcSensitiveReached = HashMultimap.create();
+		
+		Deque<AbstractState> worklist = new LinkedList<AbstractState>();
+		worklist.add(art.getRoot());
+		Set<AbstractState> visited = new HashSet<AbstractState>();
+		visited.add(art.getRoot());
+		
+		while (!worklist.isEmpty()) {
+			AbstractState headState = worklist.removeFirst();
+			BasedNumberElement vpcVal = getVPC(headState);
+			VpcLocation headVpcLoc = new VpcLocation(vpcVal, (RTLLabel)headState.getLocation());
+
+			vpcSensitiveReached.put(headVpcLoc, headState);
+
+			Set<Pair<CFAEdge, AbstractState>> successors = art.getChildren(headState);
+			for (Pair<CFAEdge, AbstractState> sPair : successors) {
+				AbstractState nextState = sPair.getRight();
+				
+				if (!visited.contains(nextState)) {
+					visited.add(nextState);
+					worklist.add(nextState);
+				}
+			}
+		}
+		
+		Map<Location, AbstractState> constants = new HashMap<Location, AbstractState>();
+		for (Location l : vpcSensitiveReached.keySet()) {
+			constants.put(l, Lattices.joinAll(vpcSensitiveReached.get(l)));
+		}
+		
+		return constants;
+	}
+	
+	private BasedNumberElement getVPC(AbstractState s) {
 		RTLLabel l = (RTLLabel)s.getLocation();
 
 		// Do not assign a VPC value to stub methods - make them all share TOP 
@@ -162,7 +217,33 @@ public class VpcCfgReconstruction implements Algorithm {
 		CompositeState cState = (CompositeState)s;
 		BasedNumberElement vpcVal = ((BasedNumberValuation)cState.getComponent(vAnalysisPos)).getValue(vpcVar);
 		return vpcVal;
-	}	
+	}
+	
+	public RTLStatement substituteStatement(RTLStatement stmt, AbstractState s) {
+		CompositeState cState = (CompositeState)s;
+		BasedNumberValuation bnv = ((BasedNumberValuation)cState.getComponent(vAnalysisPos));
+		Context substCtx = new Context();
+		for (RTLVariable v : stmt.getUsedVariables()) {
+			BasedNumberElement value = bnv.getValue(v);
+			if (value.hasUniqueConcretization()) {
+				substCtx.addAssignment(v, value.concretize().iterator().next());
+			}
+		}
+		if (!substCtx.getAssignments().isEmpty()) {
+			//logger.info("Old stmt: " + stmt);
+			RTLStatement newStmt = stmt.copy().evaluate(substCtx);
+			//logger.info("New stmt: " + newStmt);
+			if (newStmt != null) {
+				return newStmt.evaluate(new Context());
+			} else {
+				RTLSkip skip = new RTLSkip();
+				skip.setLabel(stmt.getLabel());
+				skip.setNextLabel(stmt.getNextLabel());
+				return skip;
+			}
+		}
+		return stmt;
+	}
 
 	@Override
 	public void stop() {
