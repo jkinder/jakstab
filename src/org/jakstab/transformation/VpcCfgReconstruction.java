@@ -28,7 +28,9 @@ import org.jakstab.cfa.RTLLabel;
 import org.jakstab.cfa.VpcLiftedCFG;
 import org.jakstab.cfa.VpcLocation;
 import org.jakstab.rtl.Context;
+import org.jakstab.rtl.expressions.RTLMemoryLocation;
 import org.jakstab.rtl.expressions.RTLVariable;
+import org.jakstab.rtl.expressions.Writable;
 import org.jakstab.rtl.statements.BasicBlock;
 import org.jakstab.rtl.statements.RTLHalt;
 import org.jakstab.rtl.statements.RTLSkip;
@@ -219,30 +221,42 @@ public class VpcCfgReconstruction implements Algorithm {
 		return vpcVal;
 	}
 	
+	private boolean assignWritable(Context ctx, Writable w, BasedNumberValuation bnv) {
+		BasedNumberElement value = bnv.abstractEval(w);
+		if (value.hasUniqueConcretization()) {
+			if (w instanceof RTLMemoryLocation) {
+				logger.error("Concretizing memory: " + w + " = " + value);
+			}
+			ctx.addAssignment(w, value.concretize().iterator().next());
+			return true;
+		} else {
+			return false;
+		}
+	}
+	
 	public RTLStatement substituteStatement(RTLStatement stmt, AbstractState s) {
 		CompositeState cState = (CompositeState)s;
 		BasedNumberValuation bnv = ((BasedNumberValuation)cState.getComponent(vAnalysisPos));
 		Context substCtx = new Context();
-		for (RTLVariable v : stmt.getUsedVariables()) {
-			BasedNumberElement value = bnv.getValue(v);
-			if (value.hasUniqueConcretization()) {
-				substCtx.addAssignment(v, value.concretize().iterator().next());
-			}
+
+		boolean assigned = false;		
+		for (RTLMemoryLocation m : stmt.getUsedMemoryLocations())
+			assigned |= assignWritable(substCtx, m, bnv);
+		for (RTLVariable v : stmt.getUsedVariables())
+			assigned |= assignWritable(substCtx, v, bnv);	
+
+		if (!assigned)
+			return stmt;
+		
+		RTLStatement newStmt = stmt.copy().evaluate(substCtx);
+		if (newStmt != null) {
+			return newStmt.evaluate(new Context());
+		} else {
+			RTLSkip skip = new RTLSkip();
+			skip.setLabel(stmt.getLabel());
+			skip.setNextLabel(stmt.getNextLabel());
+			return skip;
 		}
-		if (!substCtx.getAssignments().isEmpty()) {
-			//logger.info("Old stmt: " + stmt);
-			RTLStatement newStmt = stmt.copy().evaluate(substCtx);
-			//logger.info("New stmt: " + newStmt);
-			if (newStmt != null) {
-				return newStmt.evaluate(new Context());
-			} else {
-				RTLSkip skip = new RTLSkip();
-				skip.setLabel(stmt.getLabel());
-				skip.setNextLabel(stmt.getNextLabel());
-				return skip;
-			}
-		}
-		return stmt;
 	}
 
 	@Override

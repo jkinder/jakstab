@@ -112,6 +112,10 @@ public class RTLMemoryLocation extends AbstractRTLExpression implements RTLExpre
 	@Override
 	public RTLExpression evaluate(Context context) {
 		RTLExpression subst = context.getSubstitution(this);
+		
+		// We also need to whether this location has been assigned a value (needed in VPC constant propagation, 31.1.13)
+		subst = context.getAssignment(this);		
+		
 		if (subst instanceof RTLMemoryLocation) {
 			RTLMemoryLocation m = (RTLMemoryLocation)subst;
 			RTLExpression evaldAddress = m.address.evaluate(context);
