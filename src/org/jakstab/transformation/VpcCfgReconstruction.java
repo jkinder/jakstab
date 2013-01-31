@@ -224,9 +224,6 @@ public class VpcCfgReconstruction implements Algorithm {
 	private boolean assignWritable(Context ctx, Writable w, BasedNumberValuation bnv) {
 		BasedNumberElement value = bnv.abstractEval(w);
 		if (value.hasUniqueConcretization()) {
-			if (w instanceof RTLMemoryLocation) {
-				logger.error("Concretizing memory: " + w + " = " + value);
-			}
 			ctx.addAssignment(w, value.concretize().iterator().next());
 			return true;
 		} else {
