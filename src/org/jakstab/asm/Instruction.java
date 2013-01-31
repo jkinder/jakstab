@@ -66,4 +66,9 @@ public interface Instruction {
 	 */
 	public String toString(long currentPc, SymbolFinder symFinder);
 	
+	/**
+	 * Create a new copy this instruction.
+	 */
+	public Instruction copy();
+	
 }

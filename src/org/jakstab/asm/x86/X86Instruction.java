@@ -149,6 +149,10 @@ implements Instruction, X86Opcodes, MemoryInstruction {
 	public X86Instruction(String name, int size, int prefixes) {
 		this(name, (Operand)null, (Operand)null, (Operand)null, size, prefixes);
 	}
+	
+	public Instruction copy() {
+		return new X86Instruction(name, getOperand1(), getOperand2(), getOperand3(), size, prefixes);
+	}
 
 	protected String initDescription(long currentPc, SymbolFinder symFinder) {
 		StringBuffer buf = new StringBuffer();
