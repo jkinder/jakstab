@@ -149,10 +149,22 @@ public abstract class ControlFlowGraph {
 			Location l = head;
 			Set<CFAEdge> out = outEdges.get(l);
 			while (!out.isEmpty()) {
+				
 				CFAEdge edge = out.iterator().next();				
-				bb.add((RTLStatement)edge.getTransformer());
-				if (out.size() > 1)
+
+				// If there is more than one out edge, add the Goto instead of the assumes
+				if (out.size() > 1) {
+					if (edge.getTransformer() instanceof RTLAssume) {
+						bb.add(((RTLAssume)edge.getTransformer()).getSource());
+					} else {
+						logger.warn("Non-assume edge in outgoing set of edges with size > 1: " + edge.getTransformer());
+					}
 					break;
+				}
+
+				bb.add((RTLStatement)edge.getTransformer());
+				
+
 				l = edge.getTarget();
 				if (basicBlocks.containsKey(l))
 					break;
