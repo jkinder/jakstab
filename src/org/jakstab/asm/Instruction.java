@@ -30,6 +30,8 @@
 
 package org.jakstab.asm;
 
+import org.jakstab.rtl.Context;
+
 /**
  * Top level interface for all instruction types. Defines a set of methods
  * common for all instructions.
@@ -67,8 +69,12 @@ public interface Instruction {
 	public String toString(long currentPc, SymbolFinder symFinder);
 	
 	/**
-	 * Create a new copy this instruction.
+	 * Return an evaluation of this instruction, substituting and assigning values 
+	 * as specified by the context. The existing instruction is not changed.
+	 * 
+	 * @param ctx the substitution context to use
+	 * @return an evaluated copy of this instruction or this instruction, unchanged 
 	 */
-	public Instruction copy();
+	public Instruction evaluate(Context ctx);
 	
 }

@@ -31,6 +31,7 @@
 package org.jakstab.asm.x86;
 
 import org.jakstab.asm.*;
+import org.jakstab.rtl.Context;
 
 public class X86Instruction extends AbstractInstruction
 implements Instruction, X86Opcodes, MemoryInstruction {
@@ -150,10 +151,6 @@ implements Instruction, X86Opcodes, MemoryInstruction {
 		this(name, (Operand)null, (Operand)null, (Operand)null, size, prefixes);
 	}
 	
-	public Instruction copy() {
-		return new X86Instruction(name, getOperand1(), getOperand2(), getOperand3(), size, prefixes);
-	}
-
 	protected String initDescription(long currentPc, SymbolFinder symFinder) {
 		StringBuffer buf = new StringBuffer();
 		buf.append(getPrefixString());
@@ -185,5 +182,20 @@ implements Instruction, X86Opcodes, MemoryInstruction {
 
 	protected static String comma = ", ";
 	protected static String spaces = "\t";
+
+	@Override
+	public Instruction evaluate(Context ctx) {
+		
+		boolean changed = false;
+		Operand[] evaledOperands = new Operand[operands.length];
+		for (int i = 0; i < operands.length; i++) {
+			evaledOperands[i] = operands[i].evaluate(ctx);
+			changed |= evaledOperands[i] != operands[i];				
+		}
+		if (!changed) 
+			return this;
+		else
+			return new X86Instruction(name, evaledOperands[0], evaledOperands[1], evaledOperands[2], size, prefixes);		
+	}
 
 }

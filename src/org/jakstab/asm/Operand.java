@@ -30,6 +30,8 @@
 
 package org.jakstab.asm;
 
+import org.jakstab.rtl.Context;
+
 /**
  * Operands are used as instruction parameters. An Operand is one of
  * Immediate, Register, MemoryOperand, or Address.  
@@ -38,6 +40,17 @@ public abstract class Operand {
 	
 	public String toString(long currentPc, SymbolFinder symFinder) {
 		return this.toString();
+	}
+	
+	/**
+	 * Return an evaluated copy of this operand.
+	 * 
+	 * @param ctx the context to use
+	 * @return an evaluated copy or this operand, if identical
+	 */
+	public Operand evaluate(Context ctx) {
+		// default implementation
+		return this;
 	}
 	
 }
