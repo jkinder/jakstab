@@ -57,9 +57,10 @@ public class RTLMemoryAssignment extends AbstractRTLStatement implements RTLStat
 			evaldRHS = simplifier.simplify(evaldRHS);
 		}
 
-		// remove all killed assignments from the context
-		context.removeAssignment(leftHandSide.getDefinedVariablesOnWrite());
+		// remove killed memory location from the context
+		context.removeAssignment(leftHandSide);		
 
+		// perform substitution and assignment for addressing operands
 		RTLExpression evaldLHS = this.leftHandSide.evaluate(context);
 
 		if (evaldLHS.equals(evaldRHS)) {

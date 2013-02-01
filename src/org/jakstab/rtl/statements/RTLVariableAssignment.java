@@ -62,9 +62,10 @@ public class RTLVariableAssignment extends AbstractRTLStatement implements RTLSt
 			evaldRHS = simplifier.simplify(evaldRHS);
 		}
 
-		// remove all killed assignments from the context
-		context.removeAssignment(leftHandSide.getDefinedVariablesOnWrite());
+		// remove killed assignment from the context
+		context.removeAssignment(leftHandSide);
 
+		// perform substitution, if any
 		RTLExpression evaldLHS = this.leftHandSide.evaluate(context);
 
 		if (evaldLHS.equals(evaldRHS)) {
