@@ -64,5 +64,30 @@ public enum DataType {
 	public int bits() {
 		return bits;
 	}
+	
+	public static DataType intFromBits(int bitwidth, boolean signed) {
+		return signed ? sIntfromBits(bitwidth) : uIntfromBits(bitwidth);
+	}
+	
+	public static DataType sIntfromBits(int bitwidth) {
+		switch (bitwidth) {
+		case 8: return INT8;
+		case 16: return INT16;
+		case 32: return INT32;
+		case 64: return INT64;
+		case 128: return INT128;
+		default: throw new IllegalArgumentException();
+		}
+	}
 
+	public static DataType uIntfromBits(int bitwidth) {
+		switch (bitwidth) {
+		case 8: return UINT8;
+		case 16: return UINT16;
+		case 32: return UINT32;
+		case 64: return UINT64;
+		case 128: return UINT128;
+		default: throw new IllegalArgumentException();
+		}
+	}
 }

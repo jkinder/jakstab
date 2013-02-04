@@ -30,6 +30,10 @@
 
 package org.jakstab.asm;
 
+import org.jakstab.rtl.Context;
+import org.jakstab.rtl.expressions.ExpressionFactory;
+import org.jakstab.rtl.expressions.RTLExpression;
+
 /**
  * Top level class for all registers. Provides a number of common methods.
  */
@@ -84,4 +88,16 @@ public abstract class Register extends ImmediateOrRegister {
 	public abstract boolean isStackPointer();
 	public abstract boolean isFramePointer();
 	public abstract boolean isFloat();
+
+	@Override
+	public Operand evaluate(Context ctx) {
+		RTLExpression var = ExpressionFactory.createOperand(this);
+		RTLExpression eval = var.evaluate(ctx);
+		if (var == eval) 
+			return this;
+		else 
+			return OperandFactory.createOperand(eval);
+	}
+	
+	
 }
