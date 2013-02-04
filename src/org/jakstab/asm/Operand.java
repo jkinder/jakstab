@@ -31,6 +31,8 @@
 package org.jakstab.asm;
 
 import org.jakstab.rtl.Context;
+import org.jakstab.rtl.expressions.ExpressionFactory;
+import org.jakstab.rtl.expressions.RTLExpression;
 
 /**
  * Operands are used as instruction parameters. An Operand is one of
@@ -49,8 +51,12 @@ public abstract class Operand {
 	 * @return an evaluated copy or this operand, if identical
 	 */
 	public Operand evaluate(Context ctx) {
-		// default implementation
-		return this;
+		RTLExpression var = ExpressionFactory.createOperand(this);
+		RTLExpression eval = var.evaluate(ctx);
+		if (var == eval) 
+			return this;
+		else 
+			return OperandFactory.createOperand(eval);
 	}
 	
 }
