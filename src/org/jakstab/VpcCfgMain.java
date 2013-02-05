@@ -202,6 +202,7 @@ public class VpcCfgMain {
 
 			ProgramGraphWriter graphWriter = new ProgramGraphWriter(program);
 			graphWriter.writeVpcAssemblyBasicBlockGraph(baseFileName + "_asmvcfg", cfr.getART());
+			graphWriter.writeAssemblyVCFG(baseFileName + "_asmvcfg2", cfr.getART());
 			graphWriter.writeVpcTopologyGraph(baseFileName + "_vtopo", cfr.getART());
 			graphWriter.writeVpcBasicBlockGraph(baseFileName + "_vcfg", cfr.getART());
 			//graphWriter.writeDisassembly(baseFileName + "_jak.asm");

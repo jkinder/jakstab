@@ -28,6 +28,7 @@ import org.jakstab.asm.BranchInstruction;
 import org.jakstab.asm.Instruction;
 import org.jakstab.asm.ReturnInstruction;
 import org.jakstab.asm.SymbolFinder;
+import org.jakstab.cfa.AsmCFG;
 import org.jakstab.cfa.CFAEdge;
 import org.jakstab.cfa.CFAEdge.Kind;
 import org.jakstab.cfa.ControlFlowGraph;
@@ -56,7 +57,7 @@ public class ProgramGraphWriter {
 	private Program program;
 	
 	private Set<Location> mustLeaves;
-	private ControlFlowGraph vcfg;
+	private VpcCfgReconstruction vcfgRec;
 
 	public ProgramGraphWriter(Program program) {
 		this.program = program;
@@ -164,6 +165,49 @@ public class ProgramGraphWriter {
 		}
 	}
 	
+	public void writeAssemblyVCFG(String filename, AbstractReachabilityTree art) {
+		AsmCFG cfg = getVpcAsmGraph(art);
+		// Create dot file
+		GraphWriter gwriter = createGraphWriter(filename);
+		if (gwriter == null) return;
+
+		logger.info("Writing assembly CFG to " + gwriter.getFilename());
+		try {
+		for (Map.Entry<Location, Instruction> entry : cfg.getNodes().entrySet()) {
+			Location l = entry.getKey();
+			Instruction instr = entry.getValue();
+
+			String nodeName = l.toString();
+			String nodeLabel = program.getSymbolFor(l.getAddress());
+			
+			if (instr != null) {
+				String instrString = program.getInstructionString(l.getAddress(), instr);
+				instrString = instrString.replace("\t", " ");
+				gwriter.writeNode(nodeName, nodeLabel + "\\n" + instrString); //, getNodeProperties(cfg, l));
+			} else {
+				gwriter.writeNode(nodeName, nodeLabel); //, getNodeProperties(cfg, node));
+			}
+		}
+
+		for (Map.Entry<Location, Pair<Location, Object>> entry : cfg.getEdges().entries()) {
+			Location source = entry.getKey();
+			Location target = entry.getValue().getLeft();
+			Object label = entry.getValue().getRight();
+			
+			gwriter.writeEdge(source.toString(), 
+					target.toString(), 
+					label.toString());
+		}
+
+		gwriter.close();
+		
+		} catch (IOException e) {
+			logger.error("Cannot write to output file", e);
+			return;
+		}
+
+	}
+
 	public void writeAssemblyCFG(ControlFlowGraph cfg, String filename) {
 		Set<CFAEdge> edges = new HashSet<CFAEdge>(); 
 		Set<RTLLabel> nodes = new HashSet<RTLLabel>();
@@ -439,10 +483,20 @@ public class ProgramGraphWriter {
 		return properties;
 	}
 	
+	private VpcCfgReconstruction getVpcCfgReconstruction(AbstractReachabilityTree art) {
+		if (vcfgRec == null) {
+			vcfgRec = new VpcCfgReconstruction(art);
+			vcfgRec.run();
+		}
+		return vcfgRec;
+	}
+	
 	private ControlFlowGraph getVpcGraph(AbstractReachabilityTree art) {
-		if (vcfg == null)
-			vcfg = VpcCfgReconstruction.reconstruct(art);
-		return vcfg;
+		return getVpcCfgReconstruction(art).getTransformedCfg();
+	}
+
+	private AsmCFG getVpcAsmGraph(AbstractReachabilityTree art) {
+		return getVpcCfgReconstruction(art).getTransformedAsmCfg();
 	}
 
 	private void writeControlFlowGraph(ControlFlowGraph cfg, String filename, ReachedSet reached) {

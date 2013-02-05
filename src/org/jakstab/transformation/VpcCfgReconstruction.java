@@ -20,6 +20,7 @@ import org.jakstab.analysis.composite.CompositeState;
 import org.jakstab.analysis.explicit.BasedNumberElement;
 import org.jakstab.analysis.explicit.BasedNumberValuation;
 import org.jakstab.analysis.explicit.VpcTrackingAnalysis;
+import org.jakstab.cfa.AsmCFG;
 import org.jakstab.cfa.CFAEdge;
 import org.jakstab.cfa.ControlFlowGraph;
 import org.jakstab.cfa.Location;
@@ -47,15 +48,10 @@ public class VpcCfgReconstruction implements Algorithm {
 	
 	@SuppressWarnings("unused")
 	private static final Logger logger = Logger.getLogger(ControlFlowGraph.class);
-	
-	public static ControlFlowGraph reconstruct(AbstractReachabilityTree art) {
-		VpcCfgReconstruction rec = new VpcCfgReconstruction(art);
-		rec.run();
-		return rec.getTransformedCfg();
-	}
 
 	private AbstractReachabilityTree art;
 	private ControlFlowGraph transformedCfg;
+	private AsmCFG asmCfg;
 	private VpcTrackingAnalysis vpcAnalysis;
 	private int vAnalysisPos;
 	
@@ -69,6 +65,10 @@ public class VpcCfgReconstruction implements Algorithm {
 	
 	public ControlFlowGraph getTransformedCfg() {
 		return transformedCfg;
+	}
+	
+	public AsmCFG getTransformedAsmCfg() {
+		return asmCfg;
 	}
 
 	@SuppressWarnings("unused")
@@ -112,6 +112,7 @@ public class VpcCfgReconstruction implements Algorithm {
 				transformedCfg = new ProgramCFG(edges);		
 			}
 		}
+		asmCfg = new AsmCFG(transformedCfg);
 	
 	}
 	
