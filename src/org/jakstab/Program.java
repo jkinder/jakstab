@@ -457,7 +457,7 @@ public final class Program {
 			return stubLibrary.getSymbolFinder();
 		
 		ExecutableImage module = getModule(addr);
-		return (module == null) ? new DummySymbolFinder() : module.getSymbolFinder();
+		return (module == null) ? DummySymbolFinder.getInstance() : module.getSymbolFinder();
 	}
 	
 	public Set<RTLLabel> getUnresolvedBranches() {

@@ -87,7 +87,7 @@ public class RawModule implements ExecutableImage {
 
 	@Override
 	public SymbolFinder getSymbolFinder() {
-		return new DummySymbolFinder();
+		return DummySymbolFinder.getInstance();
 	}
 
 	@Override

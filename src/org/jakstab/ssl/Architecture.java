@@ -360,7 +360,7 @@ public class Architecture {
 				logger.debug("Unassigned operand: " + instr.getOperand(i).toString());
 		}
 		if (!(sslInstr == null || instr.getOperandCount() >= sslInstr.getParameterCount())) {
-			logger.error("Instruction: " + address + ": " + instr.toString(address.getValue(), new DummySymbolFinder()));
+			logger.error("Instruction: " + address + ": " + instr.toString(address.getValue(), DummySymbolFinder.getInstance()));
 			logger.error("Template: " + sslInstr);
 			throw new RuntimeException("Too few operands in ASM instruction for SSL template");
 		}
@@ -412,7 +412,7 @@ public class Architecture {
 				s.inferTypes(this);
 		} catch (TypeInferenceException e) {
 			e.printStackTrace();
-			logger.error("Instruction: " + instr.toString(pcValue, new DummySymbolFinder()));
+			logger.error("Instruction: " + instr.toString(pcValue, DummySymbolFinder.getInstance()));
 			logger.error("RTL: " + instrRTL);
 			throw new RuntimeException();
 		}

@@ -37,6 +37,8 @@ public class DummySymbolFinder implements SymbolFinder {
 	public static SymbolFinder getInstance() {
 		return INSTANCE;
 	}
+	
+	private DummySymbolFinder() {}
 
 	public String getSymbolFor(long address) {
 		return "0x" + Long.toHexString(address);

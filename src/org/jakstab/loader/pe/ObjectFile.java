@@ -221,7 +221,7 @@ public class ObjectFile extends AbstractCOFFModule {
 
 	@Override
 	public SymbolFinder getSymbolFinder() {
-		return new DummySymbolFinder();
+		return DummySymbolFinder.getInstance();
 	}
 
 
