@@ -439,6 +439,18 @@ public final class Program {
 		return instr.toString(addr.getValue(), symbolFinder(addr));
 	}
 	
+	/**
+	 * Get the string representation of the specified assembly instruction assuming
+	 * it is located at the given address.
+	 * @param addr a virtual address
+	 * @param instr an assembly instruction
+	 * @return a string representation of the assembly code at the given address
+	 */
+	public String getInstructionString(AbsoluteAddress addr, Instruction instr) {
+		if (instr == null) return "NON_EXISTENT";
+		return instr.toString(addr.getValue(), symbolFinder(addr));
+	}
+	
 	public String getSymbolFor(RTLLabel label) {
 		SymbolFinder symFinder = symbolFinder(label.getAddress());
 		if (symFinder.hasSymbolFor(label.getAddress())) {
