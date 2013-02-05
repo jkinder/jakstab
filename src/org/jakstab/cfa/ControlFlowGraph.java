@@ -126,7 +126,7 @@ public abstract class ControlFlowGraph {
 			if (isBasicBlockHead(l))
 				result.add(l);
 		}
-		logger.debug(result.size() + " basic blocks in the VPC-CFG.");
+		logger.debug(result.size() + " basic blocks.");
 		return result;
 	}
 	
