@@ -194,8 +194,17 @@ implements Instruction, X86Opcodes, MemoryInstruction {
 		}
 		if (!changed) 
 			return this;
-		else
-			return new X86Instruction(name, evaledOperands[0], evaledOperands[1], evaledOperands[2], size, prefixes);		
+		else {
+			X86Instruction inst = null;
+			try {
+				inst = (X86Instruction) super.clone();
+			} catch (CloneNotSupportedException e) {
+				throw new RuntimeException(e);
+			}
+			System.arraycopy(evaledOperands, 0, inst.operands, 0, inst.operands.length);
+			return inst;
+			//return new X86Instruction(name, evaledOperands[0], evaledOperands[1], evaledOperands[2], size, prefixes);
+		}
 	}
 
 }
