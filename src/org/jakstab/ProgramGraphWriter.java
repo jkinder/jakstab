@@ -167,6 +167,7 @@ public class ProgramGraphWriter {
 	
 	public void writeAssemblyVCFG(String filename, AbstractReachabilityTree art) {
 		AsmCFG cfg = getVpcAsmGraph(art);
+		ControlFlowGraph ilCfg = getVpcGraph(art);
 		// Create dot file
 		GraphWriter gwriter = createGraphWriter(filename);
 		if (gwriter == null) return;
@@ -179,13 +180,14 @@ public class ProgramGraphWriter {
 
 			String nodeName = l.toString();
 			String nodeLabel = program.getSymbolFor(l.getAddress());
+			if (nodeLabel.length() > 20) nodeLabel = nodeLabel.substring(0, 20) + "...";
 			
 			if (instr != null) {
 				String instrString = program.getInstructionString(l.getAddress(), instr);
 				instrString = instrString.replace("\t", " ");
-				gwriter.writeNode(nodeName, nodeLabel + "\\n" + instrString); //, getNodeProperties(cfg, l));
+				gwriter.writeNode(nodeName, nodeLabel + "\\n" + instrString, getNodeProperties(ilCfg, l));
 			} else {
-				gwriter.writeNode(nodeName, nodeLabel); //, getNodeProperties(cfg, node));
+				gwriter.writeNode(nodeName, nodeLabel, getNodeProperties(ilCfg, l));
 			}
 		}
 

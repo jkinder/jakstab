@@ -1,5 +1,6 @@
 package org.jakstab.transformation;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Deque;
 import java.util.HashMap;
@@ -20,6 +21,8 @@ import org.jakstab.analysis.composite.CompositeState;
 import org.jakstab.analysis.explicit.BasedNumberElement;
 import org.jakstab.analysis.explicit.BasedNumberValuation;
 import org.jakstab.analysis.explicit.VpcTrackingAnalysis;
+import org.jakstab.asm.AbsoluteAddress;
+import org.jakstab.asm.Instruction;
 import org.jakstab.cfa.AsmCFG;
 import org.jakstab.cfa.CFAEdge;
 import org.jakstab.cfa.ControlFlowGraph;
@@ -31,6 +34,7 @@ import org.jakstab.cfa.VpcLocation;
 import org.jakstab.rtl.Context;
 import org.jakstab.rtl.expressions.RTLMemoryLocation;
 import org.jakstab.rtl.expressions.RTLVariable;
+import org.jakstab.rtl.expressions.SetOfVariables;
 import org.jakstab.rtl.expressions.Writable;
 import org.jakstab.rtl.statements.BasicBlock;
 import org.jakstab.rtl.statements.RTLHalt;
@@ -113,6 +117,22 @@ public class VpcCfgReconstruction implements Algorithm {
 			}
 		}
 		asmCfg = new AsmCFG(transformedCfg);
+		
+		Program p = Program.getProgram();
+		
+		for (Map.Entry<Location, AbstractState> entry : constants.entrySet()) {
+			Location l = entry.getKey();
+			Instruction instr = asmCfg.getInstruction(l);
+			if (instr == null)
+				continue;
+			
+			Instruction newInstr = substituteInstruction(l.getAddress(), instr, entry.getValue());
+			if (newInstr != instr) {
+				logger.debug("Substituted " + l.getAddress() + " " + p.getInstructionString(l.getAddress(), instr) + " to become " + 
+						p.getInstructionString(l.getAddress(), newInstr));
+				asmCfg.setInstruction(l, newInstr);
+			}
+		}
 	
 	}
 	
@@ -232,7 +252,7 @@ public class VpcCfgReconstruction implements Algorithm {
 		}
 	}
 	
-	public RTLStatement substituteStatement(RTLStatement stmt, AbstractState s) {
+	private RTLStatement substituteStatement(RTLStatement stmt, AbstractState s) {
 		CompositeState cState = (CompositeState)s;
 		BasedNumberValuation bnv = ((BasedNumberValuation)cState.getComponent(vAnalysisPos));
 		Context substCtx = new Context();
@@ -256,7 +276,52 @@ public class VpcCfgReconstruction implements Algorithm {
 			return skip;
 		}
 	}
+	
+	private List<RTLStatement> getStatementsAtAddress(AbsoluteAddress addr) {
+		Program p = Program.getProgram();
+		List<RTLStatement> stmts = new LinkedList<RTLStatement>();
+		RTLStatement cur = p.getStatement(new RTLLabel(addr));
+		stmts.add(cur);
+		while (cur.getNextLabel().getAddress().equals(cur.getAddress())) {
+			cur = p.getStatement(cur.getNextLabel());
+			stmts.add(cur);
+		}
+		return stmts;
+	}
+	
+	private Set<RTLMemoryLocation> getUsedMemoryLocations(Collection<RTLStatement> stmts) {
+		Set<RTLMemoryLocation> res = new HashSet<RTLMemoryLocation>();
+		for (RTLStatement s : stmts)
+			res.addAll(s.getUsedMemoryLocations());
+		return res;
+	}
 
+	private SetOfVariables getUsedVariables(Collection<RTLStatement> stmts) {
+		SetOfVariables res = new SetOfVariables();
+		for (RTLStatement s : stmts)
+			res.addAll(s.getUsedVariables());
+		return res;
+	}
+
+	private Instruction substituteInstruction(AbsoluteAddress addr, Instruction instr, AbstractState s) {
+		CompositeState cState = (CompositeState)s;
+		BasedNumberValuation bnv = ((BasedNumberValuation)cState.getComponent(vAnalysisPos));
+		Context substCtx = new Context();
+
+		boolean assigned = false;
+		List<RTLStatement> stmts = getStatementsAtAddress(addr);
+				
+		for (RTLMemoryLocation m : getUsedMemoryLocations(stmts))
+			assigned |= assignWritable(substCtx, m, bnv);
+		for (RTLVariable v : getUsedVariables(stmts))
+			assigned |= assignWritable(substCtx, v, bnv);	
+
+		if (!assigned)
+			return instr;
+		
+		Instruction newInstr = instr.evaluate(substCtx);
+		return newInstr;
+	}
 	@Override
 	public void stop() {
 		// TODO Auto-generated method stub

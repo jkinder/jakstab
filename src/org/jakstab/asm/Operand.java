@@ -53,10 +53,15 @@ public abstract class Operand {
 	public Operand evaluate(Context ctx) {
 		RTLExpression var = ExpressionFactory.createOperand(this);
 		RTLExpression eval = var.evaluate(ctx);
-		if (var == eval) 
+		if (var.equals(eval)) 
 			return this;
-		else 
-			return OperandFactory.createOperand(eval);
+		else {
+			Operand res = OperandFactory.createOperand(eval);
+			if (res == null)
+				return this;
+			else
+				return res;
+		}
 	}
 	
 }

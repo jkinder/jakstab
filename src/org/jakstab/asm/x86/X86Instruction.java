@@ -34,12 +34,12 @@ import org.jakstab.asm.*;
 import org.jakstab.rtl.Context;
 
 public class X86Instruction extends AbstractInstruction
-implements Instruction, X86Opcodes, MemoryInstruction {
+implements Instruction, X86Opcodes, MemoryInstruction, Cloneable {
 
 	final private int size;
 	final private int prefixes;
 	final private DataType dataType; //RTL dataType
-	final private Operand[] operands;
+	private Operand[] operands;
 	final private int operandCount;
 	private String description;
 
@@ -188,7 +188,7 @@ implements Instruction, X86Opcodes, MemoryInstruction {
 		
 		boolean changed = false;
 		Operand[] evaledOperands = new Operand[operands.length];
-		for (int i = 0; i < operands.length; i++) {
+		for (int i = 0; i < getOperandCount(); i++) {
 			evaledOperands[i] = operands[i].evaluate(ctx);
 			changed |= evaledOperands[i] != operands[i];				
 		}
@@ -198,6 +198,7 @@ implements Instruction, X86Opcodes, MemoryInstruction {
 			X86Instruction inst = null;
 			try {
 				inst = (X86Instruction) super.clone();
+				inst.operands = new Operand[inst.operands.length];
 			} catch (CloneNotSupportedException e) {
 				throw new RuntimeException(e);
 			}
