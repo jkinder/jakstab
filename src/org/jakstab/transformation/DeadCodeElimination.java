@@ -133,8 +133,10 @@ public class DeadCodeElimination implements CFATransformation {
 			logger.infoString(".");
 			for (CFAEdge e : cfa) {
 				// Initialize all to bot / empty set
-				liveVars.put(e.getSource(), new SetOfVariables());
-				worklist.add(e.getSource());
+				if (!liveVars.containsKey(e.getSource())) {
+					liveVars.put(e.getSource(), new SetOfVariables());
+					worklist.add(e.getSource());
+				}
 			}
 
 			for (Location l : inEdges.keySet()) {
