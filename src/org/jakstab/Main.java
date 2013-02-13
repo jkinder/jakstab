@@ -313,18 +313,12 @@ public class Main {
 				// Simplify CFA
 				logger.info("=== Simplifying CFA ===");
 				DeadCodeElimination dce;
-				long totalRemoved = 0;
 				ExpressionSubstitution subst = new ExpressionSubstitution(program.getCFG());
 				runAlgorithm(subst);
-				Set<CFAEdge> edges = subst.getCFA();
-				do {
-					dce = new DeadCodeElimination(edges, false); 
-					runAlgorithm(dce);
-					edges = dce.getCFA();					
-					totalRemoved += dce.getRemovalCount();
-				} while (dce.getRemovalCount() > 0);				
-				logger.info("=== Finished CFA simplification, removed " + totalRemoved + " edges. ===");
-				program.setCFA(edges);
+				dce = new DeadCodeElimination(subst.getCFA(), false); 
+				runAlgorithm(dce);
+				logger.info("=== Finished CFA simplification, removed " + dce.getRemovalCount() + " edges. ===");
+				program.setCFA(dce.getCFA());
 
 				AnalysisManager mgr = AnalysisManager.getInstance();				
 				List<ConfigurableProgramAnalysis> secondaryCPAs = new LinkedList<ConfigurableProgramAnalysis>();

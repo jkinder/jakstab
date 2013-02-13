@@ -91,12 +91,9 @@ public class VpcCfgReconstruction implements Algorithm {
 			DeadCodeElimination dce;
 			long totalRemoved = 0;
 			edges = transformedCfg.getEdges();
-			do {
-				dce = new DeadCodeElimination(edges, true); 
-				dce.run();
-				edges = dce.getCFA();					
-				totalRemoved += dce.getRemovalCount();
-			} while (dce.getRemovalCount() > 0);
+			dce = new DeadCodeElimination(edges, true); 
+			dce.run();
+			edges = dce.getCFA();					
 
 			transformedCfg = new ProgramCFG(edges);
 
@@ -105,12 +102,9 @@ public class VpcCfgReconstruction implements Algorithm {
 				subst.run();
 				edges = subst.getCFA();
 
-				do {
-					dce = new DeadCodeElimination(edges, true); 
-					dce.run();
-					edges = dce.getCFA();					
-					totalRemoved += dce.getRemovalCount();
-				} while (dce.getRemovalCount() > 0);
+				dce = new DeadCodeElimination(edges, true); 
+				dce.run();
+				edges = dce.getCFA();					
 
 				logger.info("=== Finished CFA simplification, removed " + totalRemoved + " edges. ===");
 				transformedCfg = new ProgramCFG(edges);		
