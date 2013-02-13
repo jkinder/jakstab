@@ -61,16 +61,13 @@ public class DeadCodeElimination implements CFATransformation {
 
 	public DeadCodeElimination(Set<CFAEdge> cfa, boolean enableJumpThreading) {
 		super();
-		this.cfa = new TreeSet<CFAEdge>(cfa);
+		this.cfa = new HashSet<CFAEdge>(cfa);
 		this.program = Program.getProgram();
 		this.enableJumpThreading = enableJumpThreading;
 
-		liveVars = new TreeMap<Location, SetOfVariables>();
 		liveInSinks = new SetOfVariables();
 		liveInSinks.addAll(program.getArchitecture().getRegisters());
 		
-		inEdges = HashMultimap.create();
-		outEdges = HashMultimap.create();
 	}
 
 	private boolean isDeadEdge(CFAEdge edge) {
@@ -118,23 +115,33 @@ public class DeadCodeElimination implements CFATransformation {
 		logger.infoString("Eliminating dead code");
 		long startTime = System.currentTimeMillis();
 
-		FastSet<Location> worklist = new FastSet<Location>();
-
-		for (CFAEdge e : cfa) {
-			inEdges.put(e.getTarget(), e);
-			outEdges.put(e.getSource(), e);
-		}
 
 		removalCount = 0;
 		long oldRemovalCount = 0;
 		int iterations = 0;
 		
+		// Outer fixpoint iteration for doing liveness + DCE as long as possible 
 		do {
 			logger.infoString(".");
+
+			// Reset and init liveness data
+			liveVars = new HashMap<Location, SetOfVariables>();
+			FastSet<Location> worklist = new FastSet<Location>();
+
+			// Reset and init in and out edge sets
+			inEdges = HashMultimap.create();
+			outEdges = HashMultimap.create();
+			for (CFAEdge e : cfa) {
+				inEdges.put(e.getTarget(), e);
+				outEdges.put(e.getSource(), e);
+			}
+
 			for (CFAEdge e : cfa) {
 				// Initialize all to bot / empty set
 				if (!liveVars.containsKey(e.getSource())) {
 					liveVars.put(e.getSource(), new SetOfVariables());
+					// There might be infinite loops where no sink is reachable, so we 
+					// just add all nodes to the work list here as a poor man's solution
 					worklist.add(e.getSource());
 				}
 			}
@@ -142,8 +149,10 @@ public class DeadCodeElimination implements CFATransformation {
 			for (Location l : inEdges.keySet()) {
 				if (outEdges.get(l).size() == 0) {
 					// Sinks havn't been initialized yet
-					worklist.add(l);
 					liveVars.put(l, new SetOfVariables(liveInSinks));
+					
+					// Initialize work list with sinks.
+					worklist.add(l);
 				}
 			}
 			
@@ -153,13 +162,14 @@ public class DeadCodeElimination implements CFATransformation {
 			while (!worklist.isEmpty() && !stop) {
 
 				Location node = worklist.pick();
+				SetOfVariables sLVout = liveVars.get(node);
 				
-				SetOfVariables newLive = null;
-				for (CFAEdge outEdge : outEdges.get(node)) {
-					RTLStatement stmt = (RTLStatement)outEdge.getTransformer();
-					SetOfVariables sLVin = new SetOfVariables(liveVars.get(outEdge.getTarget()));
+				for (CFAEdge inEdge : inEdges.get(node)) {
+					RTLStatement stmt = (RTLStatement)inEdge.getTransformer();
+					// start by copying LVout -> LVin
+					SetOfVariables sLVin = new SetOfVariables(sLVout);
 
-					// Fast remove with bitsets
+					//// Remove KILL(s) from sLVin
 					sLVin.removeAll(stmt.getDefinedVariables());
 					
 					// Remove also al for eax etc.
@@ -167,6 +177,7 @@ public class DeadCodeElimination implements CFATransformation {
 						sLVin.removeAll(ExpressionFactory.coveredRegisters(v));
 					}
 
+					//// Add GEN(s) to sLVin
 					sLVin.addAll(stmt.getUsedVariables());
 					
 					// Add also eax for al, etc.
@@ -175,22 +186,24 @@ public class DeadCodeElimination implements CFATransformation {
 					}
 					
 					// Registers might be used inside an unknown procedure call
-					if (outEdge.getTransformer() instanceof RTLUnknownProcedureCall) {
+					if (inEdge.getTransformer() instanceof RTLUnknownProcedureCall) {
 						sLVin.addAll(program.getArchitecture().getRegisters());
 					}
-					if (newLive == null) {
-						newLive = sLVin;
-					} else {
-						newLive.addAll(sLVin);
+					
+					SetOfVariables predLVOut = liveVars.get(inEdge.getSource());
+					if (predLVOut == null) {
+						logger.error("No LV out for inEdge " + inEdge + " for node " + node);
+						logger.error("In CFA: " + cfa.contains(inEdge));
+						logger.error("Containskey: " + liveVars.containsKey(inEdge.getSource()));
 					}
-				}
-				if (newLive == null) continue;
 
-				if (!newLive.equals(liveVars.get(node))) {
-					liveVars.put(node, newLive);
-					for (CFAEdge inEdge : inEdges.get(node)) {
+					SetOfVariables newPredLVout = new SetOfVariables(predLVOut);
+					newPredLVout.addAll(sLVin);
+					if (!newPredLVout.equals(predLVOut)) {
+						liveVars.put(inEdge.getSource(), newPredLVout);
 						worklist.add(inEdge.getSource());
 					}
+
 				}
 			}
 
