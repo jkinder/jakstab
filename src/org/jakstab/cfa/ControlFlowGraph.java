@@ -152,12 +152,16 @@ public abstract class ControlFlowGraph {
 				
 				CFAEdge edge = out.iterator().next();				
 
-				// If there is more than one out edge, add the Goto instead of the assumes
+				// If there is more than one out edge, we'll break out
 				if (out.size() > 1) {
+					// Normally this is because of an assume - add the Goto to the BB instead of an assume
 					if (edge.getTransformer() instanceof RTLAssume) {
 						bb.add(((RTLAssume)edge.getTransformer()).getSource());
 					} else {
-						logger.warn("Non-assume edge in outgoing set of edges with size > 1: " + edge.getTransformer());
+						// Multiple edges on a non-assume statement - this can happen with VPC CFGs where
+						// the VPC value is modified directly. In this case, put the statement and break
+						logger.verbose("Non-assume edge in outgoing set of edges with size > 1: " + edge.getTransformer());
+						bb.add((RTLStatement)edge.getTransformer());
 					}
 					break;
 				}
@@ -224,7 +228,7 @@ public abstract class ControlFlowGraph {
 		outEdges.put(e.getSource(), e);
 		inEdges.put(e.getTarget(), e);
 		locations.add(e.getSource());
-		locations.add(e.getTarget());		
+		locations.add(e.getTarget());
 	}
 	
 	/**
