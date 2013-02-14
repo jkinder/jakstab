@@ -13,25 +13,10 @@ public class VpcLiftedCFG extends ControlFlowGraph {
 	private static final Logger logger = Logger.getLogger(VpcLiftedCFG.class);
 	
 	public VpcLiftedCFG(Set<CFAEdge> edges) {
-
-		super();
-		
-		for (CFAEdge e : edges)
-			addEdge(e);
-
-		logger.debug(getNodes().size() + " VPC locations.");
-		logger.debug(getEdges().size() + " edges in the VPC-CFG.");
-		
-		findEntryPoint();
-		buildBasicBlocks();
-		logger.debug(getBasicBlockEdges().size() + " basic block edges in the VPC-CFG.");
-
-		assert valid();
+		super(edges);
 	}
 
-	
-	protected boolean isBasicBlockHead(Location loc) {
-		VpcLocation l = (VpcLocation)loc;
+	protected boolean isBasicBlockHead(Location l) {
 		Set<CFAEdge> in = getInEdges(l);
 
 		if (in.size() == 0) {
@@ -46,12 +31,14 @@ public class VpcLiftedCFG extends ControlFlowGraph {
 		
 		// There's only one edge
 		CFAEdge e = in.iterator().next();
-		VpcLocation predLoc = (VpcLocation)e.getSource();
+		Location predLoc = e.getSource();
 		// If out-degree of predecessor is greater than 1, this is a head
 		if (getOutDegree(predLoc) > 1)
 			return true;
 
-		RTLStatement predStmt = Program.getProgram().getStatement(predLoc.getLabel());
+		Program program = Program.getProgram();
+
+		RTLStatement predStmt = program.getStatement(predLoc.getLabel());
 		if (!(predStmt instanceof RTLGoto))
 			return false;
 		
@@ -61,8 +48,9 @@ public class VpcLiftedCFG extends ControlFlowGraph {
 		case RETURN: 
 			return true;
 		}
-		Program program = Program.getProgram();
-		if (!program.isStub(g.getLabel().getAddress()) &&
+
+		// If inEdge crosses into a stub, make this stub a new block
+		if (!program.isStub(predLoc.getAddress()) &&
 				program.isStub(l.getAddress())) {
 			return true;
 		}

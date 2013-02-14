@@ -21,71 +21,41 @@ public abstract class ControlFlowGraph {
 	@SuppressWarnings("unused")
 	private static final Logger logger = Logger.getLogger(ControlFlowGraph.class);
 
+	private Location entryPoint;
+	private Set<Location> locations;
 	private SetMultimap<Location, CFAEdge> outEdges;
 	private SetMultimap<Location, CFAEdge> inEdges;
 
+	private Map<Location, BasicBlock> basicBlocks;
 	private SetMultimap<Location, CFAEdge> bbOutEdges;
 	private SetMultimap<Location, CFAEdge> bbInEdges;
-	private Map<Location, BasicBlock> basicBlocks;
-	private Set<Location> locations;
-	private Location entryPoint;
 	
 	
-	public ControlFlowGraph() {
+	public ControlFlowGraph(Set<CFAEdge> edges) {
 		outEdges = HashMultimap.create();
 		inEdges = HashMultimap.create();
 		locations = new HashSet<Location>();
-	}
-	
-	protected abstract boolean isBasicBlockHead(Location l);
-	
-	public Location getEntryPoint() {
-		return entryPoint;
+		
+		for (CFAEdge e : edges) {
+			addEdge(e);
+		}
+		
+		findEntryPoint();		
+		buildBasicBlocks();
+		assert valid();
 	}
 
-	public Set<Location> getNodes() {
-		return Collections.unmodifiableSet(locations);
-	}
-	
-	public Set<CFAEdge> getEdges() {
-		return Collections.unmodifiableSet(
-				new HashSet<CFAEdge>(outEdges.values()));
-	}
-	
-	public int getInDegree(Location l) {
-		return inEdges.get(l).size();
-	}
-	
-	public int getOutDegree(Location l) {
-		return outEdges.get(l).size();
-	}
-	
-	public Set<CFAEdge> getInEdges(Location l) {
-		return Collections.unmodifiableSet(inEdges.get(l));
-	}
-	
-	public Set<CFAEdge> getOutEdges(Location l) {
-		return Collections.unmodifiableSet(outEdges.get(l));
-	}
-	
-	public Set<Location> getSuccessorLocations(Location l) {
-		Set<Location> res = new FastSet<Location>();
-		for (CFAEdge e : outEdges.get(l))
-			res.add(e.getTarget());
-		return res;
-	}
-	
 	public BasicBlock getBasicBlock(Location l) {
 		return basicBlocks.get(l);
-	}
-	
-	public Set<Location> getBasicBlockNodes() {
-		return Collections.unmodifiableSet(basicBlocks.keySet());
 	}
 	
 	public Set<CFAEdge> getBasicBlockEdges() {
 		return Collections.unmodifiableSet(
 				new HashSet<CFAEdge>(bbOutEdges.values()));
+	}
+
+	public Set<Location> getBasicBlockNodes() {
+		return Collections.unmodifiableSet(basicBlocks.keySet());
 	}
 	
 	public Set<CFAEdge> getBasicBlockOutEdges(Location l) {
@@ -103,108 +73,45 @@ public abstract class ControlFlowGraph {
 				return e;
 		return null;
 	}
-
+	
+	public Set<CFAEdge> getEdges() {
+		return Collections.unmodifiableSet(
+				new HashSet<CFAEdge>(outEdges.values()));
+	}
+	
+	public Location getEntryPoint() {
+		return entryPoint;
+	}
+	
+	public int getInDegree(Location l) {
+		return inEdges.get(l).size();
+	}
+	
+	public Set<CFAEdge> getInEdges(Location l) {
+		return Collections.unmodifiableSet(inEdges.get(l));
+	}
+	
+	public Set<Location> getNodes() {
+		return Collections.unmodifiableSet(locations);
+	}
+	
+	public int getOutDegree(Location l) {
+		return outEdges.get(l).size();
+	}
+	
+	public Set<CFAEdge> getOutEdges(Location l) {
+		return Collections.unmodifiableSet(outEdges.get(l));
+	}
+	
+	public Set<Location> getSuccessorLocations(Location l) {
+		Set<Location> res = new FastSet<Location>();
+		for (CFAEdge e : outEdges.get(l))
+			res.add(e.getTarget());
+		return res;
+	}
+	
 	public int numEdges() {
 		return outEdges.size();
-	}
-	
-	protected void findEntryPoint() {
-		for (Location l : getNodes()) {
-			if (getInDegree(l) == 0) {
-				assert entryPoint == null : "Graph has multiple entry points: " + entryPoint + " and " + l; 
-				entryPoint = l;
-			}
-		}
-		assert entryPoint != null : "No entry point found! First statement in cycle?";
-	}
-	
-	private Set<Location> findBasicBlockHeads() {
-		Set<Location> result = new HashSet<Location>();
-		
-		// Find basic block heads
-		for (Location l : getNodes()) {
-			if (isBasicBlockHead(l))
-				result.add(l);
-		}
-		logger.debug(result.size() + " basic blocks.");
-		return result;
-	}
-	
-	protected void buildBasicBlocks() {
-		
-		Set<Location> basicBlockHeads = findBasicBlockHeads();
-		
-		bbOutEdges = HashMultimap.create();
-		bbInEdges = HashMultimap.create();
-		basicBlocks = new HashMap<Location, BasicBlock>();
-
-		for (Location l : basicBlockHeads)
-			basicBlocks.put(l, new BasicBlock());
-		
-		for (Map.Entry<Location, BasicBlock> entry : basicBlocks.entrySet()) {
-			Location head = entry.getKey();
-			BasicBlock bb = entry.getValue();
-			
-			//bb.add(program.getStatement(head.getLabel()));
-			Location l = head;
-			Set<CFAEdge> out = outEdges.get(l);
-			while (!out.isEmpty()) {
-				
-				CFAEdge edge = out.iterator().next();				
-
-				// If there is more than one out edge, we'll break out
-				if (out.size() > 1) {
-					// Normally this is because of an assume - add the Goto to the BB instead of an assume
-					if (edge.getTransformer() instanceof RTLAssume) {
-						bb.add(((RTLAssume)edge.getTransformer()).getSource());
-					} else {
-						// Multiple edges on a non-assume statement - this can happen with VPC CFGs where
-						// the VPC value is modified directly. In this case, put the statement and break
-						logger.verbose("Non-assume edge in outgoing set of edges with size > 1: " + edge.getTransformer());
-						bb.add((RTLStatement)edge.getTransformer());
-					}
-					break;
-				}
-
-				bb.add((RTLStatement)edge.getTransformer());
-				
-
-				l = edge.getTarget();
-				if (basicBlocks.containsKey(l))
-					break;
-				//bb.add(program.getStatement(l.getLabel()));
-				out = outEdges.get(l);
-			}
-			// If there's no statement (because there's an immediate jump), add a skip
-			if (bb.isEmpty()) {
-				RTLStatement dummy = new RTLSkip();
-				dummy.setLabel(l.getLabel());
-				if (!out.isEmpty())
-					dummy.setNextLabel(out.iterator().next().getTarget().getLabel());
-				bb.add(dummy);
-			}
-			
-			for (CFAEdge e : out) {
-				RTLStatement edgeStmt;
-				if (out.size() > 1 && e.getTransformer() instanceof RTLAssume) {
-					edgeStmt = (RTLStatement)e.getTransformer();
-				} else {
-					edgeStmt = new RTLSkip();
-					RTLStatement oldStmt = (RTLStatement)e.getTransformer();
-					edgeStmt.setLabel(oldStmt.getLabel());
-					edgeStmt.setNextLabel(oldStmt.getNextLabel());
-				}
-				CFAEdge bbEdge = new CFAEdge(head, e.getTarget(), edgeStmt);
-				if (!basicBlocks.containsKey(e.getTarget())) {
-					logger.error("Target not in basic block head list? " + bbEdge);
-				} else {
-					bbOutEdges.put(head, bbEdge);
-					//assert basicBlocks.containsKey(e.getTarget()) : "Target not in basic block head list? " + bbEdge;
-					bbInEdges.put(e.getTarget(), bbEdge);
-				}
-			}
-		}
-		
 	}
 
 	protected void addEdge(CFAEdge e) {
@@ -230,6 +137,8 @@ public abstract class ControlFlowGraph {
 		locations.add(e.getSource());
 		locations.add(e.getTarget());
 	}
+	
+	protected abstract boolean isBasicBlockHead(Location l);
 	
 	/**
 	 * Audit method for checking validity of the CFG.
@@ -315,6 +224,105 @@ public abstract class ControlFlowGraph {
 		} else {
 			return true;
 		}
+	}
+	
+	private void buildBasicBlocks() {
+		
+		Set<Location> basicBlockHeads = findBasicBlockHeads();
+		
+		bbOutEdges = HashMultimap.create();
+		bbInEdges = HashMultimap.create();
+		basicBlocks = new HashMap<Location, BasicBlock>();
+
+		for (Location l : basicBlockHeads)
+			basicBlocks.put(l, new BasicBlock());
+		
+		for (Map.Entry<Location, BasicBlock> entry : basicBlocks.entrySet()) {
+			Location head = entry.getKey();
+			BasicBlock bb = entry.getValue();
+			
+			//bb.add(program.getStatement(head.getLabel()));
+			Location l = head;
+			Set<CFAEdge> out = outEdges.get(l);
+			while (!out.isEmpty()) {
+				
+				CFAEdge edge = out.iterator().next();				
+
+				// If there is more than one out edge, we'll break out
+				if (out.size() > 1) {
+					// Normally this is because of an assume - add the Goto to the BB instead of an assume
+					if (edge.getTransformer() instanceof RTLAssume) {
+						bb.add(((RTLAssume)edge.getTransformer()).getSource());
+					} else {
+						// Multiple edges on a non-assume statement - this can happen with VPC CFGs where
+						// the VPC value is modified directly. In this case, put the statement and break
+						logger.verbose("Non-assume edge in outgoing set of edges with size > 1: " + edge.getTransformer());
+						bb.add((RTLStatement)edge.getTransformer());
+					}
+					break;
+				}
+
+				bb.add((RTLStatement)edge.getTransformer());
+				
+
+				l = edge.getTarget();
+				if (basicBlocks.containsKey(l))
+					break;
+				//bb.add(program.getStatement(l.getLabel()));
+				out = outEdges.get(l);
+			}
+			// If there's no statement (because there's an immediate jump), add a skip
+			if (bb.isEmpty()) {
+				RTLStatement dummy = new RTLSkip();
+				dummy.setLabel(l.getLabel());
+				if (!out.isEmpty())
+					dummy.setNextLabel(out.iterator().next().getTarget().getLabel());
+				bb.add(dummy);
+			}
+			
+			for (CFAEdge e : out) {
+				RTLStatement edgeStmt;
+				if (out.size() > 1 && e.getTransformer() instanceof RTLAssume) {
+					edgeStmt = (RTLStatement)e.getTransformer();
+				} else {
+					edgeStmt = new RTLSkip();
+					RTLStatement oldStmt = (RTLStatement)e.getTransformer();
+					edgeStmt.setLabel(oldStmt.getLabel());
+					edgeStmt.setNextLabel(oldStmt.getNextLabel());
+				}
+				CFAEdge bbEdge = new CFAEdge(head, e.getTarget(), edgeStmt);
+				if (!basicBlocks.containsKey(e.getTarget())) {
+					logger.error("Target not in basic block head list? " + bbEdge);
+				} else {
+					bbOutEdges.put(head, bbEdge);
+					//assert basicBlocks.containsKey(e.getTarget()) : "Target not in basic block head list? " + bbEdge;
+					bbInEdges.put(e.getTarget(), bbEdge);
+				}
+			}
+		}
+		
+	}
+
+	private Set<Location> findBasicBlockHeads() {
+		Set<Location> result = new HashSet<Location>();
+		
+		// Find basic block heads
+		for (Location l : getNodes()) {
+			if (isBasicBlockHead(l))
+				result.add(l);
+		}
+		logger.debug(result.size() + " basic blocks.");
+		return result;
+	}
+	
+	private void findEntryPoint() {
+		for (Location l : getNodes()) {
+			if (getInDegree(l) == 0) {
+				assert entryPoint == null : "Graph has multiple entry points: " + entryPoint + " and " + l; 
+				entryPoint = l;
+			}
+		}
+		assert entryPoint != null : "No entry point found! First statement in cycle?";
 	}
 	
 }
