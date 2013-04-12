@@ -52,6 +52,8 @@ public class VpcCfgReconstruction implements Algorithm {
 	
 	@SuppressWarnings("unused")
 	private static final Logger logger = Logger.getLogger(ControlFlowGraph.class);
+	
+	private static final int VPC_BITWIDTH = Program.getProgram().getArchitecture().getAddressBitWidth();
 
 	private AbstractReachabilityTree art;
 	private ControlFlowGraph transformedCfg;
@@ -228,11 +230,16 @@ public class VpcCfgReconstruction implements Algorithm {
 
 		// Do not assign a VPC value to stub methods - make them all share TOP 
 		if (Program.getProgram().isImport(l.getAddress()))
-			return BasedNumberElement.getTop(32);
+			return BasedNumberElement.getTop(VPC_BITWIDTH);
 		
 		ValueContainer vpcVar = vpcAnalysis.getVPC(l);
 		CompositeState cState = (CompositeState)s;
-		BasedNumberElement vpcVal = ((BasedNumberValuation)cState.getComponent(vAnalysisPos)).getValue(vpcVar);
+		BasedNumberElement vpcVal;
+		if (vpcVar == null) {
+			vpcVal = BasedNumberElement.getTop(VPC_BITWIDTH);
+		} else {
+			vpcVal = ((BasedNumberValuation)cState.getComponent(vAnalysisPos)).getValue(vpcVar);
+		}
 		return vpcVal;
 	}
 	

@@ -146,47 +146,20 @@ public class VpcCfgMain {
 		// Necessary to stop shutdown thread on exceptions being thrown
 		try {
 
-			int kParam = BoundedAddressTracking.varThreshold.getValue();
-			int khParam = BoundedAddressTracking.heapThreshold.getValue();
-			BoundedAddressTracking.varThreshold.setValue(30);
-			BoundedAddressTracking.heapThreshold.setValue(30);
-			Options.cpas.setValue("x");
-			BoundedAddressTracking.stopOnFirstWidening.setValue(true);
-
-			logger.error("Initial analysis.");
-			ControlFlowReconstruction cfr = new ControlFlowReconstruction(program);
-			try {
-				runAlgorithm(cfr);
-			} catch (WideningException e) {
-				logger.error("Initial widening recorded at " + e.getWidenedExpression());
-				VpcTrackingAnalysis.useAsVpc = e.getWidenedExpression();
-			} catch (RuntimeException r) {
-				logger.error("!! Runtime exception during Control Flow Reconstruction! Trying to shut down gracefully.");
-				if (logger.isInfoEnabled())
-					r.printStackTrace();
-			}
-			
-			if (VpcTrackingAnalysis.useAsVpc == null) {
-				logger.error("There was no widening, so no VPC was detected!");
-				StatsTracker.getInstance().record("VPC", "none");
-			} else {
+			//VpcTrackingAnalysis.useAsVpc = new MemoryReference(MemoryRegion.STACK, -1092, 32);
 
 
 			// Always do VPC sensitive BAT here
 			Options.cpas.setValue("v");
-			BoundedAddressTracking.varThreshold.setValue(kParam);
-			BoundedAddressTracking.heapThreshold.setValue(khParam);
+
 			// No need to be sound
 			//Options.ignoreWeakUpdates.setValue(Boolean.TRUE);
 			BoundedAddressTracking.stopOnFirstWidening.setValue(false);
 			VpcTrackingAnalysis.vpcName.setValue(null);
 
 			logger.error(Characters.DOUBLE_LINE_FULL_WIDTH);
-			logger.error("== Attempting reconstruction with VPC " + VpcTrackingAnalysis.useAsVpc + " ==");
-			
-			stats.record("VPC", VpcTrackingAnalysis.useAsVpc);
 
-			cfr = new ControlFlowReconstruction(program);
+			ControlFlowReconstruction cfr = new ControlFlowReconstruction(program);
 			try {
 				runAlgorithm(cfr);
 			} catch (RuntimeException r) {
@@ -206,8 +179,7 @@ public class VpcCfgMain {
 			graphWriter.writeVpcTopologyGraph(baseFileName + "_vtopo", cfr.getART());
 			graphWriter.writeVpcBasicBlockGraph(baseFileName + "_vcfg", cfr.getART());
 			//graphWriter.writeDisassembly(baseFileName + "_jak.asm");
-			}
-			
+
 			long overallEndTime = System.currentTimeMillis();			
 
 			logger.error("Total runtime for reconstruction: " + String.format("%8dms", (overallEndTime - overallStartTime)));			

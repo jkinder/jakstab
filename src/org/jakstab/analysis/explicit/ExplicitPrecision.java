@@ -30,6 +30,10 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.SetMultimap;
 
 /**
+ * For each variable and memory location, stores the precision (none, region, full) 
+ * with which it is tracked. Can also hold individual thresholds for some variables 
+ * that override the default value bound.   
+ * 
  * @author Johannes Kinder
  */
 public class ExplicitPrecision implements Precision {

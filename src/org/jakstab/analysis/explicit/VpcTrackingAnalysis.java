@@ -17,16 +17,17 @@
  */
 package org.jakstab.analysis.explicit;
 
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
 import org.jakstab.AnalysisProperties;
 import org.jakstab.JOption;
-import org.jakstab.StatsTracker;
 import org.jakstab.analysis.AbstractState;
 import org.jakstab.analysis.CPAOperators;
 import org.jakstab.analysis.ConfigurableProgramAnalysis;
+import org.jakstab.analysis.MemoryReference;
 import org.jakstab.analysis.MemoryRegion;
 import org.jakstab.analysis.PartitionedMemory;
 import org.jakstab.analysis.Precision;
@@ -34,9 +35,7 @@ import org.jakstab.analysis.ReachedSet;
 import org.jakstab.analysis.ValueContainer;
 import org.jakstab.cfa.CFAEdge;
 import org.jakstab.cfa.Location;
-import org.jakstab.cfa.RTLLabel;
 import org.jakstab.cfa.StateTransformer;
-import org.jakstab.rtl.expressions.ExpressionFactory;
 import org.jakstab.rtl.expressions.RTLVariable;
 import org.jakstab.rtl.statements.RTLStatement;
 import org.jakstab.util.Logger;
@@ -58,23 +57,10 @@ public class VpcTrackingAnalysis implements ConfigurableProgramAnalysis {
 	}
 	public static JOption<String> vpcName = JOption.create("vpc", "r", "esi", "Register to be used as virtual program counter.");
 	
-	// FIXME: Ugly interface for automatic setting of VPC
-	public static ValueContainer useAsVpc;
-	
-	private ValueContainer vpc;
+	private Map<Location, VpcPrecision> vpcPrecisionMap;
 	
 	public VpcTrackingAnalysis() {
-		if (vpcName.getValue() != null)
-			vpc = ExpressionFactory.createVariable(vpcName.getValue().toLowerCase());
-		else
-			vpc = useAsVpc;
-
-		StatsTracker.getInstance().record("VPC", vpc.toString());
-		logger.debug("Using VPC " + vpc);
-	}
-	
-	public ValueContainer getVPC(RTLLabel l) {
-		return vpc;
+		vpcPrecisionMap = new HashMap<Location, VpcPrecision>();
 	}
 	
 	@Override
@@ -92,8 +78,9 @@ public class VpcTrackingAnalysis implements ConfigurableProgramAnalysis {
 	@Override
 	public Set<AbstractState> post(AbstractState state, CFAEdge cfaEdge, Precision precision) {
 		BasedNumberValuation b = (BasedNumberValuation)state;
-		return ((BasedNumberValuation)state).abstractPost((RTLStatement)cfaEdge.getTransformer(), 
-				((VpcPrecision)precision).getPrecision(b.getValue(vpc)));
+		VpcPrecision vprec = (VpcPrecision)precision;
+		return b.abstractPost((RTLStatement)cfaEdge.getTransformer(), 
+				vprec.getPrecision(b));
 	}
 	
 	@Override
@@ -109,12 +96,12 @@ public class VpcTrackingAnalysis implements ConfigurableProgramAnalysis {
 		
 		VpcPrecision vprec = (VpcPrecision)precision;
 		BasedNumberValuation widenedState = (BasedNumberValuation)s;
-		BasedNumberElement vpcValue = widenedState.getValue(vpc);
-		//BasedNumberElement vpcValue = widenedState.getStore().get(MemoryRegion.STACK, -340, 32); //Stack,-340
-		ExplicitPrecision eprec = vprec.getPrecision(vpcValue);
-
+		//BasedNumberElement vpcValue = widenedState.getValue(vpc);
+		ExplicitPrecision eprec = vprec.getPrecision(widenedState);
+		
 		// Only check value counts if we have at least enough states to reach it
-		if (reached.size() > Math.min(BoundedAddressTracking.varThreshold.getValue(), BoundedAddressTracking.heapThreshold.getValue())) {
+		if (reached.size() > Math.min(BoundedAddressTracking.varThreshold.getValue(), 
+				BoundedAddressTracking.heapThreshold.getValue())) {
 			
 			boolean changed = false;
 
@@ -187,7 +174,14 @@ public class VpcTrackingAnalysis implements ConfigurableProgramAnalysis {
 		
 		// Collect all values for all variables
 		for (Map.Entry<RTLVariable, BasedNumberElement> entry : widenedState.getVariableValuation()) {
-			eprec.varMap.put(entry.getKey(), entry.getValue());
+			if (eprec.varMap.put(entry.getKey(), entry.getValue())) {
+				if (vprec.getVpc() == null && 
+						eprec.varMap.get(entry.getKey()).size() > BoundedAddressTracking.varThreshold.getValue()) {
+					vprec.setVpc(entry.getKey());
+					logger.debug("Set VPC to " + vprec.getVpc());
+				}
+					
+			}
 		}
 
 		// Collect all values for all memory areas
@@ -198,9 +192,17 @@ public class VpcTrackingAnalysis implements ConfigurableProgramAnalysis {
 				memoryMap = HashMultimap.create();
 				eprec.regionMaps.put(entryIt.getLeftKey(), memoryMap);
 			}
-			memoryMap.put(entryIt.getRightKey(), entryIt.getValue());
+			if (memoryMap.put(entryIt.getRightKey(), entryIt.getValue())) {
+				if (vprec.getVpc() == null) {
+					Set<BasedNumberElement> memoryValues = memoryMap.get(entryIt.getRightKey());
+					if (memoryValues.size() > BoundedAddressTracking.heapThreshold.getValue()) {
+						vprec.setVpc(new MemoryReference(entryIt.getLeftKey(), 
+								entryIt.getRightKey(), memoryValues.iterator().next().getBitWidth()));
+						logger.debug("Set VPC to " + vprec.getVpc());
+					}
+				}
+			}
 		}
-
 
 		// If it was changed, widenedState is now a new state
 		return Pair.create((AbstractState)widenedState, precision);
@@ -212,9 +214,11 @@ public class VpcTrackingAnalysis implements ConfigurableProgramAnalysis {
 	}
 
 	@Override
-	public Precision initPrecision(Location location, StateTransformer transformer) {
-		
-		return new VpcPrecision();
+	public Precision initPrecision(Location location, StateTransformer transformer) {		
+		VpcPrecision vpcPrec = new VpcPrecision();
+		// Store precision locally in map so we can retrieve VPCs later
+		vpcPrecisionMap.put(location, vpcPrec);
+		return vpcPrec;
 	}
 	
 	private int countRegions(Set<BasedNumberElement> values) {
@@ -222,6 +226,16 @@ public class VpcTrackingAnalysis implements ConfigurableProgramAnalysis {
 		for (BasedNumberElement e : values)
 			regions.add(e.getRegion());
 		return regions.size();
+	}
+
+	public ValueContainer getVPC(Location l) {
+		VpcPrecision vpcPrec =  vpcPrecisionMap.get(l);
+		if (vpcPrec == null) {
+			logger.info("No VPC found for requested location " + l);
+			return null;
+		} else {
+			return vpcPrec.getVpc();
+		}
 	}
 
 }

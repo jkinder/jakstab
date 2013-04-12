@@ -863,10 +863,14 @@ public final class BasedNumberValuation implements AbstractState {
 	public BasedNumberElement getValue(ValueContainer var) {
 		if (var instanceof RTLVariable) {
 			return getValue((RTLVariable)var);
-		} else {
-			assert var instanceof MemoryReference;
+		} if (var instanceof MemoryReference) {
 			MemoryReference ref = (MemoryReference)var;
 			return aStore.get(ref.getRegion(), ref.getOffset(), ref.getBitWidth());
+		} else {
+			if (var == null) {
+				throw new IllegalArgumentException("getValue called with null parameter");
+			}
+			throw new IllegalArgumentException("getValue called with argument type: " + var.getClass().getCanonicalName());
 		}
 	}
 
