@@ -103,6 +103,12 @@ public class VpcTrackingAnalysis implements ConfigurableProgramAnalysis {
 		//BasedNumberElement vpcValue = widenedState.getValue(vpc);
 		ExplicitPrecision eprec = vprec.getPrecision(widenedState);
 		
+		// Make it -1 so that VPC detection triggers before any intermediate vars are widened 
+		// (e.g., tmp in add VPC, x) 
+		int vpcThreshold = Math.min(BoundedAddressTracking.varThreshold.getValue(), 
+				BoundedAddressTracking.heapThreshold.getValue()) - 1;
+		
+		
 		// Only check value counts if we have at least enough states to reach it
 		if (reached.size() > Math.min(BoundedAddressTracking.varThreshold.getValue(), 
 				BoundedAddressTracking.heapThreshold.getValue())) {
@@ -113,7 +119,19 @@ public class VpcTrackingAnalysis implements ConfigurableProgramAnalysis {
 			for (RTLVariable v : eprec.varMap.keySet()) {
 				//BasedNumberElement currentValue = ((BasedNumberValuation)s).getValue(v);
 				Set<BasedNumberElement> existingValues = eprec.varMap.get(v);
+				
+				// Check first whether we should promote this var to VPC
+				if (vprec.getVpc() == null && 						
+						arch.isRegister(v) && 
+						existingValues.size() > vpcThreshold) {
+					vprec.setVpc(v);
+					logger.debug("Set VPC to " + vprec.getVpc());
+					// don't widen the new VPC
+					continue;
+				}
+
 				int threshold = eprec.getThreshold(v);
+				
 				if (existingValues.size() > threshold) {
 					// Lower precisions and widen the value in this state, too.
 					// This avoids values accumulating at join points (where they are not
@@ -151,6 +169,16 @@ public class VpcTrackingAnalysis implements ConfigurableProgramAnalysis {
 				
 				//BasedNumberElement currentValue = entry.getValue();
 				Set<BasedNumberElement> existingValues = memoryMap.get(offset);
+				
+				if (vprec.getVpc() == null && 
+						existingValues.size() > vpcThreshold) {
+					vprec.setVpc(new MemoryReference(entryIt.getLeftKey(), 
+							entryIt.getRightKey(), existingValues.iterator().next().getBitWidth()));
+					logger.debug("Set VPC to " + vprec.getVpc());
+					// don't widen the new VPC
+					continue;
+				}
+
 
 				int threshold = eprec.getStoreThreshold(region, offset);
 				if (existingValues.size() > threshold) {
@@ -179,14 +207,7 @@ public class VpcTrackingAnalysis implements ConfigurableProgramAnalysis {
 		// Collect all values for all variables
 		for (Map.Entry<RTLVariable, BasedNumberElement> entry : widenedState.getVariableValuation()) {
 			RTLVariable var = entry.getKey();
-			if (eprec.varMap.put(var, entry.getValue())) {
-				if (vprec.getVpc() == null && arch.isRegister(var) && 
-						eprec.varMap.get(var).size() > BoundedAddressTracking.varThreshold.getValue()) {
-					vprec.setVpc(var);
-					logger.debug("Set VPC to " + vprec.getVpc());
-				}
-					
-			}
+			eprec.varMap.put(var, entry.getValue());
 		}
 
 		// Collect all values for all memory areas
@@ -197,16 +218,7 @@ public class VpcTrackingAnalysis implements ConfigurableProgramAnalysis {
 				memoryMap = HashMultimap.create();
 				eprec.regionMaps.put(entryIt.getLeftKey(), memoryMap);
 			}
-			if (memoryMap.put(entryIt.getRightKey(), entryIt.getValue())) {
-				if (vprec.getVpc() == null) {
-					Set<BasedNumberElement> memoryValues = memoryMap.get(entryIt.getRightKey());
-					if (memoryValues.size() > BoundedAddressTracking.heapThreshold.getValue()) {
-						vprec.setVpc(new MemoryReference(entryIt.getLeftKey(), 
-								entryIt.getRightKey(), memoryValues.iterator().next().getBitWidth()));
-						logger.debug("Set VPC to " + vprec.getVpc());
-					}
-				}
-			}
+			memoryMap.put(entryIt.getRightKey(), entryIt.getValue());
 		}
 
 		// If it was changed, widenedState is now a new state
