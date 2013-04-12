@@ -23,7 +23,6 @@ import java.io.*;
 import org.jakstab.util.*;
 import org.jakstab.analysis.*;
 import org.jakstab.analysis.explicit.BoundedAddressTracking;
-import org.jakstab.analysis.explicit.VpcTrackingAnalysis;
 import org.jakstab.loader.*;
 import org.jakstab.ssl.Architecture;
 
@@ -153,9 +152,6 @@ public class VpcCfgMain {
 			Options.cpas.setValue("v");
 
 			// No need to be sound
-			//Options.ignoreWeakUpdates.setValue(Boolean.TRUE);
-			BoundedAddressTracking.stopOnFirstWidening.setValue(false);
-			VpcTrackingAnalysis.vpcName.setValue(null);
 
 			logger.error(Characters.DOUBLE_LINE_FULL_WIDTH);
 

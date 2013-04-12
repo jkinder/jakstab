@@ -56,7 +56,6 @@ public class BoundedAddressTracking implements ConfigurableProgramAnalysis {
 	public static JOption<Integer> heapThreshold = JOption.create("heap-threshold", "k", 5, "Explicit threshold for data stored on the heap.");
 	public static JOption<Boolean> repPrecBoost = JOption.create("rep-prec-boost", "Increase precision for rep-prefixed instructions.");
 	public static JOption<Boolean> keepDeadStack = JOption.create("keep-dead-stack", "Do not discard stack contents below current stack pointer.");
-	public static JOption<Boolean> stopOnFirstWidening = JOption.create("stop-on-first-widening", "Stop on first widening, useful only for debugging.");
 	
 	public BoundedAddressTracking() {
 	}
@@ -108,7 +107,6 @@ public class BoundedAddressTracking implements ConfigurableProgramAnalysis {
 					// intercepted by the precision-aware setValue)
 					if (countRegions(existingValues) > threshold) {
 						eprec.stopTracking(v);
-						recordWidening(widenedState, v);
 						if (!changed) {
 							widenedState = new BasedNumberValuation(widenedState);
 							changed = true;
@@ -116,7 +114,6 @@ public class BoundedAddressTracking implements ConfigurableProgramAnalysis {
 						widenedState.setValue(v, BasedNumberElement.getTop(v.getBitWidth()));
 					} else {
 						eprec.trackRegionOnly(v);
-						recordWidening(widenedState, v);
 						if (!changed) {
 							widenedState = new BasedNumberValuation(widenedState);
 							changed = true;
@@ -146,7 +143,6 @@ public class BoundedAddressTracking implements ConfigurableProgramAnalysis {
 				if (existingValues.size() > threshold) {
 					if (countRegions(existingValues) > 5*threshold) {
 						eprec.stopTracking(region, offset);
-						recordWidening(widenedState, region, offset, value.getBitWidth());
 						if (!changed) {
 							widenedState = new BasedNumberValuation(widenedState);
 							changed = true;
@@ -156,7 +152,6 @@ public class BoundedAddressTracking implements ConfigurableProgramAnalysis {
 								BasedNumberElement.getTop(value.getBitWidth()));
 					} else {
 						eprec.trackRegionOnly(region, offset);
-						recordWidening(widenedState, region, offset, value.getBitWidth());
 						if (!changed) {
 							widenedState = new BasedNumberValuation(widenedState);
 							changed = true;
@@ -221,18 +216,4 @@ public class BoundedAddressTracking implements ConfigurableProgramAnalysis {
 		return regions.size();
 	}
 	
-	private void recordWidening(BasedNumberValuation s, ValueContainer e) {
-		if (!stopOnFirstWidening.getValue())
-			return;
-		throw new WideningException(s, e);
-	}
-	
-	private void recordWidening(BasedNumberValuation s, MemoryRegion r, long offset, int bitwidth) {
-		if (!stopOnFirstWidening.getValue())
-			return;
-		
-		recordWidening(s, new MemoryReference(r, offset, bitwidth));
-	}
-
-
 }
