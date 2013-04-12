@@ -51,7 +51,7 @@ import com.google.common.collect.SetMultimap;
 public class VpcCfgReconstruction implements Algorithm {
 	
 	@SuppressWarnings("unused")
-	private static final Logger logger = Logger.getLogger(ControlFlowGraph.class);
+	private static final Logger logger = Logger.getLogger(VpcCfgReconstruction.class);
 	
 	private static final int VPC_BITWIDTH = Program.getProgram().getArchitecture().getAddressBitWidth();
 
@@ -124,8 +124,8 @@ public class VpcCfgReconstruction implements Algorithm {
 			
 			Instruction newInstr = substituteInstruction(l.getAddress(), instr, entry.getValue());
 			if (newInstr != instr) {
-				logger.debug("Substituted " + l.getAddress() + " " + p.getInstructionString(l.getAddress(), instr) + " to become " + 
-						p.getInstructionString(l.getAddress(), newInstr));
+				//logger.debug("Substituted " + l.getAddress() + " " + p.getInstructionString(l.getAddress(), instr) + " to become " + 
+				//		p.getInstructionString(l.getAddress(), newInstr));
 				asmCfg.setInstruction(l, newInstr);
 			}
 		}
