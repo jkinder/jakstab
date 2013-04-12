@@ -163,6 +163,10 @@ public class Architecture {
 	public SetOfVariables getRegisters() {
 		return registers;
 	}
+	
+	public boolean isRegister(RTLVariable var) {
+		return registers.contains(var);
+	}
 
 	/**
 	 * Writes the whole instruction set to System.out.
