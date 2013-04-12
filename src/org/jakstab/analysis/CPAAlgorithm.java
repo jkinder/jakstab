@@ -199,6 +199,9 @@ public class CPAAlgorithm implements Algorithm {
 
 			// We need the state before precision refinement for building the ART  
 			AbstractState unadjustedState = worklist.pick();
+			
+			// Prefix everything by current location for easier debugging
+			//Logger.setGlobalPrefix(unadjustedState.getLocation().toString());
 
 			precision = precisionMap.get(unadjustedState.getLocation());
 			
@@ -221,10 +224,6 @@ public class CPAAlgorithm implements Algorithm {
 						targetPrecision = cpa.initPrecision(cfaEdge.getTarget(), cfaEdge.getTransformer());
 						precisionMap.put(cfaEdge.getTarget(), targetPrecision);
 					}
-
-					// Prefix everything by current location for easier debugging
-					//Logger.setGlobalPrefix(cfaEdge.getSource().toString());
-
 
 					// Calculate the set of abstract successors
 					// post() might throw exceptions 
