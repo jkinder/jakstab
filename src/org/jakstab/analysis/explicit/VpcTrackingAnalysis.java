@@ -24,6 +24,7 @@ import java.util.Set;
 
 import org.jakstab.AnalysisProperties;
 import org.jakstab.JOption;
+import org.jakstab.Program;
 import org.jakstab.analysis.AbstractState;
 import org.jakstab.analysis.CPAOperators;
 import org.jakstab.analysis.ConfigurableProgramAnalysis;
@@ -38,6 +39,7 @@ import org.jakstab.cfa.Location;
 import org.jakstab.cfa.StateTransformer;
 import org.jakstab.rtl.expressions.RTLVariable;
 import org.jakstab.rtl.statements.RTLStatement;
+import org.jakstab.ssl.Architecture;
 import org.jakstab.util.Logger;
 import org.jakstab.util.Pair;
 import org.jakstab.util.MapMap.EntryIterator;
@@ -58,9 +60,11 @@ public class VpcTrackingAnalysis implements ConfigurableProgramAnalysis {
 	public static JOption<String> vpcName = JOption.create("vpc", "r", "esi", "Register to be used as virtual program counter.");
 	
 	private Map<Location, VpcPrecision> vpcPrecisionMap;
+	private Architecture arch;
 	
 	public VpcTrackingAnalysis() {
 		vpcPrecisionMap = new HashMap<Location, VpcPrecision>();
+		arch = Program.getProgram().getArchitecture();
 	}
 	
 	@Override
@@ -174,10 +178,11 @@ public class VpcTrackingAnalysis implements ConfigurableProgramAnalysis {
 		
 		// Collect all values for all variables
 		for (Map.Entry<RTLVariable, BasedNumberElement> entry : widenedState.getVariableValuation()) {
-			if (eprec.varMap.put(entry.getKey(), entry.getValue())) {
-				if (vprec.getVpc() == null && 
-						eprec.varMap.get(entry.getKey()).size() > BoundedAddressTracking.varThreshold.getValue()) {
-					vprec.setVpc(entry.getKey());
+			RTLVariable var = entry.getKey();
+			if (eprec.varMap.put(var, entry.getValue())) {
+				if (vprec.getVpc() == null && arch.isRegister(var) && 
+						eprec.varMap.get(var).size() > BoundedAddressTracking.varThreshold.getValue()) {
+					vprec.setVpc(var);
 					logger.debug("Set VPC to " + vprec.getVpc());
 				}
 					
