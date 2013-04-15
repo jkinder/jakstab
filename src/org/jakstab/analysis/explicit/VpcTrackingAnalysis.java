@@ -143,14 +143,18 @@ public class VpcTrackingAnalysis implements ConfigurableProgramAnalysis {
 						vprec.setVpc(new MemoryReference(entryIt.getLeftKey(), 
 								entryIt.getRightKey(), existingValues.iterator().next().getBitWidth()));
 						logger.debug("Set VPC to " + vprec.getVpc());
-						// don't widen the new VPC
+
 						vpcThreshold = existingValues.size();
 					}
 
 				}
 			}
+			
+			// Reload explicit precision if VPC was set
+			if (vprec.getVpc() != null)
+				eprec = vprec.getPrecision(widenedState);
 		}
-		
+
 		
 		// Only check value counts if we have at least enough states to reach it
 		if (reached.size() > Math.min(BoundedAddressTracking.varThreshold.getValue(), 
