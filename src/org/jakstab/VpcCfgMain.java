@@ -174,7 +174,7 @@ public class VpcCfgMain {
 			graphWriter.writeAssemblyVCFG(baseFileName + "_asmvcfg2", cfr.getART());
 			graphWriter.writeVpcTopologyGraph(baseFileName + "_vtopo", cfr.getART());
 			graphWriter.writeVpcBasicBlockGraph(baseFileName + "_vcfg", cfr.getART());
-			//graphWriter.writeDisassembly(baseFileName + "_jak.asm");
+			graphWriter.writeDisassembly(baseFileName + "_jak.asm");
 
 			long overallEndTime = System.currentTimeMillis();			
 

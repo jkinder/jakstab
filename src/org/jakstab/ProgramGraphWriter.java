@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.util.*;
 
 import org.jakstab.analysis.*;
+import org.jakstab.analysis.explicit.VpcTrackingAnalysis;
 import org.jakstab.asm.AbsoluteAddress;
 import org.jakstab.asm.BranchInstruction;
 import org.jakstab.asm.Instruction;
@@ -111,6 +112,10 @@ public class ProgramGraphWriter {
 		
 		try {
 			FileWriter out = new FileWriter(filename);
+			
+			VpcTrackingAnalysis vpcAnalysis = (VpcTrackingAnalysis)AnalysisManager.getInstance()
+					.getAnalysis(VpcTrackingAnalysis.class);
+			
 			for (Map.Entry<AbsoluteAddress,Instruction> entry : program.getAssemblyMap().entrySet()) {
 				AbsoluteAddress pc = entry.getKey();
 				Instruction instr = entry.getValue();
@@ -121,6 +126,12 @@ public class ProgramGraphWriter {
 					sb.append(symFinder.getSymbolFor(pc));
 					sb.append(":").append(Characters.NEWLINE);
 				}
+				if (vpcAnalysis != null) {
+					ValueContainer vpc = vpcAnalysis.getVPC(new RTLLabel(pc));
+					sb.append(vpc == null ? "" : vpc);
+					sb.append("\t");
+				}
+				
 				sb.append(pc).append(":\t");
 				sb.append(instr.toString(pc.getValue(), symFinder));
 				
