@@ -144,6 +144,8 @@ public final class BasedNumberValuation implements AbstractState {
 		
 	}
 	*/
+	
+	public static final BasedNumberValuation BOT = new BasedNumberValuation();
 		
 	private static final Logger logger = Logger.getLogger(BasedNumberValuation.class);
 	
@@ -445,6 +447,10 @@ public final class BasedNumberValuation implements AbstractState {
 	}
 
 	public Set<AbstractState> abstractPost(final RTLStatement statement, final Precision precision) {
+		
+		if (isBot())
+			return Collections.singleton((AbstractState)this);
+		
 		final ExplicitPrecision eprec = (ExplicitPrecision)precision;
 		
 		return statement.accept(new DefaultStatementVisitor<Set<AbstractState>>() {
@@ -854,7 +860,7 @@ public final class BasedNumberValuation implements AbstractState {
 			
 			@Override
 			public Set<AbstractState> visit(RTLCallReturn stmt) {
-				return Collections.emptySet();
+				return Collections.singleton((AbstractState)BOT);
 			}
 
 			@Override
@@ -866,6 +872,8 @@ public final class BasedNumberValuation implements AbstractState {
 	}
 	
 	public BasedNumberElement getValue(ValueContainer var) {
+		assert (!isBot());
+		
 		if (var instanceof RTLVariable) {
 			return getValue((RTLVariable)var);
 		} if (var instanceof MemoryReference) {
@@ -880,14 +888,20 @@ public final class BasedNumberValuation implements AbstractState {
 	}
 
 	public BasedNumberElement getValue(RTLVariable var) {
+		assert (!isBot());
+		
 		return aVarVal.get(var);
 	}
 
 	void setValue(RTLVariable var, BasedNumberElement value) {
+		assert (!isBot());
+		
 		aVarVal.set(var, value);
 	}
 	
 	void setValue(RTLVariable var, BasedNumberElement value, ExplicitPrecision precision) {
+		assert (!isBot());
+		
 		BasedNumberElement valueToSet;
 		switch (precision.getTrackingLevel(var)) {
 		case NONE:
@@ -905,6 +919,8 @@ public final class BasedNumberValuation implements AbstractState {
 	}
 
 	private BasedNumberElement getMemoryValue(BasedNumberElement pointer, int bitWidth) {
+		assert (!isBot());
+		
 		if (pointer.isTop() || pointer.isNumberTop()) return BasedNumberElement.getTop(bitWidth);
 		long offset = pointer.getNumber().longValue(); 
 		return aStore.get(pointer.getRegion(), offset, bitWidth);
@@ -912,6 +928,8 @@ public final class BasedNumberValuation implements AbstractState {
 
 	// Returns true if set was successful, false if memory was overapproximated
 	private boolean setMemoryValue(BasedNumberElement pointer, int bitWidth, BasedNumberElement value, ExplicitPrecision precision) {
+		assert (!isBot());
+
 		if (pointer.isTop()) {
 			aStore.setTop();
 			return false;
@@ -941,6 +959,8 @@ public final class BasedNumberValuation implements AbstractState {
 	}
 	
 	private String getCString(MemoryRegion region, long offset) {
+		assert (!isBot());
+
 		StringBuilder res = new StringBuilder();
 		int length = 0;
 		while (true) {
@@ -958,6 +978,8 @@ public final class BasedNumberValuation implements AbstractState {
 	 * Just a hack, not really a unicode implementation.
 	 */
 	private String getWString(MemoryRegion region, long offset) {
+		assert (!isBot());
+
 		StringBuilder res = new StringBuilder();
 		int length = 0;
 		boolean firstByte = true;
@@ -984,7 +1006,7 @@ public final class BasedNumberValuation implements AbstractState {
 
 	@Override
 	public boolean isBot() {
-		return false;
+		return this == BOT;
 	}
 
 	private void clearTemporaryVariables() {
@@ -993,9 +1015,6 @@ public final class BasedNumberValuation implements AbstractState {
 		}
 	}
 	
-	/*
-	 * @see org.jakstab.analysis.AbstractState#join(org.jakstab.analysis.AbstractState)
-	 */
 	@Override
 	public BasedNumberValuation join(LatticeElement l) {
 		BasedNumberValuation other = (BasedNumberValuation)l;
@@ -1029,6 +1048,8 @@ public final class BasedNumberValuation implements AbstractState {
 		if (!(obj instanceof BasedNumberValuation)) return false;
 		BasedNumberValuation other = (BasedNumberValuation)obj;
 		if (other == this) return true;
+		// If both are BOT, previous check would have been true
+		if (isBot() || other.isBot()) return false;
 
 		return aVarVal.equals(other.aVarVal) && aStore.equals(other.aStore);
 	}
@@ -1054,6 +1075,9 @@ public final class BasedNumberValuation implements AbstractState {
 	@Override
 	public Set<Tuple<RTLNumber>> projectionFromConcretization(
 			RTLExpression... expressions) {
+		
+		if (isBot())
+			return Collections.emptySet();
 
 		Tuple<Set<RTLNumber>> cValues = new Tuple<Set<RTLNumber>>(expressions.length);
 		for (int i=0; i<expressions.length; i++) {
