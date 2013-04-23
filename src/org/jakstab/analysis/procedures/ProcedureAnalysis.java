@@ -83,18 +83,25 @@ public class ProcedureAnalysis implements ConfigurableProgramAnalysis {
 			@Override
 			public Set<AbstractState> visit(RTLAssume assume) {
 				if (assume.getSource() != null) {
+					AbstractState post;
 					switch (assume.getSource().getType()) {
 					case CALL:
 						callSites.add(Pair.create(edge.getSource(), edge.getTarget()));
 						callees.add(edge.getTarget());
-						AbstractState post = new ProcedureState(new FastSet<Location>(edge.getTarget()));
+						post = new ProcedureState(new FastSet<Location>(edge.getTarget()));
 						return Collections.singleton(post);
 					case RETURN:
 						//post = new ProcedureState(new FastSet<Location>(((Location)edge.getTarget())));
 						// FIXME: We would need to have a callstack to determine the procedure we are returning to
 						// So currently this works only with OptimisticTransformerFactory
 						// post = getProcedureState((getCallStackElement().getLabel()))
-						return Collections.emptySet();
+						// Returning empty set means that the target is unreachable (because the analysis has to be
+						// over-approximate), which isn't true.
+						//return Collections.emptySet();
+						// 
+						// return BOT procedure state so it gets merged with fall-through of call 
+						post = new ProcedureState(new FastSet<Location>());
+						return Collections.singleton(post);
 					}
 				}
 				return Collections.singleton(state);
