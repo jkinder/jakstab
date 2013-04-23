@@ -82,6 +82,11 @@ public abstract class DefaultStatementVisitor<T> implements StatementVisitor<T> 
 	}
 
 	@Override
+	public T visit(RTLCallReturn stmt) {
+		return visitDefault(stmt);
+		
+	}
+	@Override
 	public T visit(RTLHavoc stmt) {
 		return visitDefault(stmt);
 	}

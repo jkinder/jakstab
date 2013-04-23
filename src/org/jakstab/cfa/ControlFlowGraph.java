@@ -8,6 +8,7 @@ import java.util.Set;
 
 import org.jakstab.rtl.statements.BasicBlock;
 import org.jakstab.rtl.statements.RTLAssume;
+import org.jakstab.rtl.statements.RTLCallReturn;
 import org.jakstab.rtl.statements.RTLSkip;
 import org.jakstab.rtl.statements.RTLStatement;
 import org.jakstab.util.FastSet;
@@ -253,6 +254,8 @@ public abstract class ControlFlowGraph {
 					// Normally this is because of an assume - add the Goto to the BB instead of an assume
 					if (edge.getTransformer() instanceof RTLAssume) {
 						bb.add(((RTLAssume)edge.getTransformer()).getSource());
+					} else if (edge.getTransformer() instanceof RTLCallReturn) {
+						// Don't show fall-through edges of calls for now
 					} else {
 						// Multiple edges on a non-assume statement - this can happen with VPC CFGs where
 						// the VPC value is modified directly. In this case, put the statement and break

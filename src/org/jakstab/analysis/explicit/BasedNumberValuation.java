@@ -853,6 +853,11 @@ public final class BasedNumberValuation implements AbstractState {
 			}
 			
 			@Override
+			public Set<AbstractState> visit(RTLCallReturn stmt) {
+				return Collections.emptySet();
+			}
+
+			@Override
 			public Set<AbstractState> visitDefault(RTLStatement stmt) {
 				return thisState();
 			}

@@ -195,7 +195,7 @@ public class ControlFlowReconstruction implements Algorithm {
 				transformerFactory = new PessimisticStateTransformerFactory();
 				break;
 			case 1:
-				transformerFactory = new SemiOptimisticStateTransformerFactory();
+				transformerFactory = new InterproceduralTransformerFactory();
 				break;
 			case 2:
 				transformerFactory = new OptimisticStateTransformerFactory();

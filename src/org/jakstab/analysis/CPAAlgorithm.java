@@ -240,7 +240,7 @@ public class CPAAlgorithm implements Algorithm {
 					}
 
 					if (successors.isEmpty()) {
-						logger.debug("No successors along edge " + cfaEdge + ", reached halt?");
+						logger.debug("No successors along edge " + cfaEdge);
 						continue;
 					}
 

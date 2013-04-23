@@ -1,5 +1,5 @@
 /*
- * SemiOptimisticStateTransformerFactory.java - This file is part of the Jakstab project.
+ * PessimisticStateTransformerFactory.java - This file is part of the Jakstab project.
  * Copyright 2007-2012 Johannes Kinder <jk@jakstab.org>
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -17,8 +17,11 @@
  */
 package org.jakstab.cfa;
 
+import java.util.Iterator;
 import java.util.Set;
 
+import org.jakstab.Options;
+import org.jakstab.Program;
 import org.jakstab.analysis.AbstractState;
 import org.jakstab.asm.AbsoluteAddress;
 import org.jakstab.rtl.Context;
@@ -32,23 +35,38 @@ import org.jakstab.util.Logger;
 import org.jakstab.util.Tuple;
 
 /**
- * Provides CFAEdges using a medium level of assumptions. If the target of a 
- * call instruction cannot be resolved, assumes that the call returns to the
- * instruction following the callsite. 
+ * Provides state transformers which treat call/returns in an interprocedural fashion.
  * 
  * @author Johannes Kinder
  */
-public class SemiOptimisticStateTransformerFactory extends ResolvingTransformerFactory {
+public class InterproceduralTransformerFactory extends ResolvingTransformerFactory {
 
 	@SuppressWarnings("unused")
-	private static final Logger logger = Logger.getLogger(SemiOptimisticStateTransformerFactory.class);
-	
+	private static final Logger logger = Logger.getLogger(InterproceduralTransformerFactory.class);
+
 	@Override
 	public Set<CFAEdge> resolveGoto(final AbstractState a, final RTLGoto stmt) {
 
 		assert stmt.getCondition() != null;
 
 		Set<CFAEdge> results = new FastSet<CFAEdge>();
+		
+		// Add CallReturn edge for interprocedural analyses 
+		if (stmt.getType() == RTLGoto.Type.CALL) {
+			RTLLabel nextLabel = stmt.getNextLabel();
+
+			if (Program.getProgram().getHarness().contains(stmt.getAddress())) {
+				nextLabel = new RTLLabel(Program.getProgram().getHarness().getFallthroughAddress(stmt.getAddress()));
+			}
+
+			if (nextLabel != null) {
+				RTLCallReturn callReturn = new RTLCallReturn();
+				callReturn .setLabel(stmt.getLabel());
+				callReturn .setNextLabel(nextLabel);
+				results.add(new CFAEdge(stmt.getLabel(), nextLabel, callReturn));
+			}
+		} 
+
 
 		Set<Tuple<RTLNumber>> valuePairs = a.projectionFromConcretization(
 				stmt.getCondition(), stmt.getTargetExpression());
@@ -66,25 +84,35 @@ public class SemiOptimisticStateTransformerFactory extends ResolvingTransformerF
 			} else {
 				if (targetValue == null) {
 
-					if (stmt.getType() == RTLGoto.Type.CALL) {
-						// if it's a call TOP, add an unknown call edge if we're allowing unsound analysis
-						RTLUnknownProcedureCall unknownCallEdge = new RTLUnknownProcedureCall(stmt);
-						unknownCallEdge.setLabel(stmt.getLabel());
-						unknownCallEdge.setNextLabel(stmt.getNextLabel());
-						results.add(new CFAEdge(stmt.getLabel(), stmt.getNextLabel(), unknownCallEdge));
-						logger.info(stmt.getLabel() + ": Cannot resolve target expression " + 
-								stmt.getTargetExpression() + " of call. Adding unknown call edge.");
-						logger.debug("State is: " + a);
-					} else {
+					if (!Options.allEdges.getValue()) {
 						// if target could not be resolved, just leave the edge out for now
 						logger.info(stmt.getLabel() + ": Cannot resolve target expression " + 
 								stmt.getTargetExpression() + ". Continuing with unsound underapproximation.");
 						logger.debug("State is: " + a);
+						sound = false;
 						unresolvedBranches.add(stmt.getLabel());
-					}
-					sound = false;
+						if (Options.debug.getValue())
+							throw new ControlFlowException(a, "Unresolvable control flow from " + stmt.getLabel());
+						continue;
+					} else {
+						// Over-approximate target and add edges to all possible program locations (!) 
+						logger.warn(stmt.getLabel() + ": Cannot resolve target expression " + 
+								stmt.getTargetExpression() + ". Adding over-approximate edges to all program locations!");
 
-					continue;
+
+						for (Iterator<AbsoluteAddress> it = Program.getProgram().codeAddressIterator(); it.hasNext();) {
+							targetValue = it.next().toNumericConstant();
+							assumption = ExpressionFactory.createEqual(stmt.getTargetExpression(), targetValue);
+							// set next label to jump target
+							nextLabel = new RTLLabel(new AbsoluteAddress(targetValue));
+							RTLAssume assume = new RTLAssume(assumption, stmt);
+							assume.setLabel(stmt.getLabel());
+							assume.setNextLabel(nextLabel);
+							results.add(new CFAEdge(assume.getLabel(), assume.getNextLabel(), assume));
+						}
+
+						continue;
+					}
 				} else {
 					// assume (condition = true AND targetExpression = targetValue)
 					assumption = ExpressionFactory.createAnd(
@@ -92,7 +120,7 @@ public class SemiOptimisticStateTransformerFactory extends ResolvingTransformerF
 							ExpressionFactory.createEqual(
 									stmt.getTargetExpression(),
 									targetValue)
-					);
+							);
 					// set next label to jump target
 					nextLabel = new RTLLabel(new AbsoluteAddress(targetValue));
 				}
@@ -101,9 +129,13 @@ public class SemiOptimisticStateTransformerFactory extends ResolvingTransformerF
 			RTLAssume assume = new RTLAssume(assumption, stmt);
 			assume.setLabel(stmt.getLabel());
 			assume.setNextLabel(nextLabel);
-			results.add(new CFAEdge(stmt.getLabel(), nextLabel, assume));
+			// Target address sanity check
+			if (nextLabel.getAddress().getValue() < 10L) {
+				logger.warn("Control flow from " + a.getLocation() + " reaches address " + nextLabel.getAddress() + "!");
+			}
+
+			results.add(new CFAEdge(assume.getLabel(), assume.getNextLabel(), assume));
 		}
 		return results;
 	}
-
 }

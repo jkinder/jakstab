@@ -36,6 +36,7 @@ public interface StatementVisitor<T> {
 	T visit(RTLAlloc stmt);
 	T visit(RTLDealloc stmt);
 	T visit(RTLUnknownProcedureCall stmt);
+	T visit(RTLCallReturn stmt);
 	T visit(RTLHavoc stmt);
 	T visit(RTLMemset stmt);
 	T visit(RTLMemcpy stmt);

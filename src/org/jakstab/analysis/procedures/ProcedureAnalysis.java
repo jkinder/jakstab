@@ -26,7 +26,10 @@ import org.jakstab.analysis.*;
 import org.jakstab.cfa.CFAEdge;
 import org.jakstab.cfa.Location;
 import org.jakstab.cfa.StateTransformer;
+import org.jakstab.rtl.statements.DefaultStatementVisitor;
 import org.jakstab.rtl.statements.RTLAssume;
+import org.jakstab.rtl.statements.RTLCallReturn;
+import org.jakstab.rtl.statements.RTLStatement;
 import org.jakstab.util.FastSet;
 import org.jakstab.util.Logger;
 import org.jakstab.util.Pair;
@@ -39,6 +42,7 @@ public class ProcedureAnalysis implements ConfigurableProgramAnalysis {
 	public static void register(AnalysisProperties p) {
 		p.setName("Procedure detection");
 		p.setDescription("Detect procedures using call-return matching.");
+		p.setShortHand('o');
 	}
 
 	@SuppressWarnings("unused")
@@ -69,32 +73,46 @@ public class ProcedureAnalysis implements ConfigurableProgramAnalysis {
 	}
 
 	@Override
-	public Set<AbstractState> post(AbstractState state, CFAEdge edge,
+	public Set<AbstractState> post(final AbstractState state, final CFAEdge edge,
 			Precision precision) {
 		
-		if (edge.getTransformer() instanceof RTLAssume) {
-			RTLAssume assume = (RTLAssume)edge.getTransformer();
-			if (assume.getSource() != null) {
-				AbstractState post;
-				switch (assume.getSource().getType()) {
-				case CALL:
-					callSites.add(Pair.create(edge.getSource(), edge.getTarget()));
-					callees.add(edge.getTarget());
-					post = new ProcedureState(new FastSet<Location>(edge.getTarget()));
-					return Collections.singleton(post);
-				case RETURN:
-					//post = new ProcedureState(new FastSet<Location>(((Location)edge.getTarget())));
-					// FIXME: We need to have a callstack to determine the procedure we are returning to
-					// So currently this works only with OptimisticTransformerFactory
-					// post = getProcedureState((getCallStackElement().getLabel()))
-					return Collections.emptySet();
-				default:
-					return Collections.singleton(state);
+		final RTLStatement stmt = (RTLStatement)edge.getTransformer();
+		
+		return stmt.accept(new DefaultStatementVisitor<Set<AbstractState>>() {
+
+			@Override
+			public Set<AbstractState> visit(RTLAssume assume) {
+				if (assume.getSource() != null) {
+					switch (assume.getSource().getType()) {
+					case CALL:
+						callSites.add(Pair.create(edge.getSource(), edge.getTarget()));
+						callees.add(edge.getTarget());
+						AbstractState post = new ProcedureState(new FastSet<Location>(edge.getTarget()));
+						return Collections.singleton(post);
+					case RETURN:
+						//post = new ProcedureState(new FastSet<Location>(((Location)edge.getTarget())));
+						// FIXME: We would need to have a callstack to determine the procedure we are returning to
+						// So currently this works only with OptimisticTransformerFactory
+						// post = getProcedureState((getCallStackElement().getLabel()))
+						return Collections.emptySet();
+					}
 				}
+				return Collections.singleton(state);
 			}
-		}
-		// Else just keep the current procedure, includes UnknownProcedureCall edges!
-		return Collections.singleton(state);
+
+			@Override
+			public Set<AbstractState> visit(RTLCallReturn stmt) {
+				// Keep current procedure
+				return Collections.singleton(state);
+			}
+
+			@Override
+			protected Set<AbstractState> visitDefault(RTLStatement stmt) {
+				// Else just keep the current procedure, includes UnknownProcedureCall edges!
+				return Collections.singleton(state);
+			}
+			
+		});
 	}
 
 	@Override
