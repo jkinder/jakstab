@@ -249,7 +249,7 @@ public class CPAAlgorithm implements Algorithm {
 					// Process every successor
 					for (AbstractState succ : successors) {
 						//logger.debug("Processing new post state: " + succ.getIdentifier());
-
+						
 						// Try to merge the new state with an existing one 
 						Set<AbstractState> statesToRemove = new FastSet<AbstractState>();
 						Set<AbstractState> statesToAdd = new FastSet<AbstractState>();
@@ -257,7 +257,7 @@ public class CPAAlgorithm implements Algorithm {
 						for (AbstractState r : reached.where(0, ((CompositeState)succ).getComponent(0))) {
 							AbstractState merged = cpa.merge(succ, r, targetPrecision);
 							if (!merged.equals(r)) {
-								//logger.debug("Merge of " + succ.getIdentifier() + " and " + r.getIdentifier() + " produced new state " + merged.getIdentifier());
+								//logger.debug("Merge of new successor:\n" + succ + "\n and reached state:\n" + r + "\n produced new state \n" + merged);
 								statesToRemove.add(r);
 								statesToAdd.add(merged);
 							}
@@ -280,6 +280,12 @@ public class CPAAlgorithm implements Algorithm {
 
 						// if not stopped add to worklist
 						if (!cpa.stop(succ, reached, targetPrecision)) {
+
+							/*if (!statesToAdd.isEmpty()) {
+								logger.verbose("Merged successor with " + statesToAdd.size() + " states, but still adding it to reached and worklist:");
+								logger.warn(succ);
+							}*/
+							
 							worklist.add(succ);
 							reached.add(succ);
 							if (art != null) art.addChild(unadjustedState, cfaEdge, succ);

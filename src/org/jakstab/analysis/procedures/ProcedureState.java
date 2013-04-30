@@ -86,6 +86,8 @@ public class ProcedureState implements AbstractState {
 
 	@Override
 	public String toString() {
+		if (isTop()) return "[TOP]";
+		if (isBot()) return "[BOT]";
 		return procedureEntries.toString();
 	}
 

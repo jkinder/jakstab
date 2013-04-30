@@ -80,6 +80,11 @@ public class ControlFlowReconstruction implements Algorithm {
 		public int size() {
 			return priorityList.size() + worklist.size();
 		}
+		
+		@Override
+		public String toString() {
+			return size() + " elements. " + "Prio: " + priorityList.toString() + " Std: " + worklist.toString();
+		}
 
 	}
 	

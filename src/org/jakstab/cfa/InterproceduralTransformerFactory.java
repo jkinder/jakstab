@@ -61,9 +61,11 @@ public class InterproceduralTransformerFactory extends ResolvingTransformerFacto
 
 			if (nextLabel != null) {
 				RTLCallReturn callReturn = new RTLCallReturn();
-				callReturn .setLabel(stmt.getLabel());
-				callReturn .setNextLabel(nextLabel);
+				callReturn.setLabel(stmt.getLabel());
+				callReturn.setNextLabel(nextLabel);
 				results.add(new CFAEdge(stmt.getLabel(), nextLabel, callReturn));
+			} else {
+				logger.warn(stmt.getLabel() + ": CALL instruction has no fall-through address, generating no callReturn edge!");
 			}
 		} 
 
