@@ -36,8 +36,13 @@ import org.jakstab.analysis.ReachedSet;
 import org.jakstab.analysis.ValueContainer;
 import org.jakstab.cfa.CFAEdge;
 import org.jakstab.cfa.Location;
+import org.jakstab.cfa.RTLLabel;
 import org.jakstab.cfa.StateTransformer;
 import org.jakstab.rtl.expressions.RTLVariable;
+import org.jakstab.rtl.statements.DefaultStatementVisitor;
+import org.jakstab.rtl.statements.RTLAssume;
+import org.jakstab.rtl.statements.RTLCallReturn;
+import org.jakstab.rtl.statements.RTLGoto;
 import org.jakstab.rtl.statements.RTLStatement;
 import org.jakstab.ssl.Architecture;
 import org.jakstab.util.Logger;
@@ -60,10 +65,13 @@ public class VpcTrackingAnalysis implements ConfigurableProgramAnalysis {
 	public static JOption<String> vpcName = JOption.create("vpc", "r", "esi", "Register to be used as virtual program counter.");
 	
 	private Map<Location, VpcPrecision> vpcPrecisionMap;
+	private Map<Location, Location> procedureMap;
+	
 	private Architecture arch;
 	
 	public VpcTrackingAnalysis() {
 		vpcPrecisionMap = new HashMap<Location, VpcPrecision>();
+		procedureMap = new HashMap<Location, Location>();
 		arch = Program.getProgram().getArchitecture();
 	}
 	
@@ -80,11 +88,52 @@ public class VpcTrackingAnalysis implements ConfigurableProgramAnalysis {
 	}
 
 	@Override
-	public Set<AbstractState> post(AbstractState state, CFAEdge cfaEdge, Precision precision) {
+	public Set<AbstractState> post(AbstractState state, final CFAEdge cfaEdge, Precision precision) {
 		BasedNumberValuation b = (BasedNumberValuation)state;
 		VpcPrecision vprec = (VpcPrecision)precision;
-		return b.abstractPost((RTLStatement)cfaEdge.getTransformer(), 
-				vprec.getPrecision(b));
+		
+		final RTLStatement stmt = (RTLStatement)cfaEdge.getTransformer();
+		
+		if (!procedureMap.containsKey(cfaEdge.getTarget())) {
+			stmt.accept(new DefaultStatementVisitor<Void>() {
+
+				@Override
+				public Void visit(RTLAssume stmt) {
+					RTLGoto gotoStmt = stmt.getSource();
+					if (gotoStmt.getType() == RTLGoto.Type.CALL) {
+						// start new procedure
+						procedureMap.put(cfaEdge.getTarget(), cfaEdge.getTarget());
+						
+						// Fall through edge in current proc
+						if (!procedureMap.containsKey(gotoStmt.getNextLabel())) {
+							Location oldProc = procedureMap.get(cfaEdge.getSource());
+							procedureMap.put(gotoStmt.getNextLabel(), oldProc);
+						}
+						
+					} else if (stmt.getSource().getType() == RTLGoto.Type.RETURN) {
+						// do nothing
+					} else {
+						// stay in same procedure
+						procedureMap.put(cfaEdge.getTarget(), cfaEdge.getSource());
+					}
+
+					return null;
+				}
+
+				@Override
+				protected Void visitDefault(RTLStatement stmt) {
+					// includes call-return
+					Location oldProc = procedureMap.get(cfaEdge.getSource());
+					if (oldProc != null)
+						procedureMap.put(cfaEdge.getTarget(), oldProc);
+					return null;
+				}
+
+			});
+			//logger.debug(cfaEdge.getTarget() + " is in procedure " + procedureMap.get(cfaEdge.getTarget()));
+		}
+		
+		return b.abstractPost(stmt, vprec.getPrecision(b));
 	}
 	
 	@Override
