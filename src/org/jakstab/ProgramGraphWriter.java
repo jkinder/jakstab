@@ -37,6 +37,7 @@ import org.jakstab.cfa.Location;
 import org.jakstab.cfa.RTLLabel;
 import org.jakstab.cfa.VpcLocation;
 import org.jakstab.rtl.statements.BasicBlock;
+import org.jakstab.rtl.statements.RTLGoto;
 import org.jakstab.rtl.statements.RTLHalt;
 import org.jakstab.rtl.statements.RTLSkip;
 import org.jakstab.rtl.statements.RTLStatement;
@@ -554,9 +555,13 @@ public class ProgramGraphWriter {
 		// Create dot file
 		GraphWriter gwriter = createGraphWriter(filename);
 		if (gwriter == null) return;
+		
+		TreeMap<Location, BasicBlock> blockMap = new TreeMap<Location, BasicBlock>();
+		blockMap.putAll(cfg.getBasicBlocks());
 	
 		try {
-			for (Map.Entry<Location, BasicBlock> entry : cfg.getBasicBlocks().entrySet()) {
+			//for (Map.Entry<Location, BasicBlock> entry : cfg.getBasicBlocks().entrySet()) {
+			for (Map.Entry<Location, BasicBlock> entry : blockMap.entrySet()) {
 				
 				Location nodeLoc = entry.getKey();
 				BasicBlock bb = entry.getValue();
@@ -592,25 +597,40 @@ public class ProgramGraphWriter {
 				RTLLabel lastLoc = stmt.getLabel();
 				Instruction instr = program.getInstruction(lastLoc.getAddress());
 				
-				if (instr instanceof BranchInstruction) {
-					BranchInstruction bi = (BranchInstruction)instr;
-					if (bi.isConditional()) {
-						// Get the original goto from the program (not the converted assume) 
-						RTLStatement rtlGoto = program.getStatement(lastLoc);
-						
-						// If this is the fall-through edge, output F, otherwise T
-						//label = targetLoc.getAddress().equals(rtlGoto.getNextLabel().getAddress()) ? "F" : "T";
-						// If the assume in the edge has the same nextlabel as Goto, then it's the fall-through
-						label = stmt.getNextLabel().equals(rtlGoto.getNextLabel()) ? "F" : "T";
+				boolean weak = false;
+				
+				// Get the original instruction from the program, i.e., possibly a goto and not the converted assume 
+				RTLStatement origStmt = program.getStatement(lastLoc);
+				if (origStmt instanceof RTLGoto) {
+
+					if (instr instanceof BranchInstruction) {
+						BranchInstruction bi = (BranchInstruction)instr;
+						if (bi.isConditional()) {
+							// If the assume in the edge has the same nextlabel as Goto, then it's the fall-through
+							label = stmt.getNextLabel().equals(origStmt.getNextLabel()) ? "F" : "T";
+						}
+					}
+					
+					switch (((RTLGoto)origStmt).getType()) {
+					case CALL: case RETURN:
+						if (stmt.getNextLabel().equals(origStmt.getNextLabel())) {
+							label = "call return";
+						} else {
+							weak = true;
+						}
 					}
 				}
 				
+				// Only draw edges as weak if we generated fall-through edges
+				if (Options.procedureAbstraction.getValue() != 1)
+					weak = false;
+
 				gwriter.writeEdge(
 						sourceLoc.toString(), 
 						targetLoc.toString(), 
 						label,
-						e.getKind().equals(CFAEdge.Kind.MAY) ? Color.BLACK : Color.GREEN//,
-						/*instr instanceof CallInstruction || instr instanceof ReturnInstruction*/
+						e.getKind().equals(CFAEdge.Kind.MAY) ? Color.BLACK : Color.GREEN,
+						weak
 						);
 	
 			}

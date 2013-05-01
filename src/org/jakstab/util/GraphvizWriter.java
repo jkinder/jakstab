@@ -114,6 +114,8 @@ public class GraphvizWriter implements GraphWriter {
 		}
 		if (weakEdge) {
 			map.put("constraint", "false");
+			map.put("style", "dashed");
+			map.put("splines", "false");
 		}
 		writeEdge(id1, id2, map);
 		
