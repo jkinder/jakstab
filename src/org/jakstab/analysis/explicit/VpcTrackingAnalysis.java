@@ -34,6 +34,7 @@ import org.jakstab.analysis.PartitionedMemory;
 import org.jakstab.analysis.Precision;
 import org.jakstab.analysis.ReachedSet;
 import org.jakstab.analysis.ValueContainer;
+import org.jakstab.asm.AbsoluteAddress;
 import org.jakstab.cfa.CFAEdge;
 import org.jakstab.cfa.Location;
 import org.jakstab.cfa.StateTransformer;
@@ -64,13 +65,13 @@ public class VpcTrackingAnalysis implements ConfigurableProgramAnalysis {
 	
 	private static boolean procSensitiveVpc = true; 
 	private Map<Location, ValueContainer> vpcMap;
-	private Map<Location, Location> procedureMap;
+	private Map<AbsoluteAddress, Location> procedureMap;
 	
 	private Architecture arch;
 	
 	public VpcTrackingAnalysis() {
 		vpcMap = new HashMap<Location, ValueContainer>();
-		procedureMap = new HashMap<Location, Location>();
+		procedureMap = new HashMap<AbsoluteAddress, Location>();
 		arch = Program.getProgram().getArchitecture();
 	}
 	
@@ -94,48 +95,50 @@ public class VpcTrackingAnalysis implements ConfigurableProgramAnalysis {
 		final RTLStatement stmt = (RTLStatement)cfaEdge.getTransformer();
 		
 		/* Do procedure analysis - for now, this is inlined here, should be made its own analysis */
-		if (!procedureMap.containsKey(cfaEdge.getTarget())) {
-			stmt.accept(new DefaultStatementVisitor<Void>() {
+		stmt.accept(new DefaultStatementVisitor<Void>() {
 
-				private void copyOldProcToTarget(Location target) {
-					if (procedureMap.containsKey(target)) 
-							return;
-					Location oldProc = procedureMap.get(cfaEdge.getSource());
-					if (oldProc != null)
-						procedureMap.put(target, oldProc);
-				}
+			private void copyOldProcToTarget(Location target) {
+				if (getProcedure(target) != null) 
+					return;
+				Location oldProc = getProcedure(cfaEdge.getSource());
+				if (oldProc != null)
+					setProcedure(target, oldProc);
+			}
 
 
-				@Override
-				public Void visit(RTLAssume stmt) {
-					RTLGoto gotoStmt = stmt.getSource();
-					if (gotoStmt.getType() == RTLGoto.Type.CALL) {
-						// start new procedure
-						procedureMap.put(cfaEdge.getTarget(), cfaEdge.getTarget());
-						
-						// Fall through edge in current proc
+			@Override
+			public Void visit(RTLAssume stmt) {
+				RTLGoto gotoStmt = stmt.getSource();
+				if (gotoStmt.getType() == RTLGoto.Type.CALL) {
+					// start new procedure unless we're calling into the middle of an existing one
+					if (getProcedure(cfaEdge.getTarget()) == null)
+						setProcedure(cfaEdge.getTarget(), cfaEdge.getTarget());
+
+					// Fall through edge in current proc
+					if (gotoStmt.getNextLabel() != null) {
 						copyOldProcToTarget(gotoStmt.getNextLabel());
-						
-					} else if (stmt.getSource().getType() == RTLGoto.Type.RETURN) {
-						// do nothing
-					} else {
-						// stay in same procedure
-						copyOldProcToTarget(cfaEdge.getTarget());
 					}
 
-					return null;
-				}
-
-				@Override
-				protected Void visitDefault(RTLStatement stmt) {
-					// includes call-return
+				} else if (stmt.getSource().getType() == RTLGoto.Type.RETURN) {
+					// do nothing
+				} else {
+					// stay in same procedure
 					copyOldProcToTarget(cfaEdge.getTarget());
-					return null;
 				}
 
-			});
-			//logger.debug(cfaEdge.getTarget() + " is in procedure " + procedureMap.get(cfaEdge.getTarget()));
-		}
+				return null;
+			}
+
+			@Override
+			protected Void visitDefault(RTLStatement stmt) {
+				// includes call-return
+				copyOldProcToTarget(cfaEdge.getTarget());
+				return null;
+			}
+
+		});
+		//logger.debug(cfaEdge.getTarget() + " is in procedure " + procedureMap.get(cfaEdge.getTarget()));
+
 		assert (cfaEdge.getTarget().equals(vprec.getLocation()));
 		
 		BasedNumberElement vpcValue = getVpcValue(b, getVpc(cfaEdge.getTarget()));
@@ -151,7 +154,11 @@ public class VpcTrackingAnalysis implements ConfigurableProgramAnalysis {
 	}
 	
 	public Location getProcedure(Location location) {
-		return procedureMap.get(location);
+		return procedureMap.get(location.getAddress());
+	}
+	
+	private void setProcedure(Location location, Location procHead) {
+		procedureMap.put(location.getAddress(), procHead);
 	}
 	
 	public ValueContainer getVpc(Location location) {
