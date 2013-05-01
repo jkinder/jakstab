@@ -21,7 +21,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.jakstab.analysis.Precision;
-import org.jakstab.analysis.ValueContainer;
+import org.jakstab.cfa.Location;
 
 /**
  * Maps VPC values to explicit precision objects to realize the domain lifting for VPC-sensitivity.
@@ -31,29 +31,25 @@ import org.jakstab.analysis.ValueContainer;
 public class VpcPrecision implements Precision {
 
 	private Map<BasedNumberElement, ExplicitPrecision> vpcMap;
-	private ValueContainer vpc;
+	private final Location location;
 	
-	VpcPrecision() {
+	VpcPrecision(Location location) {
 		vpcMap = new HashMap<BasedNumberElement, ExplicitPrecision>();
-		vpc = null;
+		this.location = location;
 	}
 	
-	public void setVpc(ValueContainer vpc) {
-		this.vpc = vpc;
+	public Location getLocation() {
+		return location;
 	}
 
-	public ValueContainer getVpc() {
-		return vpc;
-	}
-
-	public ExplicitPrecision getPrecision(BasedNumberValuation b) {
-		BasedNumberElement vpcValue;
+	public ExplicitPrecision getPrecision(BasedNumberElement vpcValue) {
+		/*BasedNumberElement vpcValue;
 		// If there's no VPC for this location (yet), assume TOP as VPC value 
 		if (vpc == null) {
 			vpcValue = BasedNumberElement.getTop(32);
 		} else {
 			vpcValue = b.getValue(vpc);
-		}
+		}*/
 		ExplicitPrecision eprec = vpcMap.get(vpcValue);
 		if (eprec == null) {
 			eprec = new ExplicitPrecision(BoundedAddressTracking.varThreshold.getValue());

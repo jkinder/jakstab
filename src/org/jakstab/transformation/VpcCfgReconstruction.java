@@ -232,7 +232,7 @@ public class VpcCfgReconstruction implements Algorithm {
 		if (Program.getProgram().isImport(l.getAddress()))
 			return BasedNumberElement.getTop(VPC_BITWIDTH);
 		
-		ValueContainer vpcVar = vpcAnalysis.getVPC(l);
+		ValueContainer vpcVar = vpcAnalysis.getVpc(l);
 		CompositeState cState = (CompositeState)s;
 		BasedNumberElement vpcVal;
 		if (vpcVar == null) {

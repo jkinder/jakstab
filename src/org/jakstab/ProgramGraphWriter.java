@@ -127,7 +127,7 @@ public class ProgramGraphWriter {
 					sb.append(":").append(Characters.NEWLINE);
 				}
 				if (vpcAnalysis != null) {
-					ValueContainer vpc = vpcAnalysis.getVPC(new RTLLabel(pc));
+					ValueContainer vpc = vpcAnalysis.getVpc(new RTLLabel(pc));
 					sb.append(vpc == null ? "" : vpc);
 					sb.append("\t");
 				}

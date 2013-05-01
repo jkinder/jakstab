@@ -62,13 +62,14 @@ public class VpcTrackingAnalysis implements ConfigurableProgramAnalysis {
 	}
 	public static JOption<String> vpcName = JOption.create("vpc", "r", "esi", "Register to be used as virtual program counter.");
 	
-	private Map<Location, VpcPrecision> vpcPrecisionMap;
+	private static boolean procSensitiveVpc = true; 
+	private Map<Location, ValueContainer> vpcMap;
 	private Map<Location, Location> procedureMap;
 	
 	private Architecture arch;
 	
 	public VpcTrackingAnalysis() {
-		vpcPrecisionMap = new HashMap<Location, VpcPrecision>();
+		vpcMap = new HashMap<Location, ValueContainer>();
 		procedureMap = new HashMap<Location, Location>();
 		arch = Program.getProgram().getArchitecture();
 	}
@@ -92,8 +93,18 @@ public class VpcTrackingAnalysis implements ConfigurableProgramAnalysis {
 		
 		final RTLStatement stmt = (RTLStatement)cfaEdge.getTransformer();
 		
+		/* Do procedure analysis - for now, this is inlined here, should be made its own analysis */
 		if (!procedureMap.containsKey(cfaEdge.getTarget())) {
 			stmt.accept(new DefaultStatementVisitor<Void>() {
+
+				private void copyOldProcToTarget(Location target) {
+					if (procedureMap.containsKey(target)) 
+							return;
+					Location oldProc = procedureMap.get(cfaEdge.getSource());
+					if (oldProc != null)
+						procedureMap.put(target, oldProc);
+				}
+
 
 				@Override
 				public Void visit(RTLAssume stmt) {
@@ -103,16 +114,13 @@ public class VpcTrackingAnalysis implements ConfigurableProgramAnalysis {
 						procedureMap.put(cfaEdge.getTarget(), cfaEdge.getTarget());
 						
 						// Fall through edge in current proc
-						if (!procedureMap.containsKey(gotoStmt.getNextLabel())) {
-							Location oldProc = procedureMap.get(cfaEdge.getSource());
-							procedureMap.put(gotoStmt.getNextLabel(), oldProc);
-						}
+						copyOldProcToTarget(gotoStmt.getNextLabel());
 						
 					} else if (stmt.getSource().getType() == RTLGoto.Type.RETURN) {
 						// do nothing
 					} else {
 						// stay in same procedure
-						procedureMap.put(cfaEdge.getTarget(), cfaEdge.getSource());
+						copyOldProcToTarget(cfaEdge.getTarget());
 					}
 
 					return null;
@@ -121,23 +129,50 @@ public class VpcTrackingAnalysis implements ConfigurableProgramAnalysis {
 				@Override
 				protected Void visitDefault(RTLStatement stmt) {
 					// includes call-return
-					Location oldProc = procedureMap.get(cfaEdge.getSource());
-					if (oldProc != null)
-						procedureMap.put(cfaEdge.getTarget(), oldProc);
+					copyOldProcToTarget(cfaEdge.getTarget());
 					return null;
 				}
 
 			});
 			//logger.debug(cfaEdge.getTarget() + " is in procedure " + procedureMap.get(cfaEdge.getTarget()));
 		}
+		assert (cfaEdge.getTarget().equals(vprec.getLocation()));
 		
-		return b.abstractPost(stmt, vprec.getPrecision(b));
+		BasedNumberElement vpcValue = getVpcValue(b, getVpc(cfaEdge.getTarget()));
+		ExplicitPrecision eprec = vprec.getPrecision(vpcValue);
+
+		return b.abstractPost(stmt, eprec);
 	}
 	
 	@Override
 	public AbstractState strengthen(AbstractState s, Iterable<AbstractState> otherStates,
 			CFAEdge cfaEdge, Precision precision) {
 		return s;
+	}
+	
+	public Location getProcedure(Location location) {
+		return procedureMap.get(location);
+	}
+	
+	public ValueContainer getVpc(Location location) {
+		if (procSensitiveVpc)
+			location = getProcedure(location);
+
+		return vpcMap.get(location);
+	}
+
+	private void setVpc(Location location, ValueContainer vpc) {
+		if (procSensitiveVpc)
+			location = getProcedure(location);
+		
+		vpcMap.put(location, vpc);
+	}
+	
+	private BasedNumberElement getVpcValue(BasedNumberValuation s, ValueContainer vpc) {
+		if (vpc == null)
+			return BasedNumberElement.getTop(32);
+		else
+			return s.getValue(vpc);
 	}
 
 	@Override
@@ -147,11 +182,11 @@ public class VpcTrackingAnalysis implements ConfigurableProgramAnalysis {
 		
 		VpcPrecision vprec = (VpcPrecision)precision;
 		BasedNumberValuation widenedState = (BasedNumberValuation)s;
-		//BasedNumberElement vpcValue = widenedState.getValue(vpc);
-		ExplicitPrecision eprec = vprec.getPrecision(widenedState);
+		Location loc = vprec.getLocation();
+		BasedNumberElement vpcValue = getVpcValue(widenedState, getVpc(loc));
+		ExplicitPrecision eprec = vprec.getPrecision(vpcValue);
 		
-		
-		if (vprec.getVpc() == null) {
+		if (getVpc(loc) == null) {
 
 			// Make it -1 so that VPC detection triggers before any intermediate vars are widened 
 			// (e.g., tmp in add VPC, x) 
@@ -168,8 +203,8 @@ public class VpcTrackingAnalysis implements ConfigurableProgramAnalysis {
 					// Check first whether we should promote this var to VPC
 					if (arch.isRegister(v) && 
 							existingValues.size() > vpcThreshold) {
-						vprec.setVpc(v);
-						logger.debug("Set VPC to " + vprec.getVpc());
+						setVpc(loc, v);
+						logger.debug("Set VPC to " + getVpc(loc));
 						// increase threshold for others
 						vpcThreshold = existingValues.size();
 					}
@@ -187,9 +222,9 @@ public class VpcTrackingAnalysis implements ConfigurableProgramAnalysis {
 					Set<BasedNumberElement> existingValues = memoryMap.get(offset);
 					
 					if (existingValues.size() > vpcThreshold) {
-						vprec.setVpc(new MemoryReference(entryIt.getLeftKey(), 
+						setVpc(loc, new MemoryReference(entryIt.getLeftKey(), 
 								entryIt.getRightKey(), existingValues.iterator().next().getBitWidth()));
-						logger.debug("Set VPC to " + vprec.getVpc());
+						logger.debug("Set VPC to " + getVpc(loc));
 
 						vpcThreshold = existingValues.size();
 					}
@@ -198,8 +233,10 @@ public class VpcTrackingAnalysis implements ConfigurableProgramAnalysis {
 			}
 			
 			// Reload explicit precision if VPC was set
-			if (vprec.getVpc() != null)
-				eprec = vprec.getPrecision(widenedState);
+			if (getVpc(loc) != null) {
+				vpcValue = getVpcValue(widenedState, getVpc(loc));
+				eprec = vprec.getPrecision(vpcValue);
+			}
 		}
 
 		
@@ -306,9 +343,8 @@ public class VpcTrackingAnalysis implements ConfigurableProgramAnalysis {
 
 	@Override
 	public Precision initPrecision(Location location, StateTransformer transformer) {		
-		VpcPrecision vpcPrec = new VpcPrecision();
+		VpcPrecision vpcPrec = new VpcPrecision(location);
 		// Store precision locally in map so we can retrieve VPCs later
-		vpcPrecisionMap.put(location, vpcPrec);
 		return vpcPrec;
 	}
 	
@@ -317,16 +353,6 @@ public class VpcTrackingAnalysis implements ConfigurableProgramAnalysis {
 		for (BasedNumberElement e : values)
 			regions.add(e.getRegion());
 		return regions.size();
-	}
-
-	public ValueContainer getVPC(Location l) {
-		VpcPrecision vpcPrec =  vpcPrecisionMap.get(l);
-		if (vpcPrec == null) {
-			logger.info("No VPC found for requested location " + l);
-			return null;
-		} else {
-			return vpcPrec.getVpc();
-		}
 	}
 
 }
