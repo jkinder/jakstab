@@ -151,6 +151,9 @@ public class VpcCfgReconstruction implements Algorithm {
 				AbstractState nextState = sPair.getRight();
 				CFAEdge edge = sPair.getLeft();
 				
+				if (isVpcStateBot(nextState))
+					continue;
+				
 				VpcLocation vpcLoc = headVpcLoc;
 				BasedNumberElement nextVpcVal = getVPC(nextState);
 				
@@ -201,6 +204,9 @@ public class VpcCfgReconstruction implements Algorithm {
 		
 		while (!worklist.isEmpty()) {
 			AbstractState headState = worklist.removeFirst();
+			if (isVpcStateBot(headState))
+				continue;
+			
 			BasedNumberElement vpcVal = getVPC(headState);
 			VpcLocation headVpcLoc = new VpcLocation(vpcVal, (RTLLabel)headState.getLocation());
 
@@ -223,6 +229,11 @@ public class VpcCfgReconstruction implements Algorithm {
 		}
 		
 		return constants;
+	}
+	
+	private boolean isVpcStateBot(AbstractState s) {
+		CompositeState cState = (CompositeState)s;
+		return ((BasedNumberValuation)cState.getComponent(vAnalysisPos)).isBot();
 	}
 	
 	private BasedNumberElement getVPC(AbstractState s) {

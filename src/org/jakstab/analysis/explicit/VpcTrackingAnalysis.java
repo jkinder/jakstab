@@ -17,6 +17,7 @@
  */
 package org.jakstab.analysis.explicit;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -89,6 +90,10 @@ public class VpcTrackingAnalysis implements ConfigurableProgramAnalysis {
 
 	@Override
 	public Set<AbstractState> post(AbstractState state, final CFAEdge cfaEdge, Precision precision) {
+		
+		if (state.isBot())
+			return Collections.singleton(state);
+		
 		BasedNumberValuation b = (BasedNumberValuation)state;
 		VpcPrecision vprec = (VpcPrecision)precision;
 		
@@ -162,6 +167,11 @@ public class VpcTrackingAnalysis implements ConfigurableProgramAnalysis {
 	}
 	
 	public ValueContainer getVpc(Location location) {
+		
+		// No VPC for harness code
+		if (Program.getProgram().getModule(location.getAddress()) == null)
+			return null;
+		
 		if (procSensitiveVpc)
 			location = getProcedure(location);
 
@@ -184,6 +194,9 @@ public class VpcTrackingAnalysis implements ConfigurableProgramAnalysis {
 
 	@Override
 	public Pair<AbstractState, Precision> prec(AbstractState s, Precision precision, ReachedSet reached) {
+		
+		if (s.isBot())
+			return Pair.create(s, precision);
 		
 		// This method uses the fact that there is only 1 precision per location
 		
