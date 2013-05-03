@@ -37,4 +37,6 @@ public interface SymbolFinder {
 	public String getSymbolFor(long address);
 
 	public String getSymbolFor(AbsoluteAddress va);
+	
+	public AbsoluteAddress getAddressFor(String symbol);
 }

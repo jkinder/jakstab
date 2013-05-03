@@ -34,15 +34,19 @@ public class ELFSymbolFinder implements SymbolFinder {
 	
 	private ELFModule module;
 	Map<AbsoluteAddress, String> symbols;
+	Map<String, AbsoluteAddress> addresses;
 	
 	public ELFSymbolFinder(ELFModule module) {
 		super();
 		this.module = module;
 		symbols = new HashMap<AbsoluteAddress, String>();
+		addresses = new HashMap<String, AbsoluteAddress>();
 
 		symbols.putAll(module.getSymbolMap());
-
 		symbols.put(this.module.getEntryPoint(), "start");
+		
+		for (Map.Entry<AbsoluteAddress, String> e : symbols.entrySet())
+			addresses.put(e.getValue(), e.getKey());
 	}
 
 	@Override
@@ -60,5 +64,10 @@ public class ELFSymbolFinder implements SymbolFinder {
 	@Override
 	public boolean hasSymbolFor(AbsoluteAddress va) {
 		return symbols.containsKey(va);
+	}
+
+	@Override
+	public AbsoluteAddress getAddressFor(String symbol) {
+		return addresses.get(symbol);
 	}
 }

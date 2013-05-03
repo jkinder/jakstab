@@ -179,6 +179,11 @@ public class LinuxStubLibrary implements StubProvider {
 				public String getSymbolFor(long address) {
 					return getSymbolFor(new AbsoluteAddress(address));
 				}
+
+				@Override
+				public AbsoluteAddress getAddressFor(String symbol) {
+					return activeStubs.get(symbol);
+				}
 			};
 		}
 		return symFinder;

@@ -51,4 +51,8 @@ public class DummySymbolFinder implements SymbolFinder {
 	public boolean hasSymbolFor(AbsoluteAddress va) {
 		return false;
 	}
+
+	public AbsoluteAddress getAddressFor(String symbol) {
+		return null;
+	}
 }

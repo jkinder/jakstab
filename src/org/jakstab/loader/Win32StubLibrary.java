@@ -415,6 +415,16 @@ public class Win32StubLibrary implements StubProvider {
 				public String getSymbolFor(long address) {
 					return getSymbolFor(new AbsoluteAddress(address));
 				}
+
+				@Override
+				public AbsoluteAddress getAddressFor(String symbol) {
+					for (Map.Entry<String, Map<String, AbsoluteAddress>> e : activeStubs.entrySet()) {
+						AbsoluteAddress a = e.getValue().get(symbol);
+						if (a != null)
+							return a;
+					}
+					return null;
+				}
 			};
 		}
 		return symFinder;

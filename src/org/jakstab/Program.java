@@ -464,6 +464,15 @@ public final class Program {
 		return symbolFinder(addr).getSymbolFor(addr);
 	}
 	
+	public AbsoluteAddress getAddressForSymbol(String symbol) {
+		for (ExecutableImage module : modules) {
+			AbsoluteAddress a = module.getSymbolFinder().getAddressFor(symbol);
+			if (a != null)
+				return a;
+		}
+		return null;
+	}
+	
 	private SymbolFinder symbolFinder(AbsoluteAddress addr) {
 		if (isStub(addr))
 			return stubLibrary.getSymbolFinder();
