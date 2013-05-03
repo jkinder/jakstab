@@ -90,6 +90,18 @@ public class RTLAssume extends AbstractRTLStatement implements RTLStatement {
 	public RTLGoto getSource() {
 		return source;
 	}
+	
+	public boolean isCall() {
+		if (source == null)
+			return false;
+		return RTLGoto.Type.CALL.equals(source.getType());
+	}
+
+	public boolean isReturn() {
+		if (source == null)
+			return false;
+		return RTLGoto.Type.RETURN.equals(source.getType());
+	}
 
 	@Override
 	public int hashCode() {
