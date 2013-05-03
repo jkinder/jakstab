@@ -167,14 +167,17 @@ public class VpcCfgMain {
 				logger.error("WARNING: Analysis interrupted, CFG might be incomplete!");
 			}
 
+			ProgramGraphWriter graphWriter = new ProgramGraphWriter(program);
+			graphWriter.writeDisassembly(baseFileName + "_jak.asm");
+			graphWriter.writeProcedureAsmCfg(program.getCFG(), "realMain", baseFileName + "_realMain_asmcfg");
+
 			logger.error("Reconstructing VPC CFG");
 
-			ProgramGraphWriter graphWriter = new ProgramGraphWriter(program);
 			graphWriter.writeVpcAssemblyBasicBlockGraph(baseFileName + "_asmvcfg", cfr.getART());
 			graphWriter.writeAssemblyVCFG(baseFileName + "_asmvcfg2", cfr.getART());
+			graphWriter.writeProcedureVCFG(baseFileName + "_realMain_asmvcfg", "realMain", cfr.getART());
 			graphWriter.writeVpcTopologyGraph(baseFileName + "_vtopo", cfr.getART());
 			graphWriter.writeVpcBasicBlockGraph(baseFileName + "_vcfg", cfr.getART());
-			graphWriter.writeDisassembly(baseFileName + "_jak.asm");
 
 			long overallEndTime = System.currentTimeMillis();			
 

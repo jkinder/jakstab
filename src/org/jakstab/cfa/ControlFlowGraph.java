@@ -31,21 +31,18 @@ public abstract class ControlFlowGraph {
 	private SetMultimap<Location, CFAEdge> bbOutEdges;
 	private SetMultimap<Location, CFAEdge> bbInEdges;
 	
-	
-	public ControlFlowGraph(Set<CFAEdge> edges) {
+	protected ControlFlowGraph() {
 		outEdges = HashMultimap.create();
 		inEdges = HashMultimap.create();
 		locations = new HashSet<Location>();
-		
-		for (CFAEdge e : edges) {
-			addEdge(e);
-		}
-		
-		findEntryPoint();		
-		buildBasicBlocks();
-		assert valid();
 	}
-
+	
+	
+	public ControlFlowGraph(Set<CFAEdge> edges) {
+		this();
+		buildFromEdgeSet(edges);
+	}
+	
 	public BasicBlock getBasicBlock(Location l) {
 		return basicBlocks.get(l);
 	}
@@ -113,6 +110,16 @@ public abstract class ControlFlowGraph {
 	
 	public int numEdges() {
 		return outEdges.size();
+	}
+	
+	protected final void buildFromEdgeSet(Set<CFAEdge> edges) {
+		for (CFAEdge e : edges) {
+			addEdge(e);
+		}
+		
+		findEntryPoint();		
+		buildBasicBlocks();
+		assert valid();
 	}
 
 	protected void addEdge(CFAEdge e) {

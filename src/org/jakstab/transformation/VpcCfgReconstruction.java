@@ -86,32 +86,9 @@ public class VpcCfgReconstruction implements Algorithm {
 		Set<CFAEdge> edges = reconstructCFGFromVPC(constants);
 		
 		transformedCfg = new VpcLiftedCFG(edges);
+		
+		transformedCfg = simplifyCFG(transformedCfg);
 
-		// Simplify CFA
-		if (Options.simplifyVCFG.getValue() > 0) {
-			logger.info("=== Simplifying reconstructed CFA ===");
-			DeadCodeElimination dce;
-			long totalRemoved = 0;
-			edges = transformedCfg.getEdges();
-			dce = new DeadCodeElimination(edges, true); 
-			dce.run();
-			edges = dce.getCFA();					
-
-			transformedCfg = new ProgramCFG(edges);
-
-			if (Options.simplifyVCFG.getValue() > 1) {
-				ExpressionSubstitution subst = new ExpressionSubstitution(transformedCfg);
-				subst.run();
-				edges = subst.getCFA();
-
-				dce = new DeadCodeElimination(edges, true); 
-				dce.run();
-				edges = dce.getCFA();					
-
-				logger.info("=== Finished CFA simplification, removed " + totalRemoved + " edges. ===");
-				transformedCfg = new ProgramCFG(edges);		
-			}
-		}
 		asmCfg = new AsmCFG(transformedCfg);
 		
 		Program p = Program.getProgram();
@@ -130,6 +107,35 @@ public class VpcCfgReconstruction implements Algorithm {
 			}
 		}
 	
+	}
+	
+	private ControlFlowGraph simplifyCFG(ControlFlowGraph cfg) {
+		// Simplify CFA
+		if (Options.simplifyVCFG.getValue() > 0) {
+			logger.info("=== Simplifying reconstructed CFA ===");
+			DeadCodeElimination dce;
+			long totalRemoved = 0;
+			Set<CFAEdge> edges = cfg.getEdges();
+			dce = new DeadCodeElimination(edges, true); 
+			dce.run();
+			edges = dce.getCFA();					
+
+			cfg = new ProgramCFG(edges);
+
+			if (Options.simplifyVCFG.getValue() > 1) {
+				ExpressionSubstitution subst = new ExpressionSubstitution(cfg);
+				subst.run();
+				edges = subst.getCFA();
+
+				dce = new DeadCodeElimination(edges, true); 
+				dce.run();
+				edges = dce.getCFA();					
+
+				logger.info("=== Finished CFA simplification, removed " + totalRemoved + " edges. ===");
+				cfg = new ProgramCFG(edges);		
+			}
+		}
+		return cfg;
 	}
 	
 	private Set<CFAEdge> reconstructCFGFromVPC(Map<Location, AbstractState> constants) {

@@ -113,18 +113,18 @@ public class VpcTrackingAnalysis implements ConfigurableProgramAnalysis {
 
 			@Override
 			public Void visit(RTLAssume stmt) {
-				RTLGoto gotoStmt = stmt.getSource();
-				if (gotoStmt.getType() == RTLGoto.Type.CALL) {
+				if (stmt.isCall()) {
 					// start new procedure unless we're calling into the middle of an existing one
 					if (getProcedure(cfaEdge.getTarget()) == null)
 						setProcedure(cfaEdge.getTarget(), cfaEdge.getTarget());
 
 					// Fall through edge in current proc
+					RTLGoto gotoStmt = stmt.getSource();
 					if (gotoStmt.getNextLabel() != null) {
 						copyOldProcToTarget(gotoStmt.getNextLabel());
 					}
 
-				} else if (stmt.getSource().getType() == RTLGoto.Type.RETURN) {
+				} else if (stmt.isReturn()) {
 					// do nothing
 				} else {
 					// stay in same procedure
@@ -144,7 +144,8 @@ public class VpcTrackingAnalysis implements ConfigurableProgramAnalysis {
 		});
 		//logger.debug(cfaEdge.getTarget() + " is in procedure " + procedureMap.get(cfaEdge.getTarget()));
 
-		assert (cfaEdge.getTarget().equals(vprec.getLocation()));
+		// Will not hold if --basicblocks is enabled - precision is reused there for several locs
+		//assert (cfaEdge.getTarget().equals(vprec.getLocation()));
 		
 		BasedNumberElement vpcValue = getVpcValue(b, getVpc(cfaEdge.getTarget()));
 		ExplicitPrecision eprec = vprec.getPrecision(vpcValue);

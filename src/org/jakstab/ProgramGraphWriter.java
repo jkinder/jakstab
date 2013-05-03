@@ -33,6 +33,7 @@ import org.jakstab.cfa.AsmCFG;
 import org.jakstab.cfa.CFAEdge;
 import org.jakstab.cfa.CFAEdge.Kind;
 import org.jakstab.cfa.ControlFlowGraph;
+import org.jakstab.cfa.IntraproceduralCFG;
 import org.jakstab.cfa.Location;
 import org.jakstab.cfa.RTLLabel;
 import org.jakstab.cfa.VpcLocation;
@@ -286,10 +287,32 @@ public class ProgramGraphWriter {
 			logger.error("Cannot write to output file", e);
 			return;
 		}
-
 		
 	}
-
+	
+	public void writeProcedureAsmCfg(ControlFlowGraph cfg, String procName, String filename) {
+		AbsoluteAddress procAddress = program.getAddressForSymbol(procName);
+		if (procAddress == null) {
+			logger.error("Could not find address of procedure \"" + procName + "\"");
+			return;
+		}
+		logger.info("Writing assembly basic block graph of procedure " + procName + " to " + filename);
+		IntraproceduralCFG iCfg = new IntraproceduralCFG(cfg, procAddress);
+		writeAssemblyBBCFG(iCfg, filename);		
+	}
+	
+	public void writeProcedureVCFG(String filename, String procName, AbstractReachabilityTree art) {
+		ControlFlowGraph vCfg = getVpcGraph(art);
+		AbsoluteAddress procAddress = program.getAddressForSymbol(procName);
+		if (procAddress == null) {
+			logger.error("Could not find address of procedure \"" + procName + "\"");
+			return;
+		}
+		logger.info("Writing VPC-lifted assembly basic block graph of procedure " + procName + " to " + filename);
+		IntraproceduralCFG iCfg = new IntraproceduralCFG(vCfg, procAddress);
+		writeAssemblyBBCFG(iCfg, filename);		
+	}
+	
 	public void writeAssemblyBasicBlockGraph(ControlFlowGraph cfg, String filename) {
 		logger.info("Writing assembly basic block graph to " + filename);
 		writeAssemblyBBCFG(cfg, filename);
