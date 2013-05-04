@@ -58,6 +58,7 @@ public class VpcCfgReconstruction implements Algorithm {
 	private AbstractReachabilityTree art;
 	private ControlFlowGraph transformedCfg;
 	private AsmCFG asmCfg;
+	private Map<Location, AbstractState> constants;
 	private VpcTrackingAnalysis vpcAnalysis;
 	private int vAnalysisPos;
 	
@@ -74,6 +75,26 @@ public class VpcCfgReconstruction implements Algorithm {
 	}
 	
 	public AsmCFG getTransformedAsmCfg() {
+		if (asmCfg == null) {
+			asmCfg = new AsmCFG(transformedCfg);
+
+			//Program p = Program.getProgram();
+
+			for (Map.Entry<Location, AbstractState> entry : constants.entrySet()) {
+				Location l = entry.getKey();
+				Instruction instr = asmCfg.getInstruction(l);
+				if (instr == null)
+					continue;
+
+				Instruction newInstr = substituteInstruction(l.getAddress(), instr, entry.getValue());
+				if (newInstr != instr) {
+					//logger.debug("Substituted " + l.getAddress() + " " + p.getInstructionString(l.getAddress(), instr) + " to become " + 
+					//		p.getInstructionString(l.getAddress(), newInstr));
+					asmCfg.setInstruction(l, newInstr);
+				}
+			}
+		}
+
 		return asmCfg;
 	}
 
@@ -81,42 +102,25 @@ public class VpcCfgReconstruction implements Algorithm {
 	@Override
 	public void run() {
 		
-		Map<Location, AbstractState> constants = flattenArtOntoVpcLocations();
+		constants = flattenArtOntoVpcLocations();
 		
 		Set<CFAEdge> edges = reconstructCFGFromVPC(constants);
 		
 		transformedCfg = new VpcLiftedCFG(edges);
-		
-		transformedCfg = simplifyCFG(transformedCfg);
-
-		asmCfg = new AsmCFG(transformedCfg);
-		
-		Program p = Program.getProgram();
-		
-		for (Map.Entry<Location, AbstractState> entry : constants.entrySet()) {
-			Location l = entry.getKey();
-			Instruction instr = asmCfg.getInstruction(l);
-			if (instr == null)
-				continue;
-			
-			Instruction newInstr = substituteInstruction(l.getAddress(), instr, entry.getValue());
-			if (newInstr != instr) {
-				//logger.debug("Substituted " + l.getAddress() + " " + p.getInstructionString(l.getAddress(), instr) + " to become " + 
-				//		p.getInstructionString(l.getAddress(), newInstr));
-				asmCfg.setInstruction(l, newInstr);
-			}
-		}
+				
+	}
 	
+	public void simplifyCFG() {
+		transformedCfg = simplifyCFG(transformedCfg);
 	}
 	
 	private ControlFlowGraph simplifyCFG(ControlFlowGraph cfg) {
 		// Simplify CFA
 		if (Options.simplifyVCFG.getValue() > 0) {
 			logger.info("=== Simplifying reconstructed CFA ===");
-			DeadCodeElimination dce;
 			long totalRemoved = 0;
 			Set<CFAEdge> edges = cfg.getEdges();
-			dce = new DeadCodeElimination(edges, true); 
+			DeadCodeElimination dce = new DeadCodeElimination(edges, true); 
 			dce.run();
 			edges = dce.getCFA();					
 

@@ -107,6 +107,7 @@ public class Options {
 	private static AnalysisManager mgr = AnalysisManager.getInstance();
 	public static JOption<String> cpas = JOption.create("cpa", "{" + mgr.getShorthandsString() + "}", "x", "Configure which analyses to use for control flow reconstruction.");
 	public static JOption<String> secondaryCPAs = JOption.create("cpa2", "{" + mgr.getShorthandsString() + "}", "", "Secondary analyses to be performed after the initial CFG reconstruction and dead code elimination are completed.");
+	public static JOption<String> procedureGraph = JOption.create("procedure-graph", "p", "", "Generate intraprocedural CFG for procedure with give name (requires symbols)");
 	
 	/**
 	 * Handle command line options.

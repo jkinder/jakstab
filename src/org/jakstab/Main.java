@@ -31,6 +31,7 @@ import org.jakstab.analysis.explicit.BoundedAddressTracking;
 import org.jakstab.analysis.procedures.ProcedureAnalysis;
 import org.jakstab.analysis.procedures.ProcedureState;
 import org.jakstab.asm.*;
+import org.jakstab.cfa.IntraproceduralCFG;
 import org.jakstab.cfa.Location;
 import org.jakstab.loader.*;
 import org.jakstab.rtl.expressions.ExpressionFactory;
@@ -292,17 +293,23 @@ public class Main {
 			
 			graphWriter.writeDisassembly(baseFileName + "_jak.asm");
 			
-			if (Options.cpas.getValue().contains("v")) {
+			/*if (Options.cpas.getValue().contains("v")) {
 				graphWriter.writeVpcGraph(baseFileName + "_vilcfg", cfr.getART());
 				graphWriter.writeVpcBasicBlockGraph(baseFileName + "_vcfg", cfr.getART());
 				graphWriter.writeVpcAssemblyBasicBlockGraph(baseFileName + "_asmvcfg", cfr.getART());
-			}
+			}*/
 
 			if (!(cfr.isCompleted() && Options.secondaryCPAs.getValue().length() > 0)) {
 				if (!Options.noGraphs.getValue()) {
 					graphWriter.writeControlFlowAutomaton(program.getCFG(), baseFileName + "_cfa");
 					graphWriter.writeAssemblyBasicBlockGraph(program.getCFG(), baseFileName + "_asmcfg");
 					graphWriter.writeTopologyGraph(program.getCFG(), baseFileName + "_topo");
+					
+					if (!Options.procedureGraph.getValue().equals("")) {
+						String proc = Options.procedureGraph.getValue();
+						graphWriter.writeAssemblyBasicBlockGraph(new IntraproceduralCFG(program.getCFG(), proc), baseFileName + "_" + proc + "_asmcfg");
+					}
+					
 					//graphWriter.writeAssemblyCFG(baseFileName + "_asmcfg");
 				}
 				//if (Options.errorTrace) graphWriter.writeART(baseFileName + "_art", cfr.getART());

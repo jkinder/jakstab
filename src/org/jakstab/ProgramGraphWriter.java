@@ -33,7 +33,6 @@ import org.jakstab.cfa.AsmCFG;
 import org.jakstab.cfa.CFAEdge;
 import org.jakstab.cfa.CFAEdge.Kind;
 import org.jakstab.cfa.ControlFlowGraph;
-import org.jakstab.cfa.IntraproceduralCFG;
 import org.jakstab.cfa.Location;
 import org.jakstab.cfa.RTLLabel;
 import org.jakstab.cfa.VpcLocation;
@@ -60,7 +59,6 @@ public class ProgramGraphWriter {
 	private Program program;
 	
 	private Set<Location> mustLeaves;
-	private VpcCfgReconstruction vcfgRec;
 
 	public ProgramGraphWriter(Program program) {
 		this.program = program;
@@ -178,9 +176,9 @@ public class ProgramGraphWriter {
 		}
 	}
 	
-	public void writeAssemblyVCFG(String filename, AbstractReachabilityTree art) {
-		AsmCFG cfg = getVpcAsmGraph(art);
-		ControlFlowGraph ilCfg = getVpcGraph(art);
+	public void writeAssemblyVCFG(String filename, VpcCfgReconstruction vCfgRec) {
+		AsmCFG cfg = vCfgRec.getTransformedAsmCfg();
+		ControlFlowGraph ilCfg = vCfgRec.getTransformedCfg();
 		// Create dot file
 		GraphWriter gwriter = createGraphWriter(filename);
 		if (gwriter == null) return;
@@ -290,29 +288,6 @@ public class ProgramGraphWriter {
 		
 	}
 	
-	public void writeProcedureAsmCfg(ControlFlowGraph cfg, String procName, String filename) {
-		AbsoluteAddress procAddress = program.getAddressForSymbol(procName);
-		if (procAddress == null) {
-			logger.error("Could not find address of procedure \"" + procName + "\"");
-			return;
-		}
-		logger.info("Writing assembly basic block graph of procedure " + procName + " to " + filename);
-		IntraproceduralCFG iCfg = new IntraproceduralCFG(cfg, procAddress);
-		writeAssemblyBBCFG(iCfg, filename);		
-	}
-	
-	public void writeProcedureVCFG(String filename, String procName, AbstractReachabilityTree art) {
-		ControlFlowGraph vCfg = getVpcGraph(art);
-		AbsoluteAddress procAddress = program.getAddressForSymbol(procName);
-		if (procAddress == null) {
-			logger.error("Could not find address of procedure \"" + procName + "\"");
-			return;
-		}
-		logger.info("Writing VPC-lifted assembly basic block graph of procedure " + procName + " to " + filename);
-		IntraproceduralCFG iCfg = new IntraproceduralCFG(vCfg, procAddress);
-		writeAssemblyBBCFG(iCfg, filename);		
-	}
-	
 	public void writeAssemblyBasicBlockGraph(ControlFlowGraph cfg, String filename) {
 		logger.info("Writing assembly basic block graph to " + filename);
 		writeAssemblyBBCFG(cfg, filename);
@@ -332,27 +307,9 @@ public class ProgramGraphWriter {
 		writeControlFlowGraph(cfg, filename, reached);
 	}
 
-	public void writeVpcAssemblyBasicBlockGraph(String filename, AbstractReachabilityTree art) {
-		ControlFlowGraph vCfg = getVpcGraph(art);
-		logger.info("Writing VPC-lifted assembly basic block graph to " + filename);
-		writeAssemblyBBCFG(vCfg, filename);
-	}
-
-	public void writeVpcTopologyGraph(String filename, AbstractReachabilityTree art) {
-		ControlFlowGraph vCfg = getVpcGraph(art);
-		logger.info("Writing VPC-lifted topology graph to " + filename);
-		writeTopologicalBBCFG(vCfg, filename);
-	}
-
-	public void writeVpcGraph(String filename, AbstractReachabilityTree art) {
-		ControlFlowGraph vCfg = getVpcGraph(art);		
-		logger.info("Writing VPC-lifted CFG to " + filename);
-		writeControlFlowGraph(vCfg, filename, null);
-	}
-
-	public void writeVpcBasicBlockGraph(String filename, AbstractReachabilityTree art) {
+	public void writeVpcBasicBlockGraph(String filename, VpcCfgReconstruction vCfgRec) {
 		
-		ControlFlowGraph vCfg = getVpcGraph(art);		
+		ControlFlowGraph vCfg = vCfgRec.getTransformedCfg();		
 		// Create dot file
 		GraphWriter gwriter = createGraphWriter(filename);
 		if (gwriter == null) return;
@@ -520,22 +477,6 @@ public class ProgramGraphWriter {
 		return properties;
 	}
 	
-	private VpcCfgReconstruction getVpcCfgReconstruction(AbstractReachabilityTree art) {
-		if (vcfgRec == null) {
-			vcfgRec = new VpcCfgReconstruction(art);
-			vcfgRec.run();
-		}
-		return vcfgRec;
-	}
-	
-	private ControlFlowGraph getVpcGraph(AbstractReachabilityTree art) {
-		return getVpcCfgReconstruction(art).getTransformedCfg();
-	}
-
-	private AsmCFG getVpcAsmGraph(AbstractReachabilityTree art) {
-		return getVpcCfgReconstruction(art).getTransformedAsmCfg();
-	}
-
 	private void writeControlFlowGraph(ControlFlowGraph cfg, String filename, ReachedSet reached) {
 		// Create dot file
 		GraphWriter gwriter = createGraphWriter(filename);

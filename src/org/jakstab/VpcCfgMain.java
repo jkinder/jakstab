@@ -20,9 +20,14 @@ package org.jakstab;
 
 import java.io.*;
 
+import org.jakstab.transformation.DeadCodeElimination;
+import org.jakstab.transformation.VpcCfgReconstruction;
 import org.jakstab.util.*;
 import org.jakstab.analysis.*;
 import org.jakstab.analysis.explicit.BoundedAddressTracking;
+import org.jakstab.cfa.ControlFlowGraph;
+import org.jakstab.cfa.IntraproceduralCFG;
+import org.jakstab.cfa.ProgramCFG;
 import org.jakstab.loader.*;
 import org.jakstab.ssl.Architecture;
 
@@ -169,15 +174,38 @@ public class VpcCfgMain {
 
 			ProgramGraphWriter graphWriter = new ProgramGraphWriter(program);
 			graphWriter.writeDisassembly(baseFileName + "_jak.asm");
-			graphWriter.writeProcedureAsmCfg(program.getCFG(), "realMain", baseFileName + "_realMain_asmcfg");
 
+			String procName = Options.procedureGraph.getValue();			
+			
+			ControlFlowGraph procCFG = null;
+			if (!procName.equals("")) {
+				procCFG = new IntraproceduralCFG(program.getCFG(), procName);
+				graphWriter.writeAssemblyBasicBlockGraph(procCFG, baseFileName + "_" + procName + "_asmcfg");
+			}
+			
 			logger.error("Reconstructing VPC CFG");
+			
+			VpcCfgReconstruction vcfgRec = new VpcCfgReconstruction(cfr.getART());
+			vcfgRec.run();
+			
+			if (procCFG != null) {
+				procCFG = new IntraproceduralCFG(vcfgRec.getTransformedCfg(), procName);
 
-			graphWriter.writeVpcAssemblyBasicBlockGraph(baseFileName + "_asmvcfg", cfr.getART());
-			graphWriter.writeAssemblyVCFG(baseFileName + "_asmvcfg2", cfr.getART());
-			graphWriter.writeProcedureVCFG(baseFileName + "_realMain_asmvcfg", "realMain", cfr.getART());
-			graphWriter.writeVpcTopologyGraph(baseFileName + "_vtopo", cfr.getART());
-			graphWriter.writeVpcBasicBlockGraph(baseFileName + "_vcfg", cfr.getART());
+				if (Options.simplifyVCFG.getValue() > 0) {
+					DeadCodeElimination dce = new DeadCodeElimination(procCFG.getEdges(), true);
+					dce.run();
+					procCFG = new ProgramCFG(dce.getCFA());
+				}
+			}
+
+			//vcfgRec.simplifyCFG();
+			
+			graphWriter.writeAssemblyBasicBlockGraph(vcfgRec.getTransformedCfg(), baseFileName + "_asmvcfg");
+			//graphWriter.writeAssemblyVCFG(baseFileName + "_asmvcfg2", vcfgRec);
+			if (procCFG != null)
+				graphWriter.writeAssemblyBasicBlockGraph(procCFG, baseFileName + "_" + procName + "_asmvcfg");
+			graphWriter.writeTopologyGraph(vcfgRec.getTransformedCfg(), baseFileName + "_vtopo");
+			graphWriter.writeVpcBasicBlockGraph(baseFileName + "_vcfg", vcfgRec);
 
 			long overallEndTime = System.currentTimeMillis();			
 

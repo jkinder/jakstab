@@ -470,6 +470,7 @@ public final class Program {
 			if (a != null)
 				return a;
 		}
+		logger.error("Could not find address for symbol \"" + symbol + "\"");
 		return null;
 	}
 	

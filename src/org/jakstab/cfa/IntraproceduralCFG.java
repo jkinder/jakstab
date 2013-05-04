@@ -18,9 +18,18 @@ import org.jakstab.util.Worklist;
 public class IntraproceduralCFG extends ControlFlowGraph {
 
 	private static final Logger logger = Logger.getLogger(IntraproceduralCFG.class);
+	
+	public IntraproceduralCFG (ControlFlowGraph cfg, String procName) {
+		this(cfg, Program.getProgram().getAddressForSymbol(procName));
+	}
 
 	public IntraproceduralCFG(ControlFlowGraph cfg, AbsoluteAddress procedureHead) {
 		super();
+		if (procedureHead == null) {
+			logger.error("IntraproceduralCFG constructor called with NULL procedure head");
+			return;
+		}
+		
 		Location headLoc = findLocation(procedureHead, cfg);
 		if (headLoc == null)
 			return;
@@ -130,7 +139,7 @@ public class IntraproceduralCFG extends ControlFlowGraph {
 				worklist.add(targetLoc);
 			}
 		}
-		logger.warn("Could not find return location for call " + callEdge + " supposed to return to " + returnLabel);
+		logger.debug("Could not find return location for call " + callEdge + " supposed to return to " + returnLabel);
 		return null;
 	}
 
