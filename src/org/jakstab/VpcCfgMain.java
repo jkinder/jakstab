@@ -195,6 +195,7 @@ public class VpcCfgMain {
 					DeadCodeElimination dce = new DeadCodeElimination(procCFG.getEdges(), true);
 					dce.run();
 					procCFG = new ProgramCFG(dce.getCFA());
+					procCFG = new IntraproceduralCFG(procCFG, procName);
 				}
 			}
 
