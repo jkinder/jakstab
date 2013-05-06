@@ -17,6 +17,7 @@
  */
 package org.jakstab.analysis.explicit;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -50,6 +51,7 @@ import org.jakstab.util.Pair;
 import org.jakstab.util.MapMap.EntryIterator;
 
 import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Multimap;
 import com.google.common.collect.SetMultimap;
 
 public class VpcTrackingAnalysis implements ConfigurableProgramAnalysis {
@@ -207,27 +209,29 @@ public class VpcTrackingAnalysis implements ConfigurableProgramAnalysis {
 		BasedNumberElement vpcValue = getVpcValue(widenedState, getVpc(loc));
 		ExplicitPrecision eprec = vprec.getPrecision(vpcValue);
 		
+		// If we don't have a VPC yet, first try to determine one from value counts.
 		if (getVpc(loc) == null) {
+			
+			Multimap<Integer, ValueContainer> candidates = HashMultimap.create();
 
-			// Make it -1 so that VPC detection triggers before any intermediate vars are widened 
-			// (e.g., tmp in add VPC, x) 
 			int vpcThreshold = Math.min(BoundedAddressTracking.varThreshold.getValue(), 
 					BoundedAddressTracking.heapThreshold.getValue());
+
 			// Only check value counts if we have at least enough states to reach it
 			if (reached.size() > vpcThreshold) {
 				
 				// Check value counts for variables
 				for (RTLVariable v : eprec.varMap.keySet()) {
-					//BasedNumberElement currentValue = ((BasedNumberValuation)s).getValue(v);
 					Set<BasedNumberElement> existingValues = eprec.varMap.get(v);
 					
 					// Check first whether we should promote this var to VPC
 					if (arch.isRegister(v) && 
-							existingValues.size() > vpcThreshold) {
-						setVpc(loc, v);
-						logger.debug("Set VPC to " + getVpc(loc));
-						// increase threshold for others
-						vpcThreshold = existingValues.size();
+							existingValues.size() >= 2) {
+
+						if (v.getName().equals("eax"))
+							continue;
+						
+						candidates.put(existingValues.size(), v);
 					}
 				}
 
@@ -239,24 +243,32 @@ public class VpcTrackingAnalysis implements ConfigurableProgramAnalysis {
 					SetMultimap<Long, BasedNumberElement> memoryMap = eprec.regionMaps.get(region);
 					if (memoryMap == null) continue;
 					
-					//BasedNumberElement currentValue = entry.getValue();
 					Set<BasedNumberElement> existingValues = memoryMap.get(offset);
 					
-					if (existingValues.size() > vpcThreshold) {
-						setVpc(loc, new MemoryReference(entryIt.getLeftKey(), 
+					if (existingValues.size() >= 2) {
+						candidates.put(existingValues.size(), new MemoryReference(entryIt.getLeftKey(), 
 								entryIt.getRightKey(), existingValues.iterator().next().getBitWidth()));
-						logger.debug("Set VPC to " + getVpc(loc));
-
-						vpcThreshold = existingValues.size();
 					}
 
 				}
 			}
 			
-			// Reload explicit precision if VPC was set
-			if (getVpc(loc) != null) {
-				vpcValue = getVpcValue(widenedState, getVpc(loc));
-				eprec = vprec.getPrecision(vpcValue);
+			if (!candidates.isEmpty()) {
+				ArrayList<Integer> counts = new ArrayList<Integer>(candidates.keySet());
+				Collections.sort(counts, Collections.reverseOrder());
+				
+				if (counts.get(0) >= vpcThreshold) {				
+					logger.verbose("Value threshold reached, choosing VPC for location " + loc + ". Candidates:");
+					for (Integer c : counts)
+						logger.verbose("  " + c + ": " + candidates.get(c));
+
+					setVpc(loc, candidates.get(counts.get(0)).iterator().next());
+					logger.verbose(loc + ": Set VPC to " + getVpc(loc));
+
+					// Reload explicit precision for new VPC
+					vpcValue = getVpcValue(widenedState, getVpc(loc));
+					eprec = vprec.getPrecision(vpcValue);
+				}
 			}
 		}
 
