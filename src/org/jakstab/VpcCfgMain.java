@@ -27,7 +27,6 @@ import org.jakstab.analysis.*;
 import org.jakstab.analysis.explicit.BoundedAddressTracking;
 import org.jakstab.cfa.ControlFlowGraph;
 import org.jakstab.cfa.IntraproceduralCFG;
-import org.jakstab.cfa.ProgramCFG;
 import org.jakstab.loader.*;
 import org.jakstab.ssl.Architecture;
 
@@ -194,8 +193,7 @@ public class VpcCfgMain {
 				if (Options.simplifyVCFG.getValue() > 0) {
 					DeadCodeElimination dce = new DeadCodeElimination(procCFG.getEdges(), true);
 					dce.run();
-					procCFG = new ProgramCFG(dce.getCFA());
-					procCFG = new IntraproceduralCFG(procCFG, procName);
+					procCFG = new ControlFlowGraph(dce.getCFA());
 				}
 			}
 

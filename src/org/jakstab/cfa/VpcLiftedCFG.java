@@ -2,9 +2,8 @@ package org.jakstab.cfa;
 
 import java.util.Set;
 
-import org.jakstab.Program;
-import org.jakstab.rtl.statements.RTLGoto;
-import org.jakstab.rtl.statements.RTLStatement;
+import org.jakstab.rtl.statements.RTLAssume;
+import org.jakstab.rtl.statements.RTLCallReturn;
 import org.jakstab.util.Logger;
 
 public class VpcLiftedCFG extends ControlFlowGraph {
@@ -17,44 +16,21 @@ public class VpcLiftedCFG extends ControlFlowGraph {
 	}
 
 	protected boolean isBasicBlockHead(Location l) {
-		Set<CFAEdge> in = getInEdges(l);
-
-		if (in.size() == 0) {
-			logger.debug("Orphan block at " + l);
+		if (super.isBasicBlockHead(l))
 			return true;
+		
+		CFAEdge e = getInEdges(l).iterator().next();
+		
+		// Split blocks at calls / returns / callReturns
+		
+		if (e.getTransformer() instanceof RTLAssume) {
+			RTLAssume a = (RTLAssume)e.getTransformer();
+			return a.isCall() || a.isReturn();
 		}
 		
-		// If it has in-degree greater than 1, it's a head
-		if (in.size() > 1) {
-			return true;
-		}
-		
-		// There's only one edge
-		CFAEdge e = in.iterator().next();
-		Location predLoc = e.getSource();
-		// If out-degree of predecessor is greater than 1, this is a head
-		if (getOutDegree(predLoc) > 1)
+		if (e.getTransformer() instanceof RTLCallReturn)
 			return true;
 
-		Program program = Program.getProgram();
-
-		RTLStatement predStmt = program.getStatement(predLoc.getLabel());
-		if (!(predStmt instanceof RTLGoto))
-			return false;
-		
-		RTLGoto g = (RTLGoto)predStmt;
-		switch (g.getType()) {
-		case CALL: 
-		case RETURN: 
-			return true;
-		}
-
-		// If inEdge crosses into a stub, make this stub a new block
-		if (!program.isStub(predLoc.getAddress()) &&
-				program.isStub(l.getAddress())) {
-			return true;
-		}
-		
 		return false;
 	}
 	

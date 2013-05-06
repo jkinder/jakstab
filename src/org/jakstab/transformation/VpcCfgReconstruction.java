@@ -27,7 +27,7 @@ import org.jakstab.cfa.AsmCFG;
 import org.jakstab.cfa.CFAEdge;
 import org.jakstab.cfa.ControlFlowGraph;
 import org.jakstab.cfa.Location;
-import org.jakstab.cfa.ProgramCFG;
+import org.jakstab.cfa.FineGrainedCFG;
 import org.jakstab.cfa.RTLLabel;
 import org.jakstab.cfa.VpcLiftedCFG;
 import org.jakstab.cfa.VpcLocation;
@@ -124,7 +124,7 @@ public class VpcCfgReconstruction implements Algorithm {
 			dce.run();
 			edges = dce.getCFA();					
 
-			cfg = new ProgramCFG(edges);
+			cfg = new FineGrainedCFG(edges);
 
 			if (Options.simplifyVCFG.getValue() > 1) {
 				ExpressionSubstitution subst = new ExpressionSubstitution(cfg);
@@ -136,7 +136,7 @@ public class VpcCfgReconstruction implements Algorithm {
 				edges = dce.getCFA();					
 
 				logger.info("=== Finished CFA simplification, removed " + totalRemoved + " edges. ===");
-				cfg = new ProgramCFG(edges);		
+				cfg = new FineGrainedCFG(edges);		
 			}
 		}
 		return cfg;

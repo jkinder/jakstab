@@ -6,6 +6,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import org.jakstab.Program;
 import org.jakstab.rtl.statements.BasicBlock;
 import org.jakstab.rtl.statements.RTLAssume;
 import org.jakstab.rtl.statements.RTLCallReturn;
@@ -17,7 +18,7 @@ import org.jakstab.util.Logger;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.SetMultimap;
 
-public abstract class ControlFlowGraph {
+public class ControlFlowGraph {
 	
 	@SuppressWarnings("unused")
 	private static final Logger logger = Logger.getLogger(ControlFlowGraph.class);
@@ -146,7 +147,37 @@ public abstract class ControlFlowGraph {
 		locations.add(e.getTarget());
 	}
 	
-	protected abstract boolean isBasicBlockHead(Location l);
+	protected boolean isBasicBlockHead(Location l) {
+		Set<CFAEdge> in = getInEdges(l);
+		
+		if (in.size() <= 0) {
+			logger.debug("Orphan block at " + l);
+			return true;
+		}
+		
+		// If it has in-degree greater than 1, it's a head
+		if (in.size() > 1) {
+			return true;
+		}
+		
+		// There's only one edge
+		CFAEdge e = in.iterator().next();
+		Location predLoc = e.getSource();
+
+		// If out-degree of predecessor is greater than 1, this is a head
+		if (getOutDegree(predLoc) > 1)
+			return true;
+		
+		Program program = Program.getProgram();
+		
+		// If inEdge crosses into a stub, make this stub a new block
+		if (!program.isStub(predLoc.getAddress()) &&
+				program.isStub(l.getAddress())) {
+			return true;
+		}
+		
+		return false;		
+	}
 	
 	/**
 	 * Audit method for checking validity of the CFG.

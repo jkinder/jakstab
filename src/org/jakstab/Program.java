@@ -26,7 +26,7 @@ import org.jakstab.util.Logger;
 import org.jakstab.asm.*;
 import org.jakstab.cfa.CFAEdge;
 import org.jakstab.cfa.ControlFlowGraph;
-import org.jakstab.cfa.ProgramCFG;
+import org.jakstab.cfa.FineGrainedCFG;
 import org.jakstab.cfa.RTLLabel;
 import org.jakstab.disasm.DisassemblyException;
 import org.jakstab.loader.*;
@@ -528,7 +528,7 @@ public final class Program {
 	}
 
 	public void setCFA(Set<CFAEdge> cfa) {
-		cfg = new ProgramCFG(cfa);
+		cfg = new FineGrainedCFG(cfa);
 	}
 
 	public RTLLabel getStart() {

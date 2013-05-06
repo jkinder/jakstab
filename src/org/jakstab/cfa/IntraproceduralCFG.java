@@ -19,7 +19,7 @@ public class IntraproceduralCFG extends ControlFlowGraph {
 
 	private static final Logger logger = Logger.getLogger(IntraproceduralCFG.class);
 	
-	public IntraproceduralCFG (ControlFlowGraph cfg, String procName) {
+	public IntraproceduralCFG(ControlFlowGraph cfg, String procName) {
 		this(cfg, Program.getProgram().getAddressForSymbol(procName));
 	}
 
@@ -35,23 +35,6 @@ public class IntraproceduralCFG extends ControlFlowGraph {
 			return;
 		Set<CFAEdge> edges = filterEdges(cfg, headLoc);
 		buildFromEdgeSet(edges);
-	}
-
-	protected boolean isBasicBlockHead(Location l) {
-		Set<CFAEdge> in = getInEdges(l);
-		
-		if (in.size() != 1)
-			return true;
-		
-		// There's only one edge
-		CFAEdge e = in.iterator().next();
-		Location predLoc = e.getSource();
-
-		// If out-degree of predecessor is greater than 1, this is a head
-		if (getOutDegree(predLoc) > 1)
-			return true;
-		
-		return false;
 	}
 	
 	private Location findLocation(AbsoluteAddress a, ControlFlowGraph cfg) {
