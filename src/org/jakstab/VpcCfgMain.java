@@ -204,7 +204,7 @@ public class VpcCfgMain {
 			if (procCFG != null)
 				graphWriter.writeAssemblyBasicBlockGraph(procCFG, baseFileName + "_" + procName + "_asmvcfg");
 			graphWriter.writeTopologyGraph(vcfgRec.getTransformedCfg(), baseFileName + "_vtopo");
-			graphWriter.writeVpcBasicBlockGraph(baseFileName + "_vcfg", vcfgRec);
+			//graphWriter.writeVpcBasicBlockGraph(baseFileName + "_vcfg", vcfgRec);
 
 			long overallEndTime = System.currentTimeMillis();			
 

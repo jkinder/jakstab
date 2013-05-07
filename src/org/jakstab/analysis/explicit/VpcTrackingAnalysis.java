@@ -214,8 +214,10 @@ public class VpcTrackingAnalysis implements ConfigurableProgramAnalysis {
 			
 			Multimap<Integer, ValueContainer> candidates = HashMultimap.create();
 
-			int vpcThreshold = Math.min(BoundedAddressTracking.varThreshold.getValue(), 
-					BoundedAddressTracking.heapThreshold.getValue());
+			// No support for heap-based VPCs at the moment (merging heap contents speeds up convergence) 
+			int vpcThreshold = BoundedAddressTracking.varThreshold.getValue();
+					/*Math.min(BoundedAddressTracking.varThreshold.getValue(), 
+					BoundedAddressTracking.heapThreshold.getValue());*/
 
 			// Only check value counts if we have at least enough states to reach it
 			if (reached.size() > vpcThreshold) {
