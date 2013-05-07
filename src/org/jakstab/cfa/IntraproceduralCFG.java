@@ -44,8 +44,10 @@ public class IntraproceduralCFG extends ControlFlowGraph {
 				candidates.add(l);
 		}
 		logger.verbose("Found " + candidates.size() + " candidates for procedure entry, returning first one of " + candidates);
-		if (candidates.size() == 0)
+		if (candidates.size() == 0) {
+			logger.error("Did not find procedure in CFG!");
 			return null;
+		}
 		return candidates.iterator().next();
 	}
 

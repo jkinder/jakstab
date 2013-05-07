@@ -179,7 +179,10 @@ public class VpcCfgMain {
 			ControlFlowGraph procCFG = null;
 			if (!procName.equals("")) {
 				procCFG = new IntraproceduralCFG(program.getCFG(), procName);
-				graphWriter.writeAssemblyBasicBlockGraph(procCFG, baseFileName + "_" + procName + "_asmcfg");
+				if (procCFG.getBasicBlocks().size() == 0)
+					procCFG = null;
+				else
+					graphWriter.writeAssemblyBasicBlockGraph(procCFG, baseFileName + "_" + procName + "_asmcfg");
 			}
 			
 			logger.error("Reconstructing VPC CFG");

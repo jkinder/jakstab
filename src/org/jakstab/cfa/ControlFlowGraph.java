@@ -36,6 +36,10 @@ public class ControlFlowGraph {
 		outEdges = HashMultimap.create();
 		inEdges = HashMultimap.create();
 		locations = new HashSet<Location>();
+
+		basicBlocks = new HashMap<Location, BasicBlock>();
+		bbOutEdges = HashMultimap.create();
+		bbInEdges = HashMultimap.create();
 	}
 	
 	
@@ -269,10 +273,6 @@ public class ControlFlowGraph {
 		
 		Set<Location> basicBlockHeads = findBasicBlockHeads();
 		
-		bbOutEdges = HashMultimap.create();
-		bbInEdges = HashMultimap.create();
-		basicBlocks = new HashMap<Location, BasicBlock>();
-
 		for (Location l : basicBlockHeads)
 			basicBlocks.put(l, new BasicBlock());
 		
