@@ -31,6 +31,7 @@ import org.jakstab.analysis.explicit.BoundedAddressTracking;
 import org.jakstab.analysis.procedures.ProcedureAnalysis;
 import org.jakstab.analysis.procedures.ProcedureState;
 import org.jakstab.asm.*;
+import org.jakstab.cfa.ControlFlowGraph;
 import org.jakstab.cfa.IntraproceduralCFG;
 import org.jakstab.cfa.Location;
 import org.jakstab.loader.*;
@@ -303,11 +304,12 @@ public class Main {
 				if (!Options.noGraphs.getValue()) {
 					graphWriter.writeControlFlowAutomaton(program.getCFG(), baseFileName + "_cfa");
 					graphWriter.writeAssemblyBasicBlockGraph(program.getCFG(), baseFileName + "_asmcfg");
-					graphWriter.writeTopologyGraph(program.getCFG(), baseFileName + "_topo");
 					
 					if (!Options.procedureGraph.getValue().equals("")) {
 						String proc = Options.procedureGraph.getValue();
-						graphWriter.writeAssemblyBasicBlockGraph(new IntraproceduralCFG(program.getCFG(), proc), baseFileName + "_" + proc + "_asmcfg");
+						ControlFlowGraph intraCFG = new IntraproceduralCFG(program.getCFG(), proc);
+						graphWriter.writeAssemblyBasicBlockGraph(intraCFG, baseFileName + "_" + proc + "_asmcfg");
+						graphWriter.writeTopologyGraph(intraCFG, baseFileName + "_" + proc + "_topo");
 					}
 					
 					//graphWriter.writeAssemblyCFG(baseFileName + "_asmcfg");
