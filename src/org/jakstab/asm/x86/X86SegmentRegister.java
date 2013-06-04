@@ -25,7 +25,7 @@
 /* 
  * Original code for this class taken from the Java HotSpot VM. 
  * Modified for use with the Jakstab project. All modifications 
- * Copyright 2007-2012 Johannes Kinder <jk@jakstab.org>
+ * Copyright 2007-2013 Johannes Kinder <jk@jakstab.org>
  */
 
 package org.jakstab.asm.x86;

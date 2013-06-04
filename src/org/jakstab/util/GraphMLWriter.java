@@ -1,6 +1,6 @@
 /*
  * GraphMLWriter.java - This file is part of the Jakstab project.
- * Copyright 2007-2012 Johannes Kinder <jk@jakstab.org>
+ * Copyright 2007-2013 Johannes Kinder <jk@jakstab.org>
  * Copyright 2009 Daniel Reynaud <reynaud.daniel@gmail.com>
  *
  * This code is free software; you can redistribute it and/or modify it
