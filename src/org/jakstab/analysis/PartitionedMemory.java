@@ -84,7 +84,6 @@ public final class PartitionedMemory<A extends AbstractValue> implements Lattice
 		}
 	}
 
-	@SuppressWarnings("unused")
 	private static final Logger logger = Logger.getLogger(PartitionedMemory.class);
 	
 	private final LazyHashMapMap<MemoryRegion, Long, MemoryCell> store;
@@ -409,14 +408,25 @@ public final class PartitionedMemory<A extends AbstractValue> implements Lattice
 				return false;
 		}
 		
-		// Other direction for global region only
+		// Once static data is modified, the new value is present in the store maps. Thus
+		// we can assume that all static values not present in both states are equal.
+		// At this point, the only way "this" could not be less or equal than "other" is if 
+		// "this"'s store map contains a value in the static data address range that is not
+		// yet present in "other"'s store map (and thus would have been missed by the 
+		// iteration above.
+		
+		// Now, check for every element in "this"'s global region (includes the static data 
+		// range) whether its value is less or equal than the value of that element in 
+		// "other". If one isn't less or equal, this means that element is still not in 
+		// other's store map and has a non-initial value in this's store map (TOP or just 
+		// another value).		
 		if (store.containsLeftKey(MemoryRegion.GLOBAL)) {
 			for (Map.Entry<Long, MemoryCell> entry : store.getSubMap(MemoryRegion.GLOBAL).entrySet()) {
 				long offset = entry.getKey();
 				if (offset != entry.getValue().offset) continue;
 				int bitWidth = entry.getValue().size * 8;
 				A value = entry.getValue().contents;
-				if (!other.get(MemoryRegion.GLOBAL, offset, bitWidth).lessOrEqual(value))
+				if (!value.lessOrEqual(other.get(MemoryRegion.GLOBAL, offset, bitWidth)))
 					return false;
 			}
 		}
