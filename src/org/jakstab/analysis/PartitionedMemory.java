@@ -376,6 +376,9 @@ public final class PartitionedMemory<A extends AbstractValue> implements Lattice
 					(A)value.join(this.get(region, offset, bitWidth)));
 			
 		}
+		
+		// If image data is TOP in at least one state, it will be in the joined state
+		result.dataIsTop = other.dataIsTop || dataIsTop;
 
 		return result;
 	}
