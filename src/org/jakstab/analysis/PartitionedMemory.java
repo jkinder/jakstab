@@ -185,8 +185,9 @@ public final class PartitionedMemory<A extends AbstractValue> implements Lattice
 			}
 		}
 		
-		// If we only wanted to set TOP, we are already done.
-		if (!value.isTop()) {
+		// If we only wanted to set TOP and we're not in the global region, 
+		// we are already done.
+		if (!value.isTop() || region == MemoryRegion.GLOBAL) {
 
 			// Separate update from deletion, so while overwriting an old cell, 
 			// we don't have to be careful not to overwrite our new cell
