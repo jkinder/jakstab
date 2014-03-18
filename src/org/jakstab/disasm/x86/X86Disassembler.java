@@ -23,13 +23,13 @@
  */
 
 /*
- * JDoc annotations are Copyright 2007-2013 Johannes Kinder
+ * JDoc annotations are Copyright 2007-2014 Johannes Kinder
  */
 
 /* 
  * Original code for this class taken from the Java HotSpot VM. 
  * Modified for use with the Jakstab project. All modifications 
- * Copyright 2007-2013 Johannes Kinder <jk@jakstab.org>
+ * Copyright 2007-2014 Johannes Kinder <jk@jakstab.org>
  */
 
 package org.jakstab.disasm.x86;

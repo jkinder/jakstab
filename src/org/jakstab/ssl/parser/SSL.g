@@ -1,7 +1,7 @@
 /*
  * SSL.g - This file is part of the Jakstab project.
  * 
- * Copyright 2007-2013 Johannes Kinder <jk@jakstab.org>
+ * Copyright 2007-2014 Johannes Kinder <jk@jakstab.org>
  * Copyright 2006 Jose Fonseca
  *
  * The original grammar was taken from the IDC - Interactive Decompiler
