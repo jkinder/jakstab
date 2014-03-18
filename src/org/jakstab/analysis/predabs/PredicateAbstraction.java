@@ -49,7 +49,6 @@ public class PredicateAbstraction implements ConfigurableProgramAnalysis {
 		p.setExplicit(true);
 	}
 
-	@SuppressWarnings("unused")
 	private static final Logger logger = Logger.getLogger(PredicateAbstraction.class);
 	
 	private BDDFactory bddFactory;

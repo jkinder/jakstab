@@ -46,7 +46,6 @@ public class ELFModule implements ExecutableImage {
 	
 	public static final long ELF_LOAD_ADDRESS = 0x8048000L;
 
-	@SuppressWarnings("unused")
 	private static final Logger logger = Logger.getLogger(ELFModule.class);
 
 	private Elf elf;

@@ -20,7 +20,6 @@ import com.google.common.collect.SetMultimap;
 
 public class ControlFlowGraph {
 	
-	@SuppressWarnings("unused")
 	private static final Logger logger = Logger.getLogger(ControlFlowGraph.class);
 
 	private Location entryPoint;

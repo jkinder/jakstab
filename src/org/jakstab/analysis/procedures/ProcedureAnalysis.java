@@ -102,6 +102,8 @@ public class ProcedureAnalysis implements ConfigurableProgramAnalysis {
 						// return BOT procedure state so it gets merged with fall-through of call 
 						post = new ProcedureState(new FastSet<Location>());
 						return Collections.singleton(post);
+					default: 
+						// nothing
 					}
 				}
 				return Collections.singleton(state);

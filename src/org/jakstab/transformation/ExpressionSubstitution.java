@@ -37,7 +37,6 @@ import org.jakstab.util.Logger;
  */
 public class ExpressionSubstitution implements CFATransformation {
 
-	@SuppressWarnings("unused")
 	private static final Logger logger = Logger
 			.getLogger(ExpressionSubstitution.class);
 	

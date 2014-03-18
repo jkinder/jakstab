@@ -36,7 +36,6 @@ import com.google.common.collect.SetMultimap;
  */
 public class ReachedSet extends AbstractSet<AbstractState> implements Collection<AbstractState> {
 
-	@SuppressWarnings("unused")
 	private static final Logger logger = Logger.getLogger(ReachedSet.class);
 	
 	private final SetMultimap<AbstractState, CompositeState> compositeMap;

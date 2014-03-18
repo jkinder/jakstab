@@ -41,7 +41,6 @@ import org.jakstab.util.Tuple;
  */
 public class InterproceduralTransformerFactory extends ResolvingTransformerFactory {
 
-	@SuppressWarnings("unused")
 	private static final Logger logger = Logger.getLogger(InterproceduralTransformerFactory.class);
 
 	@Override

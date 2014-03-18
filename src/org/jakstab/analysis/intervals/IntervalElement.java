@@ -39,7 +39,6 @@ import org.jakstab.util.Logger;
  */
 public class IntervalElement implements AbstractDomainElement, BitVectorType, Iterable<Long> {
 
-	@SuppressWarnings("unused")
 	private static final Logger logger = Logger.getLogger(IntervalElement.class);
 	
 	private static IntervalElement TOP1 = new IntervalElement(MemoryRegion.GLOBAL, -1, 0, 1, 1);

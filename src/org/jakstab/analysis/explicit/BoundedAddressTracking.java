@@ -42,7 +42,6 @@ import com.google.common.collect.*;
  */
 public class BoundedAddressTracking implements ConfigurableProgramAnalysis {
 
-	@SuppressWarnings("unused")
 	private final static Logger logger = Logger.getLogger(BoundedAddressTracking.class);
 
 	public static void register(AnalysisProperties p) {

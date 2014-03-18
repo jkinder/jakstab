@@ -39,7 +39,6 @@ import org.jakstab.util.Logger;
  */
 public class ObjectFile extends AbstractCOFFModule {
 
-	@SuppressWarnings("unused")
 	private static final Logger logger = Logger.getLogger(ObjectFile.class);
 	private static final int SYMBOL_LENGTH = 18;
 	private static final String MAIN_FUNCTION = "_main";

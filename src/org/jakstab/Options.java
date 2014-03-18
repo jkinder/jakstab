@@ -34,7 +34,6 @@ import org.jakstab.util.Logger;
  */
 public class Options {
 
-	@SuppressWarnings("unused")
 	private static final Logger logger = Logger.getLogger(Options.class);
 
 	private final static int lineLength = 80;

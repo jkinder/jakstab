@@ -185,6 +185,7 @@ public class IntervalAnalysis implements ConfigurableProgramAnalysis {
 							}
 						}
 						break;
+					default: // nothing
 					}
 				}
 

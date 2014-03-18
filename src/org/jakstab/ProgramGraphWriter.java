@@ -54,7 +54,6 @@ import com.google.common.collect.SetMultimap;
  */
 public class ProgramGraphWriter {
 
-	@SuppressWarnings("unused")
 	private static final Logger logger = Logger.getLogger(ProgramGraphWriter.class);
 	private Program program;
 	
@@ -582,6 +581,7 @@ public class ProgramGraphWriter {
 						} else {
 							weak = true;
 						}
+					default: // nothing
 					}
 				}
 				

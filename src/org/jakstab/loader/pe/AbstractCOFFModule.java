@@ -38,7 +38,6 @@ import org.jakstab.util.Logger;
  */
 public abstract class AbstractCOFFModule implements ExecutableImage {
 
-	@SuppressWarnings("unused")
 	private static final Logger logger = Logger.getLogger(AbstractCOFFModule.class);
 	
 	protected BinaryFileInputBuffer inBuf;

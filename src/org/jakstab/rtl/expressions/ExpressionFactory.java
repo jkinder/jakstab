@@ -351,6 +351,7 @@ public final class ExpressionFactory {
 				}
 			}
 			break;
+		default: // nothing
 		}
 		return new RTLOperation(operator, operands);
 	}

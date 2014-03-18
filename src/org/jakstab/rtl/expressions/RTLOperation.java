@@ -324,10 +324,11 @@ public class RTLOperation extends AbstractRTLExpression implements RTLExpression
 						return ExpressionFactory.createOperation(Operator.OR, strippedSubOps);
 					else
 						return ExpressionFactory.createOperation(Operator.AND, strippedSubOps);
+				default: // nothing
 				}
 			}
 			break;
-			
+		default: // nothing	
 		}
 		
 		/////////////////////////

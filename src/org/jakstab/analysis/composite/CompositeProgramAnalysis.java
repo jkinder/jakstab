@@ -49,7 +49,6 @@ public class CompositeProgramAnalysis implements ConfigurableProgramAnalysis {
 	
 	public static JOption<Boolean> ignoreCallingContext = JOption.create("ignore-context", "Allow merging of different calling contexts even with call stack analysis enabled.");
 	
-	@SuppressWarnings("unused")
 	private static final Logger logger = Logger.getLogger(CompositeProgramAnalysis.class);
 	
 	protected final ConfigurableProgramAnalysis[] cpas;

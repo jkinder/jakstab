@@ -36,7 +36,6 @@ import org.jakstab.util.Logger;
  */
 public class LinuxStubLibrary implements StubProvider {
 
-	@SuppressWarnings("unused")
 	private static final Logger logger = Logger.getLogger(LinuxStubLibrary.class);
 	
 	private Map<String,AbsoluteAddress> activeStubs;

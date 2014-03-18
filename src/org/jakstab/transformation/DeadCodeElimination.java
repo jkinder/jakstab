@@ -38,7 +38,6 @@ import com.google.common.collect.SetMultimap;
  */
 public class DeadCodeElimination implements CFATransformation {
 
-	@SuppressWarnings("unused")
 	private final static Logger logger = Logger.getLogger(DeadCodeElimination.class);
 
 	private Map<Location,SetOfVariables> liveVars;

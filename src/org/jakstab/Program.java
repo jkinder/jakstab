@@ -50,7 +50,6 @@ import org.jakstab.util.FastSet;
  */
 public final class Program {
 	
-	@SuppressWarnings("unused")
 	private final static Logger logger = Logger.getLogger(Program.class);
 	private static Program programInstance;
 

@@ -35,7 +35,6 @@ import org.jakstab.util.Logger;
  */
 public class BasedNumberElement implements AbstractDomainElement, BitVectorType {
 
-	@SuppressWarnings("unused")
 	private static final Logger logger = Logger.getLogger(BasedNumberElement.class);
 	
 	private static BasedNumberElement[] TOPS = new BasedNumberElement[128];

@@ -26,7 +26,6 @@ import org.jakstab.util.Logger;
  */
 public class StatsPlotter {
 
-	@SuppressWarnings("unused")
 	private static final Logger logger = Logger.getLogger(StatsPlotter.class);
 	
 	private static StatsPlotter instance;

@@ -22,7 +22,6 @@ import org.jakstab.util.Logger;
 
 public class UnresolvedSymbol {
 
-	@SuppressWarnings("unused")
 	private static final Logger logger = Logger.getLogger(UnresolvedSymbol.class);
 	
 	private final ExecutableImage module;

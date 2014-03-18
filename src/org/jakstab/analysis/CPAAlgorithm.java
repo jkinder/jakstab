@@ -37,7 +37,6 @@ import org.jakstab.util.*;
  */
 public class CPAAlgorithm implements Algorithm {
 
-	@SuppressWarnings("unused")
 	private static final Logger logger = Logger.getLogger(CPAAlgorithm.class);
 
 	private final StateTransformerFactory transformerFactory;

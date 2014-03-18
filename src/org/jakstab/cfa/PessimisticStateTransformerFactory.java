@@ -42,7 +42,6 @@ import org.jakstab.util.Tuple;
  */
 public class PessimisticStateTransformerFactory extends ResolvingTransformerFactory {
 
-	@SuppressWarnings("unused")
 	private static final Logger logger = Logger.getLogger(PessimisticStateTransformerFactory.class);
 
 	@Override

@@ -34,7 +34,6 @@ import org.jakstab.util.Logger;
  */
 public class AssignmentTemplate extends AbstractRTLStatement {
 
-	@SuppressWarnings("unused")
 	private static final Logger logger = Logger
 			.getLogger(AssignmentTemplate.class);
 

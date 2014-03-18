@@ -27,7 +27,6 @@ import org.jakstab.util.Logger;
  */
 public class YicesContext {
 
-	@SuppressWarnings("unused")
 	private static final Logger logger = Logger.getLogger(YicesContext.class);
 
 	private static ContextPool contextPool = new ContextPool();

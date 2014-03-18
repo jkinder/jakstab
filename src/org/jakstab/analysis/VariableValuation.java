@@ -102,7 +102,6 @@ public class VariableValuation<A extends AbstractValue> implements LatticeElemen
 		}
 	}
 	
-	@SuppressWarnings("unchecked")
 	public void set(RTLVariable var, A value) {
 		
 		RTLBitRange asParent = ExpressionFactory.getRegisterAsParent(var);

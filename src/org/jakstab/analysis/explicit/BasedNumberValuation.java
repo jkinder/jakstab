@@ -287,7 +287,8 @@ public final class BasedNumberValuation implements AbstractState {
 					}
 					// Regions not equal or evaluate() did not return a definitive result
 					return BasedNumberElement.getTop(1);
-
+				default:
+						// nothing
 				}
 				
 				RTLExpression[] cOperands = new RTLExpression[e.getOperandCount()];
@@ -673,6 +674,7 @@ public final class BasedNumberValuation implements AbstractState {
 								}
 							}
 							*/
+						default: // nothing
 						}
 						
 					}

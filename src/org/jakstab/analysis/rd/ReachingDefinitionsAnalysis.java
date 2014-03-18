@@ -18,7 +18,6 @@ import org.jakstab.util.Logger;
  */
 public class ReachingDefinitionsAnalysis extends SimpleCPA implements ConfigurableProgramAnalysis {
 
-	@SuppressWarnings("unused")
 	private static final Logger logger = Logger.getLogger(ReachingDefinitionsAnalysis.class);
 	
 	public static void register(AnalysisProperties p) {

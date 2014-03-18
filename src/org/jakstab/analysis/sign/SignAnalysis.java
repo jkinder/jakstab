@@ -44,7 +44,6 @@ public class SignAnalysis implements ConfigurableProgramAnalysis {
 		p.setDescription("For each variable, compute its sign (-, 0, or +).");
 	}
 
-	@SuppressWarnings("unused")
 	private static final Logger logger = Logger.getLogger(SignAnalysis.class);
 
 	/*

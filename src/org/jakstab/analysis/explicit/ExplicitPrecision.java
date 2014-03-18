@@ -38,7 +38,6 @@ import com.google.common.collect.SetMultimap;
  */
 public class ExplicitPrecision implements Precision {
 
-	@SuppressWarnings("unused")
 	private static final Logger logger = Logger.getLogger(ExplicitPrecision.class);
 	
 	public enum TrackingLevel { NONE, REGION, FULL }

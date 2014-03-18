@@ -25,7 +25,6 @@ import org.jakstab.util.*;
 
 public class YicesSolver extends Solver {
 
-	@SuppressWarnings("unused")
 	private static final Logger logger = Logger.getLogger(YicesSolver.class);
 	
 	static final String yTrue = YicesWrapper.makeBVConstant(1, 1);

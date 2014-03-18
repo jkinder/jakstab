@@ -51,7 +51,6 @@ import org.jakstab.util.Tuple;
  */
 public class AlternatingStateTransformerFactory extends ResolvingTransformerFactory {
 
-	@SuppressWarnings("unused")
 	private static final Logger logger = Logger.getLogger(AlternatingStateTransformerFactory.class);
 
 	private Map<RTLNumber, RTLNumber> realToStub = new HashMap<RTLNumber, RTLNumber>();

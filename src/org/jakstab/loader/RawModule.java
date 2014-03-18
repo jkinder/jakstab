@@ -38,7 +38,6 @@ import org.jakstab.util.Logger;
  */
 public class RawModule implements ExecutableImage {
 
-	@SuppressWarnings("unused")
 	private static final Logger logger = Logger.getLogger(RawModule.class);
 	
 	private final BinaryFileInputBuffer inBuf;

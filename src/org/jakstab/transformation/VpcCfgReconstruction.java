@@ -50,7 +50,6 @@ import com.google.common.collect.SetMultimap;
 
 public class VpcCfgReconstruction implements Algorithm {
 	
-	@SuppressWarnings("unused")
 	private static final Logger logger = Logger.getLogger(VpcCfgReconstruction.class);
 	
 	private static final int VPC_BITWIDTH = Program.getProgram().getArchitecture().getAddressBitWidth();
@@ -98,7 +97,6 @@ public class VpcCfgReconstruction implements Algorithm {
 		return asmCfg;
 	}
 
-	@SuppressWarnings("unused")
 	@Override
 	public void run() {
 		

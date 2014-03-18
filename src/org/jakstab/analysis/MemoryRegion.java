@@ -24,7 +24,6 @@ import org.jakstab.util.Logger;
 
 public class MemoryRegion implements LatticeElement, Comparable<MemoryRegion> {
 
-	@SuppressWarnings("unused")
 	private static final Logger logger = Logger.getLogger(MemoryRegion.class);
 	private static int maxId = -1;
 	

@@ -15,7 +15,6 @@ import org.jakstab.util.Logger;
 @SuppressWarnings("unused")
 public class RDElement implements LatticeElement {
 
-	@SuppressWarnings("unused")
 	private static final Logger logger = Logger.getLogger(RDElement.class);
 
 	@Override

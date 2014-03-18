@@ -35,7 +35,6 @@ import org.jakstab.util.Tuple;
  */
 public class CallStackState implements AbstractState {
 
-	@SuppressWarnings("unused")
 	private static final Logger logger = Logger.getLogger(CallStackState.class);
 	
 	public static CallStackState TOP = new CallStackState(null);

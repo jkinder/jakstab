@@ -121,7 +121,6 @@ public class ControlFlowReconstruction implements Algorithm {
 
 	}
 	
-	@SuppressWarnings("unused")
 	private static final Logger logger = Logger.getLogger(ControlFlowReconstruction.class);
 	
 	private Program program;

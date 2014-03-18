@@ -36,7 +36,6 @@ import org.junit.Test;
  */
 public class ControlFlowReconstructionTest {
 
-	@SuppressWarnings("unused")
 	private static final Logger logger = Logger.getLogger(ControlFlowReconstructionTest.class);
 
 	private Architecture arch;

@@ -28,7 +28,6 @@ import org.jakstab.util.Logger;
  */
 public class YicesWrapper {
 
-	@SuppressWarnings("unused")
 	private final static Logger logger = Logger.getLogger(YicesWrapper.class);
 	
 	private static String outputFile;

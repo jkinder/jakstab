@@ -13,7 +13,6 @@ import org.jakstab.util.Logger;
  */
 public class OperandFactory {
 	
-	@SuppressWarnings("unused")
 	private static final Logger logger = Logger.getLogger(OperandFactory.class);
 
 	public static Operand createOperand(RTLExpression e) {

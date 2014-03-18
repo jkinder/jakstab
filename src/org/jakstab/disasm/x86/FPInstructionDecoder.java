@@ -39,7 +39,6 @@ import org.jakstab.util.Logger;
 // basic float instruction decoder class
 public class FPInstructionDecoder extends InstructionDecoder {
 
-	@SuppressWarnings("unused")
 	private final static Logger logger = Logger.getLogger(FPInstructionDecoder.class);
 
 

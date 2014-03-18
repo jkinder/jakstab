@@ -60,7 +60,6 @@ public class TraceReplayAnalysis implements ConfigurableProgramAnalysis {
 	
 	public static JOption<String> traceFiles = JOption.create("trace-file", "f", "", "Comma separated list of trace files to use for tracereplay (default is <mainFile>.parsed)");
 	
-	@SuppressWarnings("unused")
 	private static final Logger logger = Logger.getLogger(TraceReplayAnalysis.class);
 
 	private final SetMultimap<AbsoluteAddress, AbsoluteAddress> succ;
@@ -69,55 +68,59 @@ public class TraceReplayAnalysis implements ConfigurableProgramAnalysis {
 		
 		succ = HashMultimap.create();
 
-		BufferedReader in;
+		BufferedReader in = null;
 		
 		try {
 			in = new BufferedReader(new FileReader(filename));
+
+			// Read entire trace
+			String line = null;
+			AbsoluteAddress curPC = null;
+			AbsoluteAddress lastPC = null;
+
+			do {
+				String lastLine = line; 
+				line = in.readLine();
+				if (line != null) {
+
+					if (line.charAt(0) == 'A') {
+						// Dima's "parsed" format
+						curPC = new AbsoluteAddress(Long.parseLong(line.substring(9, line.indexOf('\t', 9)), 16));
+					} else {
+						// Pure format produced by temu's text conversion
+						curPC = new AbsoluteAddress(Long.parseLong(line.substring(0, line.indexOf(':')), 16));
+					}
+
+					if (line.equals(lastLine)) {
+						//logger.warn("Warning: Skipping duplicate line in trace for address " + curPC);
+					} else {
+
+						// Only add the edge if either source or target are in the program. This collapses library functions. 
+						if (lastPC != null && (isProgramAddress(lastPC) || isProgramAddress(curPC))) {
+							succ.put(lastPC, curPC);
+							lastPC = curPC;
+						}
+						// Find the first program address
+						if (lastPC == null && isProgramAddress(curPC)) {
+							lastPC = curPC;
+						}
+					}
+				}
+			} while (line != null);
+
 		} catch (FileNotFoundException e) {
 			logger.fatal("Trace file not found: " + e.getMessage());
 			throw new RuntimeException(e);
+		} catch (IOException e) {
+			logger.fatal("IO error when reading from trace: " + e.getMessage());
+			throw new RuntimeException(e);
+		} finally {
+			if (in != null) {
+				try { 
+					in.close(); 
+				} catch (Exception e) {};
+			}
 		}
-
-		// Read entire trace
-		
-		String line = null;
-		AbsoluteAddress curPC = null;
-		AbsoluteAddress lastPC = null;
-		
-		do {
-			String lastLine = line; 
-			try {
-				line = in.readLine();
-			} catch (IOException e) {
-				logger.fatal("IO error when reading from trace: " + e.getMessage());
-				throw new RuntimeException(e);
-			}
-			if (line != null) {
-				
-				if (line.charAt(0) == 'A') {
-					// Dima's "parsed" format
-					curPC = new AbsoluteAddress(Long.parseLong(line.substring(9, line.indexOf('\t', 9)), 16));
-				} else {
-					// Pure format produced by temu's text conversion
-					curPC = new AbsoluteAddress(Long.parseLong(line.substring(0, line.indexOf(':')), 16));
-				}
-				
-				if (line.equals(lastLine)) {
-					//logger.warn("Warning: Skipping duplicate line in trace for address " + curPC);
-				} else {
-					
-					// Only add the edge if either source or target are in the program. This collapses library functions. 
-					if (lastPC != null && (isProgramAddress(lastPC) || isProgramAddress(curPC))) {
-						succ.put(lastPC, curPC);
-						lastPC = curPC;
-					}
-					// Find the first program address
-					if (lastPC == null && isProgramAddress(curPC)) {
-						lastPC = curPC;
-					}
-				}
-			}
-		} while (line != null);
 	}
 
 	@Override

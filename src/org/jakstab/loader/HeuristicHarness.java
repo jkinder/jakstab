@@ -33,7 +33,6 @@ import org.jakstab.util.Logger;
 
 public class HeuristicHarness implements Harness {
 
-	@SuppressWarnings("unused")
 	private static final Logger logger = Logger.getLogger(HeuristicHarness.class);
 	
 	private static int CALL_INSTR_DISTANCE = 1;

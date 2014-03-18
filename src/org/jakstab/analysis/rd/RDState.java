@@ -18,7 +18,6 @@ import org.jakstab.util.Tuple;
 @SuppressWarnings("unused")
 public class RDState implements AbstractState {
 
-	@SuppressWarnings("unused")
 	private static final Logger logger = Logger.getLogger(RDState.class);
 
 	@Override
