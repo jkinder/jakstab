@@ -183,9 +183,6 @@ public class Main {
 					System.exit(1);
 				} 
 			};
-			// yices.dll blocks for input on load for some reason, so load it before we start reading from System.in  
-			// If you are having problems with that, uncomment the next line
-			// org.jakstab.solver.yices.YicesWrapper.getVersion();
 			eclipseShutdownThread.start();
 		}
 		
