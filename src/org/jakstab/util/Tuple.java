@@ -32,6 +32,7 @@ public class Tuple<T> implements Iterable<T> {
 	@SuppressWarnings("unused")
 	private static final Logger logger = Logger.getLogger(Tuple.class);
 	
+	@SafeVarargs
 	public static <T> Tuple<T> create(T... elements) {
 		Tuple<T> tuple = new Tuple<T>(elements.length);
 		tuple.array = elements;
