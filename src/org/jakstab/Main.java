@@ -140,8 +140,17 @@ public class Main {
 		}
 
 		// Add surrounding "%DF := 1; call entrypoint; halt;" 
-		program.installHarness(Options.heuristicEntryPoints.getValue() ? new HeuristicHarness() : new DefaultHarness());
-
+		if (Options.heuristicEntryPoints.getValue()) {
+			logger.info("Using heuristic harness");
+			program.installHarness(new HeuristicHarness());
+		} else if (Options.analyseDll.getValue()) {
+			logger.info("Using library harness");
+			program.installHarness(new LibraryHarness());
+		} else {
+			logger.info("Using default harness");
+			program.installHarness(new DefaultHarness());
+		}
+		
 		int slashIdx = baseFileName.lastIndexOf('\\');
 		if (slashIdx < 0) slashIdx = baseFileName.lastIndexOf('/');
 		if (slashIdx < 0) slashIdx = -1;

@@ -23,6 +23,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import org.jakstab.Options;
 import org.jakstab.Program;
 import org.jakstab.rtl.statements.BasicBlock;
 import org.jakstab.rtl.statements.RTLAssume;
@@ -377,6 +378,8 @@ public class ControlFlowGraph {
 			if (getInDegree(l) == 0) {
 				assert entryPoint == null : "Graph has multiple entry points: " + entryPoint + " and " + l; 
 				entryPoint = l;
+				if (Options.analyseDll.getValue())
+					break;
 			}
 		}
 		assert entryPoint != null : "No entry point found! First statement in cycle?";

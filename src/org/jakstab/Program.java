@@ -561,4 +561,19 @@ public final class Program {
 		}
 		return res;
 	}
+	
+	public LinkedList<BranchInstruction> getIndirectBranches() {
+		LinkedList<BranchInstruction> indirectBranches = new LinkedList<BranchInstruction>();
+		for (Map.Entry<AbsoluteAddress, Instruction> entry : assemblyMap.entrySet()) {
+			Instruction instr = entry.getValue();
+			
+			if (instr instanceof BranchInstruction) {
+				BranchInstruction branch = (BranchInstruction)instr;
+				if (branch.isIndirect()) {
+					indirectBranches.add(branch);
+				}
+			}
+		}
+		return indirectBranches;
+	}
 }
