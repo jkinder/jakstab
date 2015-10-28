@@ -47,7 +47,6 @@ public class IntervalAnalysis implements ConfigurableProgramAnalysis {
 		p.setExplicit(true);
 	}
 
-	@SuppressWarnings("unused")
 	private static final Logger logger = Logger.getLogger(IntervalAnalysis.class);
 	private AbstractValueFactory<IntervalElement> valueFactory;
 
@@ -132,7 +131,21 @@ public class IntervalAnalysis implements ConfigurableProgramAnalysis {
 				Writable lhs = stmt.getLeftHandSide();
 				RTLExpression rhs = stmt.getRightHandSide();
 				AbstractDomainElement evaledRhs = iState.abstractEval(rhs);
+								
+				// Check for stackpointer alignment assignments (workaround for gcc compiled files)
+				RTLVariable sp = Program.getProgram().getArchitecture().stackPointer();
+				if (lhs.equals(sp) && rhs instanceof RTLOperation) {
+					RTLOperation op = (RTLOperation)rhs;
+					if (op.getOperator().equals(Operator.AND) && 
+							op.getOperands()[0].equals(sp) &&
+							op.getOperands()[1] instanceof RTLNumber) {
+						evaledRhs = iState.getVariableValue(sp);
+						logger.warn("Ignoring stackpointer alignment at " + stmt.getAddress());
+					}
+				}
+
 				post.setVariableValue((RTLVariable)lhs, evaledRhs);
+				
 				return post;
 			}
 			
