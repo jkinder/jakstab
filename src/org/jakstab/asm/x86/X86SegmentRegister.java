@@ -35,6 +35,10 @@ public class X86SegmentRegister extends X86Register {
    public X86SegmentRegister(int num, String name) {
      super(num, name);
    }
+
+   public X86SegmentRegister(X86Register reg){
+       super(reg.getNumber(), reg.name);
+   }
    
    public int getNumberOfRegisters() {
      return X86SegmentRegisters.getNumberOfRegisters();

@@ -165,6 +165,7 @@ public class X86Disassembler implements Disassembler, X86Opcodes {
     public final Instruction decodeInstruction(long index, long addr) {
         //logger.warn("It did a thing");
         Instruction instr = null;
+        Instruction rinstr = null;
         InstructionDecoder instrDecoder = null;
         byteIndex = (int) index; // For 64bit systems, this needs to be fixed
         //int len = byteIndex;
@@ -184,19 +185,22 @@ public class X86Disassembler implements Disassembler, X86Opcodes {
             }
             csinstr = cs.disasm(insbytes, addr, 1)[0];
             logger.warn(csinstr.address + " " + csinstr.mnemonic + " " + csinstr.opStr);// + " " + ((X86.OpInfo)csinstr.operands).op[0].type);
-            if(csinstr.mnemonic.equals("calll")) {
-                logger.warn(csinstr.address + " " + csinstr.mnemonic + " " + csinstr.opStr + " " + ((X86.OpInfo)csinstr.operands).op[0].type);
-                Operand op;
-                if (((X86.OpInfo)csinstr.operands).op[0].type == X86_const.X86_OP_IMM) {
-                    logger.warn(csinstr.address + " " + instrStartIndex + "Found one" + ((X86.OpInfo)csinstr.operands).op[0].size);
-                    return factory.newCallInstruction("calll", new Immediate((int)((X86.OpInfo)csinstr.operands).op[0].value.imm, DataType.UINT32), csinstr.size, prefixes);
-                }
-                else{
-                    logger.warn("askijdbfbhghjkdfgbdfjkhbdefjkhb: " + ((X86.OpInfo)csinstr.operands).op[0].type);
-                    return factory.newCallInstruction("calll", new X86Register(((X86.OpInfo)csinstr.operands).op[0].value.reg, csinstr.regName(((X86.OpInfo)csinstr.operands).op[0].value.reg)), csinstr.size, prefixes);
-                }
+            rinstr = CapstoneParser.getInstruction(csinstr, prefixes, factory);
+            logger.warn("Dom: " + rinstr.getName());
+            //if(csinstr.mnemonic.equals("calll")) {
+            //    logger.warn(csinstr.address + " " + csinstr.mnemonic + " " + csinstr.opStr + " " + ((X86.OpInfo)csinstr.operands).op[0].type);
+            //    Operand op;
+            //    if (((X86.OpInfo)csinstr.operands).op[0].type == X86_const.X86_OP_IMM) {
+            //        logger.warn(csinstr.address + " " + instrStartIndex + "Found one" + ((X86.OpInfo)csinstr.operands).op[0].size);
+            //        //return factory.newCallInstruction("calll", new Immediate((int)((X86.OpInfo)csinstr.operands).op[0].value.imm, DataType.UINT32), csinstr.size, prefixes);
+            //        return factory.newGeneralInstruction("calll", new Immediate(((int)((X86.OpInfo)csinstr.operands).op[0].value.imm), DataType.UINT32), csinstr.size, prefixes);
+            //    }
+            //    else{
+            //        logger.warn("askijdbfbhghjkdfgbdfjkhbdefjkhb: " + ((X86.OpInfo)csinstr.operands).op[0].type);
+            //        return factory.newCallInstruction("calll", new X86Register(((X86.OpInfo)csinstr.operands).op[0].value.reg, csinstr.regName(((X86.OpInfo)csinstr.operands).op[0].value.reg)), csinstr.size, prefixes);
+            //   }
                     //return factory.newCallInstruction(csinstr.mnemonic, , csinstr.size, prefixes);
-            }
+            //}
             //Read opcode
             int opcode = InstructionDecoder.readByte(code, byteIndex);
             byteIndex++;
@@ -251,7 +255,7 @@ public class X86Disassembler implements Disassembler, X86Opcodes {
         }
 //       logger.warn(instr.getOperand(0).toString());
 //        logger.warn(instr.getOperand(0).getClass());
-        return instr;
+        return rinstr;
     }
 
     private final int getPrefixes() {
