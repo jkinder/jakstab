@@ -1046,19 +1046,19 @@ JMP8S[IDX]   reloc8
 
 
 
-JMP.JB   reloc8
+JMPL.JB   reloc8
             *32* %pc := %pc + reloc8; 
 #--JK            *32* %pc := %pc + 2 + reloc8;
 
-JMP.JVOW   reloc16 
+JMPL.JVOW   reloc16
             *32* %pc := %pc + reloc16; 
 #--JK            *32* %pc := %pc + 3 + reloc16;
 
-JMP.JVOD   reloc32 
+JMPL.JVOD   reloc32
             *32* %pc := %pc + reloc32; 
 #--JK            *32* %pc := %pc + 5 + reloc32;
 
-JMP.EVOD   modrm 
+JMPL.EVOD   modrm
             *32* %pc := modrm;
             
 #LJMP	seg, off

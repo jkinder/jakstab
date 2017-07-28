@@ -3,10 +3,7 @@ package org.jakstab.disasm.x86;
 import capstone.Capstone;
 import capstone.X86;
 import capstone.X86_const;
-import org.jakstab.asm.DataType;
-import org.jakstab.asm.Immediate;
-import org.jakstab.asm.Instruction;
-import org.jakstab.asm.Operand;
+import org.jakstab.asm.*;
 import org.jakstab.asm.x86.X86InstructionFactory;
 import org.jakstab.asm.x86.X86MemoryOperand;
 import org.jakstab.asm.x86.X86Register;
@@ -18,6 +15,10 @@ import sun.reflect.generics.reflectiveObjects.NotImplementedException;
  */
 public class CapstoneParser {
     public static Instruction getInstruction(Capstone.CsInsn csinstr, int prefixes, X86InstructionFactory factory) {
+        if (csinstr.mnemonic.equals("calll"))
+                return getCallInstruction(csinstr, prefixes, factory);
+        if (csinstr.mnemonic.contains("jmp"))
+            return factory.newJmpInstruction(csinstr.mnemonic, getOperand(((X86.OpInfo)(csinstr.operands)).op[0], csinstr), csinstr.size, prefixes);
         switch (((X86.OpInfo) (csinstr.operands)).op.length) {
             //case 0:
             //    return factory.newGeneralInstruction(csinstr.mnemonic, csinstr.size, prefixes);
@@ -30,6 +31,11 @@ public class CapstoneParser {
         }
         return null;
         //return factory.newGeneralInstruction(csinstr.mnemonic, , csinstr.size, prefixes);
+    }
+
+    private static Instruction getCallInstruction(Capstone.CsInsn csinstr, int prefixes, X86InstructionFactory factory){
+        return factory.newCallInstruction(csinstr.mnemonic, getOperand(((X86.OpInfo) (csinstr.operands)).op[0], csinstr), csinstr.size, prefixes);
+
     }
 
     private static Operand getOperand(X86.Operand op, Capstone.CsInsn csinstr) {
