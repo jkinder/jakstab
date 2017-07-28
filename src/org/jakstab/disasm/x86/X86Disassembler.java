@@ -34,10 +34,12 @@
 
 package org.jakstab.disasm.x86;
 
+import capstone.X86;
+import capstone.X86_const;
+import org.jakstab.asm.*;
+import org.jakstab.asm.x86.X86Register;
 import org.jakstab.util.BinaryInputBuffer;
 import org.jakstab.util.Logger;
-import org.jakstab.asm.Instruction;
-import org.jakstab.asm.Operation;
 import org.jakstab.asm.x86.X86InstructionFactory;
 import org.jakstab.asm.x86.X86InstructionFactoryImpl;
 import org.jakstab.asm.x86.X86Opcodes;
@@ -71,9 +73,9 @@ public class X86Disassembler implements Disassembler, X86Opcodes {
         cs.setSyntax(cs.CS_OPT_SYNTAX_ATT);
         cs.setDetail(cs.CS_OPT_ON);
     }
-
     @Override
     public final Instruction decodeInstruction(long index) {
+        logger.warn("It didn't do a thing :(((((((((((((");
         Instruction instr = null;
         InstructionDecoder instrDecoder = null;
         byteIndex = (int) index; // For 64bit systems, this needs to be fixed
@@ -92,8 +94,17 @@ public class X86Disassembler implements Disassembler, X86Opcodes {
             for (int i = instrStartIndex; i < 15 + byteIndex; i++) {// TODO Dom - This is an arbitrary number should probably calculate this.
                 insbytes[i - instrStartIndex] = (byte) InstructionDecoder.readByte(code, i);
             }
-            csinstr = cs.disasm(insbytes, instrStartIndex, 1)[0];
-            logger.warn(csinstr.address + " " + csinstr.mnemonic + " " + csinstr.opStr);
+            csinstr = cs.disasm(insbytes, index, 1)[0];
+            logger.warn(csinstr.address + " " + csinstr.mnemonic + " " + csinstr.opStr);// + " " + ((X86.OpInfo)csinstr.operands).op[0].type);
+            if(csinstr.mnemonic.equals("calll")) {
+                logger.warn(csinstr.address + " " + csinstr.mnemonic + " " + csinstr.opStr + " " + ((X86.OpInfo)csinstr.operands).op[0].type);
+                Operand op;
+                if (((X86.OpInfo)csinstr.operands).op[0].type == X86_const.X86_OP_IMM) {
+                    logger.warn(csinstr.address + " " + instrStartIndex + "Found one" + ((X86.OpInfo)csinstr.operands).op[0].size);
+                    return factory.newCallInstruction("call", new AbsoluteAddress(((X86.OpInfo)csinstr.operands).op[0].value.imm), csinstr.size, prefixes);
+                }
+                    //return factory.newCallInstruction(csinstr.mnemonic, , csinstr.size, prefixes);
+            }
             //Read opcode
             int opcode = InstructionDecoder.readByte(code, byteIndex);
             byteIndex++;
@@ -146,6 +157,100 @@ public class X86Disassembler implements Disassembler, X86Opcodes {
                 exp.printStackTrace();
             return null;
         }
+//        logger.warn(instr.getOperand(0).toString());
+//        logger.warn(instr.getOperand(0).getClass());
+        return instr;
+    }
+    @Override
+    public final Instruction decodeInstruction(long index, long addr) {
+        //logger.warn("It did a thing");
+        Instruction instr = null;
+        InstructionDecoder instrDecoder = null;
+        byteIndex = (int) index; // For 64bit systems, this needs to be fixed
+        //int len = byteIndex;
+        //int instrStartIndex = 0;
+
+        int prefixes = 0;
+        int instrStartIndex = byteIndex;
+        Capstone.CsInsn csinstr;
+        try {
+            //check if there is any prefix
+            prefixes = getPrefixes();
+
+            int segmentOverride = 1;  //get segment override prefix
+            byte[] insbytes = new byte[15 + (byteIndex - instrStartIndex)];
+            for (int i = instrStartIndex; i < 15 + byteIndex; i++) {// TODO Dom - This is an arbitrary number should probably calculate this.
+                insbytes[i - instrStartIndex] = (byte) InstructionDecoder.readByte(code, i);
+            }
+            csinstr = cs.disasm(insbytes, addr, 1)[0];
+            logger.warn(csinstr.address + " " + csinstr.mnemonic + " " + csinstr.opStr);// + " " + ((X86.OpInfo)csinstr.operands).op[0].type);
+            if(csinstr.mnemonic.equals("calll")) {
+                logger.warn(csinstr.address + " " + csinstr.mnemonic + " " + csinstr.opStr + " " + ((X86.OpInfo)csinstr.operands).op[0].type);
+                Operand op;
+                if (((X86.OpInfo)csinstr.operands).op[0].type == X86_const.X86_OP_IMM) {
+                    logger.warn(csinstr.address + " " + instrStartIndex + "Found one" + ((X86.OpInfo)csinstr.operands).op[0].size);
+                    return factory.newCallInstruction("calll", new Immediate((int)((X86.OpInfo)csinstr.operands).op[0].value.imm, DataType.UINT32), csinstr.size, prefixes);
+                }
+                else{
+                    logger.warn("askijdbfbhghjkdfgbdfjkhbdefjkhb: " + ((X86.OpInfo)csinstr.operands).op[0].type);
+                    return factory.newCallInstruction("calll", new X86Register(((X86.OpInfo)csinstr.operands).op[0].value.reg, csinstr.regName(((X86.OpInfo)csinstr.operands).op[0].value.reg)), csinstr.size, prefixes);
+                }
+                    //return factory.newCallInstruction(csinstr.mnemonic, , csinstr.size, prefixes);
+            }
+            //Read opcode
+            int opcode = InstructionDecoder.readByte(code, byteIndex);
+            byteIndex++;
+
+            // Check for escape opcode 0Fh
+            if (opcode == 0x0f) {
+                opcode = InstructionDecoder.readByte(code, byteIndex);
+                byteIndex++;
+
+                //SSE: SSE instructions have reserved use of 0xF2, 0xF3, 0x66 prefixes
+                if ((prefixes & PREFIX_REPNZ) != 0) {
+                    instrDecoder = twoBytePrefixF2Table[opcode];
+                    // Remove the prefix if the instruction is from this table
+                    if (instrDecoder != null) prefixes = prefixes & (-1 ^ PREFIX_REPNZ);
+                } else if ((prefixes & PREFIX_REPZ) != 0) {
+                    instrDecoder = twoBytePrefixF3Table[opcode];
+                    if (instrDecoder != null) prefixes = prefixes & (-1 ^ PREFIX_REPZ);
+                } else if ((prefixes & PREFIX_DATA) != 0) {
+                    instrDecoder = twoBytePrefix66Table[opcode];
+                    if (instrDecoder != null) prefixes = prefixes & (-1 ^ PREFIX_DATA);
+                } /* does not work with prefixed standard
+                     2-Byte instructions! else {
+					instrDecoder = twoByteTable[opcode];
+				}    */
+                if (instrDecoder == null)
+                    instrDecoder = twoByteTable[opcode];
+
+            } else {
+                instrDecoder = oneByteTable[opcode];
+            }
+
+            if (instrDecoder == null) {
+                logger.error("Cannot find decoder for opcode " + Long.toHexString(opcode) + ".");
+                return null;
+            }
+
+            instr = instrDecoder.decode(code, byteIndex, instrStartIndex,
+                    segmentOverride, prefixes, factory);
+            if (instr == null) {
+                logger.error("Decoder " + instrDecoder.getClass().toString() + " for opcode " +
+                        Long.toHexString(opcode) + " returned null instruction!");
+                return null;
+            }
+            //len = instrDecoder.getCurrentIndex();
+            //byteIndex = len;
+            byteIndex = instrDecoder.getCurrentIndex();
+        } catch (Exception exp) {
+            logger.error("Error during disassembly:", exp);
+            if (logger.isInfoEnabled())
+                exp.printStackTrace();
+            return null;
+        }
+//       logger.warn(instr.getOperand(0).toString());
+//        logger.warn(instr.getOperand(0).getClass());
         return instr;
     }
 

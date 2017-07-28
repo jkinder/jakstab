@@ -704,7 +704,7 @@ BTSL.OD   modrm, reg32
             *1* %CF := modrm@[reg32:reg32]
             *32* modrm := modrm | tmp1;
 
-CALL.JVOW   reloc16 
+CALLL.JVOW   reloc16
             *32* %esp := %esp - 2
             *16* m[%esp] := %pc@[0:15]
 #--JK            *32* %pc := %pc + 3 + reloc16;
@@ -722,7 +722,7 @@ CALL.JVOW   reloc16
 # *destination*, not the offset (the offset is not avialable to the SSL, nor
 # is the "delta" required to convert from host to native.
 # Corrected in the matcher file
-CALL.JVOD   reloc32 
+CALLL.JVOD   reloc32
             *32* %esp := %esp - 4
             *32* m[%esp] := %pc
 #--JK            *32* %pc := %pc + 5 + reloc32;
@@ -742,7 +742,7 @@ CALL.JVOD   reloc32
 # Careful: A "call [esp + x]" instruction reads the operand first before modifying esp
 #          So, with modrm operands, modify esp last 
 
-CALL.EVOD   modrm
+CALLL.EVOD   modrm
 			*32* tmp1 := modrm 
             *32* %esp := %esp - 4
             *32* m[%esp] := %pc
