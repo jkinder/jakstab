@@ -16,26 +16,27 @@ import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 public class CapstoneParser {
     public static Instruction getInstruction(Capstone.CsInsn csinstr, int prefixes, X86InstructionFactory factory) {
         //TODO Dom-Fix mem segment register default values.
-        if (csinstr.mnemonic.equals("calll"))
+        if (csinstr.group(X86_const.X86_GRP_CALL))//csinstr.mnemonic.equals("calll"))
             return getCallInstruction(csinstr, prefixes, factory);
 /*        if(csinstr.mnemonic.equals("leave"))
             return factory.*/
-        if (csinstr.mnemonic.equals("retl")) {
+        if (csinstr.group(X86_const.X86_GRP_RET)) { //csinstr.mnemonic.equals("retl")) {
             //if (((X86.OpInfo) (csinstr.operands)).op[0].type == X86_const.X86_OP_MEM)
                 //return factory.newRetInstruction(csinstr.mnemonic, getMemOp(((X86.OpInfo) (csinstr.operands)).op[0], csinstr), csinstr.size, prefixes);
             if (csinstr.opCount(X86_const.X86_OP_IMM) != 0)
                 return factory.newRetInstruction(csinstr.mnemonic, (Immediate) getOperand(((X86.OpInfo) (csinstr.operands)).op[0], csinstr), csinstr.size, prefixes);
             return factory.newRetInstruction(csinstr.mnemonic, csinstr.size, prefixes);
         }
-        if (csinstr.mnemonic.charAt(0) == 'j')
-            if (csinstr.mnemonic.equals("jmpl")) {
+        if (csinstr.group(X86_const.X86_GRP_JUMP)) {//(csinstr.mnemonic.charAt(0) == 'j')
+            if (csinstr.mnemonic.startsWith("jmp")) {
                 return factory.newJmpInstruction(csinstr.mnemonic, getOperand(((X86.OpInfo) (csinstr.operands)).op[0], csinstr), csinstr.size, prefixes);
             } else {
                 return factory.newCondJmpInstruction(csinstr.mnemonic, new X86PCRelativeAddress((((X86.OpInfo) (csinstr.operands)).op[0].value.imm - 2) - csinstr.address), csinstr.size, prefixes);//TODO Dom- Dirty hack this will actually break something fix
             }
+        }
         switch (((X86.OpInfo) (csinstr.operands)).op.length) {
-            //case 0:
-            //    return factory.newGeneralInstruction(csinstr.mnemonic, csinstr.size, prefixes);
+            case 0://TODO-Dom Check this isn't evil/add new factory method
+                return factory.newGeneralInstruction(csinstr.mnemonic, null, csinstr.size, prefixes);
             case 1:
                 return factory.newGeneralInstruction(csinstr.mnemonic, getOperand(((X86.OpInfo) (csinstr.operands)).op[0], csinstr), csinstr.size, prefixes);
             case 2:
@@ -107,9 +108,11 @@ public class CapstoneParser {
 /*                if(op.value.mem.segment == 0){
                     return new X86MemoryOperand(getDataType(op.size, false), null, getRegister(op.value.mem.base, csinstr));
                 }*/
+                if (op.value.mem.segment == 0)
+                    return new X86MemoryOperand(getDataType(op.size, false), null, getRegister(op.value.mem.base, csinstr), op.value.mem.disp);
                 //TODO Dom- EVIL HACK DO NOT LEAVE IN PRODUCTION
-                return new X86MemoryOperand(getDataType(op.size, false), new X86SegmentRegister(49, csinstr.regName(49)), getRegister(op.value.mem.base, csinstr), op.value.mem.disp);
-                //return new X86MemoryOperand(getDataType(op.size, false), new X86SegmentRegister(op.value.mem.segment, csinstr.regName(op.value.mem.segment)), getRegister(op.value.mem.base, csinstr));
+                //return new X86MemoryOperand(getDataType(op.size, false), new X86SegmentRegister(49, csinstr.regName(49)), getRegister(op.value.mem.base, csinstr), op.value.mem.disp);
+                return new X86MemoryOperand(getDataType(op.size, false), new X86SegmentRegister(op.value.mem.segment, csinstr.regName(op.value.mem.segment)), getRegister(op.value.mem.base, csinstr));
             }
         } else {
             return new X86MemoryOperand(getDataType(op.size, false), new X86SegmentRegister(op.value.mem.segment, csinstr.regName(op.value.mem.segment)), getRegister(op.value.mem.base, csinstr), getRegister(op.value.mem.index, csinstr), op.value.mem.disp);//, op.value.mem.scale);

@@ -119,7 +119,7 @@ public class ELFModule implements ExecutableImage {
 
 		X86Disassembler disasm = new X86Disassembler(inBuf);
 		// push GOT + 4
-		Instruction instr = disasm.decodeInstruction(pltIdx);
+		Instruction instr = disasm.decodeInstruction(pltIdx);//TODO-Dom update these to parse the current address when ELF loader is working (probably use pltStart)
 		assert instr.getName().equals("pushl");
 		pltIdx += instr.getSize();
 		// jmp *(GOT + 8) 
