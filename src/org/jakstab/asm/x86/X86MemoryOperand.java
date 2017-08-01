@@ -62,7 +62,11 @@ public class X86MemoryOperand extends MemoryOperand {
 		this(dataType, segReg, base, index, disp, 0);
 	}
 
-	public X86MemoryOperand(DataType dataType, X86SegmentRegister segReg, X86Register base) {
+	public X86MemoryOperand(DataType dataType, X86SegmentRegister segReg, X86Register base, long disp){//Dom- Added long disp instead of assuming 0
+		this(dataType, segReg, base, null, disp, 0);
+	}
+
+	public X86MemoryOperand(DataType dataType, X86SegmentRegister segReg, X86Register base){//Dom- Added long disp instead of assuming 0
 		this(dataType, segReg, base, null, 0, 0);
 	}
 

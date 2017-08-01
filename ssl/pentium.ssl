@@ -1046,11 +1046,11 @@ JMP8S[IDX]   reloc8
 
 
 
-JMPL.JB   reloc8
+JMP.JB   reloc8
             *32* %pc := %pc + reloc8; 
 #--JK            *32* %pc := %pc + 2 + reloc8;
 
-JMPL.JVOW   reloc16
+JMP.JVOW   reloc16
             *32* %pc := %pc + reloc16; 
 #--JK            *32* %pc := %pc + 3 + reloc16;
 
@@ -1093,7 +1093,7 @@ MOVB.EB.IB   modrm, i8
 MOVW.EW.IVOW   modrm, i16 
             *16* modrm := i16;
 
-MOVL.ED.IVOD   modrm, i32 
+MOVL.ED.IVOD   modrm, i32
             *32* modrm := i32;
 
 MOVB.IB   reg8, i8 
@@ -1425,7 +1425,7 @@ ROTL[IDX].B.EV.IBOD modrm, i8
 ROLSL[IDX].B.EV.IBOD   modrm, i8  ROLFLAGS32(tmp2, tmp1, i8);
 RORSL[IDX].B.EV.IBOD   modrm, i8  RORFLAGS32(tmp2, tmp1, i8);
 
-RET    
+RETL
             *32* retaddr := m[%esp]{32}
             *32* %esp := %esp + 4
             *32* %pc := retaddr;
@@ -1434,7 +1434,7 @@ RET
 #     we now use tmp1 to allow forgetting the stack below esp
 
 
-RET.IW   i16 
+RETL.IW   i16
 			*32* retaddr := m[%esp]{32}
             *32* %esp := %esp + 4 + zfill(16,31,i16)
             *32* %pc := retaddr;

@@ -185,8 +185,21 @@ public class X86Disassembler implements Disassembler, X86Opcodes {
             }
             csinstr = cs.disasm(insbytes, addr, 1)[0];
             logger.warn(csinstr.address + " " + csinstr.mnemonic + " " + csinstr.opStr);// + " " + ((X86.OpInfo)csinstr.operands).op[0].type);
-            rinstr = CapstoneParser.getInstruction(csinstr, prefixes, factory);
-            logger.warn("Dom: " + rinstr.getName());
+            if (!csinstr.mnemonic.equals("leave") && !csinstr.mnemonic.equals("movl")) {// && !csinstr.mnemonic.equals("calll")) {
+                rinstr = CapstoneParser.getInstruction(csinstr, prefixes, factory);
+                //if (csinstr.mnemonic.equals("calll"))
+                    //logger.warn("Dooooooooooooooooooom calll: " + csinstr.);
+                logger.warn("Dom: " + rinstr.getName());
+                /*try {
+
+                    if (((X86.OpInfo) (csinstr.operands)).op[1].type == X86_const.X86_OP_MEM)
+                        logger.warn("--------------------------" + ((X86.OpInfo) (csinstr.operands)).op[1].value.mem.disp + " " + ((X86.OpInfo) (csinstr.operands)).op[1].value.mem.index + " " + ((X86.OpInfo) (csinstr.operands)).op[1].value.mem.base + " " + ((X86.OpInfo) (csinstr.operands)).op[1].value.mem.segment);
+                } catch (Exception e) {
+
+                }
+                if (((X86.OpInfo) (csinstr.operands)).op[0].type == X86_const.X86_OP_MEM)
+                    logger.warn("--------------------------" + ((X86.OpInfo) (csinstr.operands)).op[0].value.mem.disp + " " + ((X86.OpInfo) (csinstr.operands)).op[0].value.mem.index + " " + ((X86.OpInfo) (csinstr.operands)).op[0].value.mem.base + " " + ((X86.OpInfo) (csinstr.operands)).op[0].value.mem.segment);*/
+            }
             //if(csinstr.mnemonic.equals("calll")) {
             //    logger.warn(csinstr.address + " " + csinstr.mnemonic + " " + csinstr.opStr + " " + ((X86.OpInfo)csinstr.operands).op[0].type);
             //    Operand op;
@@ -255,6 +268,9 @@ public class X86Disassembler implements Disassembler, X86Opcodes {
         }
 //       logger.warn(instr.getOperand(0).toString());
 //        logger.warn(instr.getOperand(0).getClass());
+        //TODO Dom- This is actually filthy please stop with these hacks
+        if (csinstr.mnemonic.equals("leave") || csinstr.mnemonic.equals("movl"))
+            return instr;
         return rinstr;
     }
 
