@@ -27,7 +27,7 @@ public class CapstoneParser {
             if (csinstr.mnemonic.startsWith("jmp")) {
                 return factory.newJmpInstruction(csinstr.mnemonic, getOperand(((X86.OpInfo) (csinstr.operands)).op[0], csinstr), csinstr.size, prefixes);
             } else {
-                return factory.newCondJmpInstruction(csinstr.mnemonic, new X86PCRelativeAddress((((X86.OpInfo) (csinstr.operands)).op[0].value.imm - 2) - csinstr.address), csinstr.size, prefixes);//TODO Dom- Dirty hack this will actually break something fix
+                return factory.newCondJmpInstruction(csinstr.mnemonic, new X86PCRelativeAddress((((X86.OpInfo) (csinstr.operands)).op[0].value.imm - csinstr.size) - csinstr.address), csinstr.size, prefixes);//TODO Dom- Dirty hack this will actually break something fix
             }
         }
         switch (((X86.OpInfo) (csinstr.operands)).op.length) {
@@ -96,7 +96,7 @@ public class CapstoneParser {
     }
 
     private static Immediate getFPImmidiate(double imm, int size) {
-        return new Immediate(imm, getDataType(size, true));
+        return new Immediate(getNumber(imm, getDataType(size,false)), getDataType(size, true));
     }
 
     private static DataType getDataType(int size, boolean fp) {
@@ -159,11 +159,11 @@ public class CapstoneParser {
 
         }
     }
-
+/*
     private static X86SegmentRegister getSegmentRegister(int regID) {
-/*switch (regID){
+*//*switch (regID){
 
-        }*/
+        }*//*
         return null;//TODO-Dom Impliment this?
-    }
+    }*/
 }
