@@ -16,18 +16,14 @@ import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 public class CapstoneParser {
     public static Instruction getInstruction(Capstone.CsInsn csinstr, int prefixes, X86InstructionFactory factory) {
         //TODO Dom-Fix mem segment register default values.
-        if (csinstr.group(X86_const.X86_GRP_CALL))//csinstr.mnemonic.equals("calll"))
+        if (csinstr.group(X86_const.X86_GRP_CALL))
             return getCallInstruction(csinstr, prefixes, factory);
-/*        if(csinstr.mnemonic.equals("leave"))
-            return factory.*/
-        if (csinstr.group(X86_const.X86_GRP_RET)) { //csinstr.mnemonic.equals("retl")) {
-            //if (((X86.OpInfo) (csinstr.operands)).op[0].type == X86_const.X86_OP_MEM)
-                //return factory.newRetInstruction(csinstr.mnemonic, getMemOp(((X86.OpInfo) (csinstr.operands)).op[0], csinstr), csinstr.size, prefixes);
+        if (csinstr.group(X86_const.X86_GRP_RET)) {
             if (csinstr.opCount(X86_const.X86_OP_IMM) != 0)
                 return factory.newRetInstruction(csinstr.mnemonic, (Immediate) getOperand(((X86.OpInfo) (csinstr.operands)).op[0], csinstr), csinstr.size, prefixes);
             return factory.newRetInstruction(csinstr.mnemonic, csinstr.size, prefixes);
         }
-        if (csinstr.group(X86_const.X86_GRP_JUMP)) {//(csinstr.mnemonic.charAt(0) == 'j')
+        if (csinstr.group(X86_const.X86_GRP_JUMP)) {
             if (csinstr.mnemonic.startsWith("jmp")) {
                 return factory.newJmpInstruction(csinstr.mnemonic, getOperand(((X86.OpInfo) (csinstr.operands)).op[0], csinstr), csinstr.size, prefixes);
             } else {
@@ -50,8 +46,9 @@ public class CapstoneParser {
 
     private static Instruction getCallInstruction(Capstone.CsInsn csinstr, int prefixes, X86InstructionFactory factory) {
         //TODO-Dom Correctly differentiate between relative and absolute
-        return factory.newCallInstruction(csinstr.mnemonic, getOperand(((X86.OpInfo) (csinstr.operands)).op[0], csinstr), csinstr.size, prefixes);
-
+        if (getOperand(((X86.OpInfo)(csinstr.operands)).op[0], csinstr) instanceof Immediate)
+            return factory.newCallInstruction(csinstr.mnemonic, new X86AbsoluteAddress(((X86.OpInfo)(csinstr.operands)).op[0].value.imm), csinstr.size, prefixes);
+        return factory.newCallInstruction(csinstr.mnemonic, getOperand(((X86.OpInfo)(csinstr.operands)).op[0], csinstr), csinstr.size, prefixes);
     }
 
     private static Operand getOperand(X86.Operand op, Capstone.CsInsn csinstr) {
@@ -59,40 +56,24 @@ public class CapstoneParser {
             case X86_const.X86_OP_REG:
                 return getRegister(op.value.reg, csinstr);
             case X86_const.X86_OP_IMM:
-                if (op.avx_bcast == 0)
-                    return getImmediate(op.value.imm, op.size);
-                else
-                    return getFPImmidiate(op.value.imm, op.size);
+                return getImmediate(op.value.imm, op.size);
             case X86_const.X86_OP_MEM:
                 return getMemOp(op, csinstr);
-            /*case X86_const.X86_OP_FP:
-                return getFPImmidiate(op.value.imm, op.size);*/
+            case X86_const.X86_OP_FP:
+                //TODO-Dom Not sure if this works
+                return getFPImmidiate(op.value.fp, op.size);
             //case X86_const.X86_OP_INVALID:
             default:
                 throw new NotImplementedException();
-                //return null;
         }
     }
 
     private static Immediate getImmediate(long imm, int size) {
         return new Immediate(getNumber(imm, getDataType(size, false)), getDataType(size, false));
-        /*
-        switch (size) {
-            case 1:
-                return new Immediate(imm, DataType.INT8);
-            case 2:
-                return new Immediate(imm, DataType.INT16);
-            case 4://Size in Bytes
-                return new Immediate(imm, DataType.INT32);
-            break;
-            case 8:
-                return new Immediate(imm, DataType.INT64);
-            break;
-            */
     }
 
     private static X86Register getRegister(int reg, Capstone.CsInsn csinstr) {
-        return new X86Register(reg, csinstr.regName(reg));
+        return new X86Register(reg, "%" + csinstr.regName(reg));
     }
 
     private static X86MemoryOperand getMemOp(X86.Operand op, Capstone.CsInsn csinstr) {
@@ -105,28 +86,22 @@ public class CapstoneParser {
                     return new X86MemoryOperand(getDataType(op.size, false), new X86SegmentRegister(op.value.mem.segment, csinstr.regName(op.value.mem.segment)), op.value.mem.disp);
                 }
             } else {
-/*                if(op.value.mem.segment == 0){
-                    return new X86MemoryOperand(getDataType(op.size, false), null, getRegister(op.value.mem.base, csinstr));
-                }*/
                 if (op.value.mem.segment == 0)
                     return new X86MemoryOperand(getDataType(op.size, false), null, getRegister(op.value.mem.base, csinstr), op.value.mem.disp);
-                //TODO Dom- EVIL HACK DO NOT LEAVE IN PRODUCTION
-                //return new X86MemoryOperand(getDataType(op.size, false), new X86SegmentRegister(49, csinstr.regName(49)), getRegister(op.value.mem.base, csinstr), op.value.mem.disp);
                 return new X86MemoryOperand(getDataType(op.size, false), new X86SegmentRegister(op.value.mem.segment, csinstr.regName(op.value.mem.segment)), getRegister(op.value.mem.base, csinstr));
             }
         } else {
             return new X86MemoryOperand(getDataType(op.size, false), new X86SegmentRegister(op.value.mem.segment, csinstr.regName(op.value.mem.segment)), getRegister(op.value.mem.base, csinstr), getRegister(op.value.mem.index, csinstr), op.value.mem.disp);//, op.value.mem.scale);
         }
-        //return new X86MemoryOperand(getDataType(op.size, false), new X86SegmentRegister(op.value.mem.segment, csinstr.regName(op.value.mem.segment)), getRegister(op.value.mem.base, csinstr), getRegister(op.value.mem.index, csinstr), op.value.mem.disp, op.value.mem.scale);
     }
 
-    private static Immediate getFPImmidiate(long imm, int size) {
+    private static Immediate getFPImmidiate(double imm, int size) {
         return new Immediate(imm, getDataType(size, true));
     }
 
     private static DataType getDataType(int size, boolean fp) {
         if (fp) {
-            switch (size) {
+            switch (size) {//TODO-Dom careful with this. may break with strings. Also boolean is not the way to go.
                 case 4:
                     return DataType.FL_SINGLE;
                 case 8:
@@ -171,10 +146,24 @@ public class CapstoneParser {
         //return null;
     }
 
+    private static Number getNumber(double val, DataType type){
+        switch (type){
+            case FL_SINGLE:
+                return (float)val;
+            case FL_EXT_DOUBLE:
+            case FL_QUAD:
+                throw new NotImplementedException();
+            //case FL_DOUBLE:
+            default:
+                return val;
+
+        }
+    }
+
     private static X86SegmentRegister getSegmentRegister(int regID) {
 /*switch (regID){
 
         }*/
-        return null;
+        return null;//TODO-Dom Impliment this?
     }
 }

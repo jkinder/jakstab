@@ -20,6 +20,8 @@ package org.jakstab.ssl;
 import java.io.*;
 import java.util.*;
 
+import capstone.X86;
+import capstone.X86_const;
 import org.jakstab.Options;
 import org.jakstab.util.Logger;
 import org.jakstab.asm.*;
@@ -294,8 +296,9 @@ public class Architecture {
 				if(oper instanceof  X86Register){
 					logger.warn("Dom::: " + oper.toString());
 				}
-				if (oper instanceof X86Register && (
-						(oper.toString().toUpperCase().equals("EAX") && proto.getName().endsWith("EAX")) ||
+				if (oper instanceof X86Register && (((
+						(X86Register)oper).getNumber() == X86_const.X86_REG_EAX) && proto.getName().endsWith("EAX")||
+						//(oper.toString().toUpperCase().equals("EAX") && proto.getName().endsWith("EAX")) ||
 						(oper.toString().toUpperCase().equals("AX") && proto.getName().endsWith("AX")) ||
 						(oper.toString().toUpperCase().equals("AL") && proto.getName().endsWith("AL")) ||
 						(oper.toString().toUpperCase().equals("CS") && proto.getName().endsWith("CS")) ||
@@ -304,7 +307,7 @@ public class Architecture {
 						(oper.toString().toUpperCase().equals("FS") && proto.getName().endsWith("FS")) ||
 						(oper.toString().toUpperCase().equals("GS") && proto.getName().endsWith("GS")) ||
 						(oper.toString().toUpperCase().equals("SS") && proto.getName().endsWith("SS"))
-						
+
 				)) {
 					score += IMPLICIT_OPERAND_MATCH_SCORE;
 					if (instr.getOperandCount() == proto.getParameterCount() + 1) {

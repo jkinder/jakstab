@@ -28,7 +28,7 @@ public interface Disassembler {
 	 *
 	 * @return instr The disassembled instruction, null on failure.
 	 */
-	public Instruction decodeInstruction(long fp);
+	//public Instruction decodeInstruction(long fp);
 	/**
 	 * Disassembles one instruction at the given index in the code array. 
 	 * 
