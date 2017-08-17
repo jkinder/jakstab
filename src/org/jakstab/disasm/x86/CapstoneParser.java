@@ -81,25 +81,16 @@ public class CapstoneParser {
     }
 
     private static X86MemoryOperand getMemOp(X86.Operand op, Capstone.CsInsn csinstr) {
-        if (csinstr.opStr.contains("0x11b35b8(, %eax, 8)") && op.value.mem.base == 0)
-            return new X86MemoryOperand(getDataType(op.size, false), null, null, getRegister(op.value.mem.index, csinstr),op.value.mem.disp, op.value.mem.scale);
-        if (op.value.mem.index == 0) {
-            if (op.value.mem.base == 0) {
-                if (op.value.mem.segment == 0) {
-                    return new X86MemoryOperand(getDataType(op.size, false), op.value.mem.disp);//, op.value.mem.disp);
-                } else {
-                    return new X86MemoryOperand(getDataType(op.size, false), new X86SegmentRegister(op.value.mem.segment, csinstr.regName(op.value.mem.segment)), op.value.mem.disp);
-                }
-            } else {
-                if (op.value.mem.segment == 0)
-                    return new X86MemoryOperand(getDataType(op.size, false), null, getRegister(op.value.mem.base, csinstr), op.value.mem.disp);
-                return new X86MemoryOperand(getDataType(op.size, false), new X86SegmentRegister(op.value.mem.segment, csinstr.regName(op.value.mem.segment)), getRegister(op.value.mem.base, csinstr));
-            }
-        } else {
-            if (op.value.mem.index != 0 && op.value.mem.base != 0 && op.value.mem.segment == 0)
-                return new X86MemoryOperand(getDataType(op.size,false),null, getRegister(op.value.mem.base, csinstr), getRegister(op.value.mem.index, csinstr), op.value.mem.disp);
-            return new X86MemoryOperand(getDataType(op.size, false), new X86SegmentRegister(op.value.mem.segment, csinstr.regName(op.value.mem.segment)), getRegister(op.value.mem.base, csinstr), getRegister(op.value.mem.index, csinstr), op.value.mem.disp);//, op.value.mem.scale);
-        }
+        X86SegmentRegister sr = null;
+        X86Register ir = null;
+        X86Register br = null;
+        if (op.value.mem.segment != 0)
+            sr = new X86SegmentRegister(op.value.mem.segment, csinstr.regName(op.value.mem.segment));
+        if (op.value.mem.index != 0)
+            ir = getRegister(op.value.mem.index, csinstr);
+        if (op.value.mem.base != 0)
+            ir = getRegister(op.value.mem.base, csinstr);
+        return new X86MemoryOperand(getDataType(op.size, false), sr, br, ir, op.value.mem.disp, op.value.mem.scale);
     }
 
     private static Immediate getFPImmidiate(double imm, int size) {

@@ -37,12 +37,9 @@ package org.jakstab.disasm.x86;
 import capstone.X86;
 import capstone.X86_const;
 import org.jakstab.asm.*;
-import org.jakstab.asm.x86.X86Register;
+import org.jakstab.asm.x86.*;
 import org.jakstab.util.BinaryInputBuffer;
 import org.jakstab.util.Logger;
-import org.jakstab.asm.x86.X86InstructionFactory;
-import org.jakstab.asm.x86.X86InstructionFactoryImpl;
-import org.jakstab.asm.x86.X86Opcodes;
 import org.jakstab.disasm.Disassembler;
 import capstone.Capstone;
 
@@ -106,6 +103,7 @@ public class X86Disassembler implements Disassembler, X86Opcodes {
                 exp.printStackTrace();
             return null;
         }
+        ((X86Instruction)instr).checkLock();
         return instr;
     }
 
