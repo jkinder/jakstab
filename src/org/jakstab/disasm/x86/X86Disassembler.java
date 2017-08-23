@@ -33,11 +33,7 @@
  */
 
 package org.jakstab.disasm.x86;
-
-import capstone.X86;
-import capstone.X86_const;
 import org.jakstab.asm.*;
-import org.jakstab.asm.x86.X86Register;
 import org.jakstab.util.BinaryInputBuffer;
 import org.jakstab.util.Logger;
 import org.jakstab.asm.x86.X86InstructionFactory;
@@ -69,36 +65,25 @@ public class X86Disassembler implements Disassembler, X86Opcodes {
      */
     public X86Disassembler(BinaryInputBuffer code) {
         this(code, new X86InstructionFactoryImpl());
-        cs = new Capstone(Capstone.CS_ARCH_X86, Capstone.CS_MODE_32);
-        cs.setSyntax(cs.CS_OPT_SYNTAX_ATT);
-        cs.setDetail(cs.CS_OPT_ON);
     }
 
     @Override
     public final Instruction decodeInstruction(long index, long addr) {
-        Instruction instr = null;
-        Instruction rinstr = null;
-        InstructionDecoder instrDecoder = null;
+        Instruction instr;
         byteIndex = (int) index; // For 64bit systems, this needs to be fixed //TODO-Dom test replacing this
-        //int len = byteIndex;
-        //int instrStartIndex = 0;
 
         int prefixes = 0;
         int instrStartIndex = byteIndex;
         Capstone.CsInsn csinstr;
         try {
-            //check if there is any prefix
             prefixes = getPrefixes();
-
-            int segmentOverride = 1;  //get segment override prefix
             byte[] insbytes = new byte[15 + (byteIndex - instrStartIndex)];
             for (int i = instrStartIndex; i < 15 + byteIndex; i++) {// TODO Dom - This is an arbitrary number should probably calculate this.
                 insbytes[i - instrStartIndex] = (byte) InstructionDecoder.readByte(code, i);
             }
             csinstr = cs.disasm(insbytes, addr, 1)[0];
-            logger.warn(csinstr.address + " " + csinstr.mnemonic + " " + csinstr.opStr);
-            rinstr = CapstoneParser.getInstruction(csinstr, prefixes, factory);
-            logger.warn("Dom: " + rinstr.getName());
+           // logger.warn(csinstr.address + " " + csinstr.mnemonic + " " + csinstr.opStr);
+            instr = CapstoneParser.getInstruction(csinstr, prefixes, factory);
             byteIndex = csinstr.size + instrStartIndex;
         } catch (Exception exp) {
             logger.error("Error during disassembly:", exp);
@@ -106,7 +91,7 @@ public class X86Disassembler implements Disassembler, X86Opcodes {
                 exp.printStackTrace();
             return null;
         }
-        return rinstr;
+        return instr;
     }
 
     private final int getPrefixes() {
