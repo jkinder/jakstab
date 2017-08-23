@@ -34,11 +34,9 @@
 
 package org.jakstab.disasm.x86;
 import org.jakstab.asm.*;
+import org.jakstab.asm.x86.*;
 import org.jakstab.util.BinaryInputBuffer;
 import org.jakstab.util.Logger;
-import org.jakstab.asm.x86.X86InstructionFactory;
-import org.jakstab.asm.x86.X86InstructionFactoryImpl;
-import org.jakstab.asm.x86.X86Opcodes;
 import org.jakstab.disasm.Disassembler;
 import capstone.Capstone;
 
@@ -69,7 +67,7 @@ public class X86Disassembler implements Disassembler, X86Opcodes {
 
     @Override
     public final Instruction decodeInstruction(long index, long addr) {
-        Instruction instr;
+        Instruction instr = null;
         byteIndex = (int) index; // For 64bit systems, this needs to be fixed //TODO-Dom test replacing this
 
         int prefixes = 0;
@@ -84,13 +82,15 @@ public class X86Disassembler implements Disassembler, X86Opcodes {
             csinstr = cs.disasm(insbytes, addr, 1)[0];
            // logger.warn(csinstr.address + " " + csinstr.mnemonic + " " + csinstr.opStr);
             instr = CapstoneParser.getInstruction(csinstr, prefixes, factory);
-            byteIndex = csinstr.size + instrStartIndex;
+            //logger.warn("Dom: " + rinstr.getName());
+            byteIndex = csinstr.size + instrStartIndex;//Not sure how safe putting this here is
         } catch (Exception exp) {
             logger.error("Error during disassembly:", exp);
             if (logger.isInfoEnabled())
                 exp.printStackTrace();
             return null;
         }
+        ((X86Instruction)instr).checkLock();
         return instr;
     }
 

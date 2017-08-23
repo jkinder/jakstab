@@ -35,7 +35,7 @@ package org.jakstab.asm;
  * implementations for the {@link Instruction} interface. 
  */
 public abstract class AbstractInstruction implements Instruction {
-	protected final String name;
+	protected String name;
 
 	/**
 	 * Top level constructor for all instructions. Creates a new instruction given its menmonic.
@@ -52,4 +52,11 @@ public abstract class AbstractInstruction implements Instruction {
 	public String toString(long currentPc, SymbolFinder symFinder) {
 		return name;
 	}
+
+	public void checkLock(){
+		//TODO-Dom replace with real code
+		if (name.contains("lock "))
+			name = name.split("lock ")[1];
+	}
 }
+

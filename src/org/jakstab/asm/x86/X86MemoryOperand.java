@@ -54,7 +54,7 @@ public class X86MemoryOperand extends MemoryOperand {
 	}
 
 	public X86MemoryOperand(DataType dataType, X86SegmentRegister segReg, X86Register base, X86Register index, long disp, int scale) {
-		super(dataType, base, index, disp, 1 << scale);
+		super(dataType, base, index, disp, scale);//1 << scale);
 		this.segReg = segReg;
 	}
 
