@@ -63,7 +63,7 @@ public class CapstoneParser {
             case X86_const.X86_OP_MEM:
                 return getMemOp(op, csinstr);
             case X86_const.X86_OP_FP:
-                //TODO-Dom Not sure if this works
+                //TODO-Dom Not sure if this works so throwing exception until tested
                 throw new NotImplementedException();
                 //return getFPImmidiate(op.value.fp, op.size);
             //case X86_const.X86_OP_INVALID:

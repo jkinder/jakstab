@@ -291,11 +291,7 @@ public class Architecture {
 				Operand oper = instr.getOperand(i);
 
 				// Special handling for implicit operands
-				//TODO Dom Replace X86Registers class
 				//((X86Register)oper).toString().equals("EAX");
-				if(oper instanceof  X86Register){
-					logger.warn("Dom::: " + oper.toString());
-				}
 				if (oper instanceof X86Register && (((
 						(X86Register)oper).getNumber() == X86_const.X86_REG_EAX) && proto.getName().endsWith("EAX")||
 						//(oper.toString().toUpperCase().equals("EAX") && proto.getName().endsWith("EAX")) ||

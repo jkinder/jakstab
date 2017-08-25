@@ -403,7 +403,7 @@ public final class Program {
 						return null;
 					}
 					instr = module.getDisassembler().decodeInstruction(fp, address.getValue());
-					logger.warn("TT: " + fp + " " + address);
+					//logger.warn("TT: " + fp + " " + address);
 					if (instr == null) {
 						logger.error("Instruction could not be disassembled at: " + address);
 					}

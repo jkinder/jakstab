@@ -67,23 +67,22 @@ public class X86Disassembler implements Disassembler, X86Opcodes {
 
     @Override
     public final Instruction decodeInstruction(long index, long addr) {
-        Instruction instr = null;
+        Instruction instr;
         byteIndex = (int) index; // For 64bit systems, this needs to be fixed //TODO-Dom test replacing this
 
-        int prefixes = 0;
+        int prefixes ;
         int instrStartIndex = byteIndex;
         Capstone.CsInsn csinstr;
         try {
             prefixes = getPrefixes();
             byte[] insbytes = new byte[15 + (byteIndex - instrStartIndex)];
-            for (int i = instrStartIndex; i < 15 + byteIndex; i++) {// TODO Dom - This is an arbitrary number should probably calculate this.
+            for (int i = instrStartIndex; i < 15 + byteIndex; i++) {// TODO Dom - This is a (mostly) arbitrary number should probably calculate this.
                 insbytes[i - instrStartIndex] = (byte) InstructionDecoder.readByte(code, i);
             }
             csinstr = cs.disasm(insbytes, addr, 1)[0];
-           // logger.warn(csinstr.address + " " + csinstr.mnemonic + " " + csinstr.opStr);
+           //logger.warn(csinstr.address + " " + csinstr.mnemonic + " " + csinstr.opStr);
             instr = CapstoneParser.getInstruction(csinstr, prefixes, factory);
-            //logger.warn("Dom: " + rinstr.getName());
-            byteIndex = csinstr.size + instrStartIndex;//Not sure how safe putting this here is
+            byteIndex = csinstr.size + instrStartIndex;
         } catch (Exception exp) {
             logger.error("Error during disassembly:", exp);
             if (logger.isInfoEnabled())
