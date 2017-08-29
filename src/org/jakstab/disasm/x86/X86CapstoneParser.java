@@ -13,25 +13,46 @@ import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 /**
  * Created by dmium on 7/28/17.
  */
-public class CapstoneParser {
+public class X86CapstoneParser{
     public static Instruction getInstruction(Capstone.CsInsn csinstr, int prefixes, X86InstructionFactory factory) {
-        //TODO Dom-Fix mem segment register default values.
-        if (csinstr.group(X86_const.X86_GRP_CALL))
+        if (csinstr.group(X86_const.X86_GRP_CALL)) {
             return getCallInstruction(csinstr, prefixes, factory);
+        }
         if (csinstr.group(X86_const.X86_GRP_RET)) {
+            return getRetInstruction(csinstr,prefixes,factory);
+        }
+        if (csinstr.group(X86_const.X86_GRP_JUMP)) {
+            return getJumpInstruction(csinstr,prefixes,factory);
+        }
+        return getGeneralInstruction(csinstr,prefixes,factory);
+    }
+
+    private static Instruction getCallInstruction(Capstone.CsInsn csinstr, int prefixes, X86InstructionFactory factory) {
+        //TODO-Dom Correctly differentiate between relative and absolute
+        if (getOperand(((X86.OpInfo)(csinstr.operands)).op[0], csinstr) instanceof Immediate)
+            return factory.newCallInstruction(csinstr.mnemonic, new X86PCRelativeAddress((((X86.OpInfo) (csinstr.operands)).op[0].value.imm - csinstr.size) - csinstr.address), csinstr.size, prefixes);
+            //return factory.newCallInstruction(csinstr.mnemonic, new X86AbsoluteAddress(((X86.OpInfo)(csinstr.operands)).op[0].value.imm), csinstr.size, prefixes);
+        //throw new NotImplementedException();
+        return factory.newCallInstruction(csinstr.mnemonic, getOperand(((X86.OpInfo)(csinstr.operands)).op[0], csinstr), csinstr.size, prefixes);
+    }
+
+    private static Instruction getRetInstruction(Capstone.CsInsn csinstr, int prefixes, X86InstructionFactory factory){
             if (csinstr.opCount(X86_const.X86_OP_IMM) != 0)
                 return factory.newRetInstruction(csinstr.mnemonic, (Immediate) getOperand(((X86.OpInfo) (csinstr.operands)).op[0], csinstr), csinstr.size, prefixes);
             return factory.newRetInstruction(csinstr.mnemonic, csinstr.size, prefixes);
+    }
+
+    private static Instruction getJumpInstruction(Capstone.CsInsn csinstr, int prefixes, X86InstructionFactory factory){
+        if (csinstr.mnemonic.startsWith("jmp")) {
+            if(csinstr.mnemonic.endsWith("l"))
+                return factory.newJmpInstruction(csinstr.mnemonic, getOperand(((X86.OpInfo) (csinstr.operands)).op[0], csinstr), csinstr.size, prefixes);
+            return factory.newJmpInstruction(csinstr.mnemonic, new X86PCRelativeAddress((((X86.OpInfo)(csinstr.operands)).op[0].value.imm - csinstr.size) - csinstr.address) /*getOperand(((X86.OpInfo) (csinstr.operands)).op[0], csinstr)*/, csinstr.size, prefixes);
+        } else {
+            return factory.newCondJmpInstruction(csinstr.mnemonic, new X86PCRelativeAddress((((X86.OpInfo) (csinstr.operands)).op[0].value.imm - csinstr.size) - csinstr.address), csinstr.size, prefixes);
         }
-        if (csinstr.group(X86_const.X86_GRP_JUMP)) {
-            if (csinstr.mnemonic.startsWith("jmp")) {
-                if(csinstr.mnemonic.endsWith("l"))
-                    return factory.newJmpInstruction(csinstr.mnemonic, getOperand(((X86.OpInfo) (csinstr.operands)).op[0], csinstr), csinstr.size, prefixes);
-                return factory.newJmpInstruction(csinstr.mnemonic, new X86PCRelativeAddress((((X86.OpInfo)(csinstr.operands)).op[0].value.imm - csinstr.size) - csinstr.address) /*getOperand(((X86.OpInfo) (csinstr.operands)).op[0], csinstr)*/, csinstr.size, prefixes);
-            } else {
-                return factory.newCondJmpInstruction(csinstr.mnemonic, new X86PCRelativeAddress((((X86.OpInfo) (csinstr.operands)).op[0].value.imm - csinstr.size) - csinstr.address), csinstr.size, prefixes);
-            }
-        }
+    }
+
+    private static Instruction getGeneralInstruction(Capstone.CsInsn csinstr, int prefixes, X86InstructionFactory factory){
         switch (((X86.OpInfo) (csinstr.operands)).op.length) {
             case 0://TODO-Dom Check this isn't evil/add new factory method
                 return factory.newGeneralInstruction(csinstr.mnemonic, null, csinstr.size, prefixes);
@@ -43,15 +64,6 @@ public class CapstoneParser {
                 return factory.newGeneralInstruction(csinstr.mnemonic, getOperand(((X86.OpInfo) (csinstr.operands)).op[2], csinstr), getOperand(((X86.OpInfo) (csinstr.operands)).op[1], csinstr), getOperand(((X86.OpInfo) (csinstr.operands)).op[0], csinstr), csinstr.size, prefixes);
         }
         return null;
-    }
-
-    private static Instruction getCallInstruction(Capstone.CsInsn csinstr, int prefixes, X86InstructionFactory factory) {
-        //TODO-Dom Correctly differentiate between relative and absolute
-        if (getOperand(((X86.OpInfo)(csinstr.operands)).op[0], csinstr) instanceof Immediate)
-            return factory.newCallInstruction(csinstr.mnemonic, new X86PCRelativeAddress((((X86.OpInfo) (csinstr.operands)).op[0].value.imm - csinstr.size) - csinstr.address), csinstr.size, prefixes);
-            //return factory.newCallInstruction(csinstr.mnemonic, new X86AbsoluteAddress(((X86.OpInfo)(csinstr.operands)).op[0].value.imm), csinstr.size, prefixes);
-        //throw new NotImplementedException();
-        return factory.newCallInstruction(csinstr.mnemonic, getOperand(((X86.OpInfo)(csinstr.operands)).op[0], csinstr), csinstr.size, prefixes);
     }
 
     private static Operand getOperand(X86.Operand op, Capstone.CsInsn csinstr) {
@@ -66,14 +78,14 @@ public class CapstoneParser {
                 //TODO-Dom Not sure if this works so throwing exception until tested
                 throw new NotImplementedException();
                 //return getFPImmidiate(op.value.fp, op.size);
-            //case X86_const.X86_OP_INVALID:
+            //case X86_const.X86_OP_INVALID://This part is the same as default
             default:
                 throw new NotImplementedException();
         }
     }
 
     private static Immediate getImmediate(long imm, int size) {
-        return new Immediate(getNumber(imm, getDataType(size, false)), getDataType(size, false));
+        return new Immediate(getNumber(imm, getDataType(size)), getDataType(size));
     }
 
     private static X86Register getRegister(int reg, Capstone.CsInsn csinstr) {
@@ -90,42 +102,41 @@ public class CapstoneParser {
             ir = getRegister(op.value.mem.index, csinstr);
         if (op.value.mem.base != 0)
             ir = getRegister(op.value.mem.base, csinstr);
-        return new X86MemoryOperand(getDataType(op.size, false), sr, br, ir, op.value.mem.disp, op.value.mem.scale);
+        return new X86MemoryOperand(getDataType(op.size), sr, br, ir, op.value.mem.disp, op.value.mem.scale);
     }
 
     private static Immediate getFPImmidiate(double imm, int size) {
-        return new Immediate(getNumber(imm, getDataType(size,false)), getDataType(size, true));
+        return new Immediate(getNumber(imm, getFPDataType(size)), getFPDataType(size));
     }
 
-    private static DataType getDataType(int size, boolean fp) {
-        if (fp) {
-            switch (size) {//TODO-Dom careful with this. may break with strings. Also boolean is not the way to go.
-                case 4:
-                    return DataType.FL_SINGLE;
-                case 8:
-                    return DataType.FL_DOUBLE;
-                case 10:
-                    return DataType.FL_EXT_DOUBLE;
-                case 16:
-                    return DataType.FL_QUAD;
-            }
-            return DataType.FL_DOUBLE;
-        } else {
-            switch (size) {
-                case 1:
-                    return DataType.INT8;
-                case 2:
-                    return DataType.INT16;
-                case 4:
-                    return DataType.INT32;
-                case 8:
-                    return DataType.INT64;
-                case 16:
-                    return DataType.INT128;
-            }
+    private static DataType getDataType(int size) {
+        switch (size) {
+            case 1:
+                return DataType.INT8;
+            case 2:
+                return DataType.INT16;
+            case 4:
+                return DataType.INT32;
+            case 8:
+                return DataType.INT64;
+            case 16:
+                return DataType.INT128;
         }
         return DataType.STRING;
         //return null;
+    }
+    private static DataType getFPDataType(int size) {
+        switch (size) {//TODO-Dom careful with this. may break with strings.
+            case 4:
+                return DataType.FL_SINGLE;
+            case 8:
+                return DataType.FL_DOUBLE;
+            case 10:
+                return DataType.FL_EXT_DOUBLE;
+            case 16:
+                return DataType.FL_QUAD;
+        }
+        throw new NotImplementedException();
     }
 
     private static Number getNumber(long val, DataType type) {
@@ -137,11 +148,9 @@ public class CapstoneParser {
             case INT32:
                 return (int) val;
             case INT64:
-                return (long) val;
-            default:
-                return val;
+                return/* (long)*/ val;
         }
-        //return null;
+        throw new NotImplementedException();
     }
 
     private static Number getNumber(double val, DataType type){
@@ -149,11 +158,12 @@ public class CapstoneParser {
             case FL_SINGLE:
                 return (float)val;
             case FL_EXT_DOUBLE:
+                return val;
             case FL_QUAD:
                 throw new NotImplementedException();
             //case FL_DOUBLE:
             default:
-                return val;
+                throw new NotImplementedException();
 
         }
     }

@@ -55,8 +55,10 @@ public abstract class AbstractInstruction implements Instruction {
 
 	public void checkLock(){
 		//TODO-Dom replace with real code
-		if (name.contains("lock "))
-			name = name.split("lock ")[1];
+		if (name.contains(" "))//TODO-Dom Actually replace with real code this hack is worse than before
+			name = name.split(" ")[1];
+/*		if (name.contains("lock "))
+			name = name.split("lock ")[1];*/
 	}
 }
 
