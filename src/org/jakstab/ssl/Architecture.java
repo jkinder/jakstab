@@ -292,17 +292,16 @@ public class Architecture {
 
 				// Special handling for implicit operands
 				//((X86Register)oper).toString().equals("EAX");
-				if (oper instanceof X86Register && (((
-						(X86Register)oper).getNumber() == X86_const.X86_REG_EAX) && proto.getName().endsWith("EAX")||
-						//(oper.toString().toUpperCase().equals("EAX") && proto.getName().endsWith("EAX")) ||
-						(oper.toString().toUpperCase().equals("AX") && proto.getName().endsWith("AX")) ||
-						(oper.toString().toUpperCase().equals("AL") && proto.getName().endsWith("AL")) ||
-						(oper.toString().toUpperCase().equals("CS") && proto.getName().endsWith("CS")) ||
-						(oper.toString().toUpperCase().equals("DS") && proto.getName().endsWith("DS")) ||
-						(oper.toString().toUpperCase().equals("ES") && proto.getName().endsWith("ES")) ||
-						(oper.toString().toUpperCase().equals("FS") && proto.getName().endsWith("FS")) ||
-						(oper.toString().toUpperCase().equals("GS") && proto.getName().endsWith("GS")) ||
-						(oper.toString().toUpperCase().equals("SS") && proto.getName().endsWith("SS"))
+				if (oper instanceof X86Register && (//TODO-Dom. Replaced this code with .Equals(X86Registers.register) instead of comparing strings. May break.
+						(oper.equals(X86Registers.EAX) && proto.getName().endsWith("EAX"))||
+						(oper.equals(X86Registers.AX) && proto.getName().endsWith("AX")) ||
+						(oper.equals(X86Registers.AL) && proto.getName().endsWith("AL")) ||
+						(oper.equals(X86SegmentRegisters.CS)&& proto.getName().endsWith("CS")) ||
+						(oper.equals(X86SegmentRegisters.DS) && proto.getName().endsWith("DS")) ||
+						(oper.equals(X86SegmentRegisters.ES) && proto.getName().endsWith("ES")) ||
+						(oper.equals(X86SegmentRegisters.FS) && proto.getName().endsWith("FS")) ||
+						(oper.equals(X86SegmentRegisters.GS)&& proto.getName().endsWith("GS")) ||
+						(oper.equals(X86SegmentRegisters.SS)&& proto.getName().endsWith("SS"))
 
 				)) {
 					score += IMPLICIT_OPERAND_MATCH_SCORE;

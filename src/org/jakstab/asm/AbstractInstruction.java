@@ -42,7 +42,7 @@ public abstract class AbstractInstruction implements Instruction {
 	 * @param name the instruction mnemonic.
 	 */
 	public AbstractInstruction(String name) {
-		this.name = name;
+		this.name = name;//TODO-Dom Move checklock here and fix checklock then put name back to finalz
 	}
 
 	public String getName() {

@@ -52,8 +52,8 @@ public class X86Disassembler implements Disassembler, X86Opcodes {
         this.code = code;
         this.factory = factory;
         cs = new Capstone(Capstone.CS_ARCH_X86, Capstone.CS_MODE_32);
-        cs.setSyntax(cs.CS_OPT_SYNTAX_ATT);
-        cs.setDetail(cs.CS_OPT_ON);
+        cs.setSyntax(Capstone.CS_OPT_SYNTAX_ATT);
+        cs.setDetail(Capstone.CS_OPT_ON);
     }
 
     /**
@@ -80,7 +80,7 @@ public class X86Disassembler implements Disassembler, X86Opcodes {
                 insbytes[i - instrStartIndex] = (byte) InstructionDecoder.readByte(code, i);
             }
             csinstr = cs.disasm(insbytes, addr, 1)[0];
-           //logger.warn(csinstr.address + " " + csinstr.mnemonic + " " + csinstr.opStr);
+            logger.warn(csinstr.address + " " + csinstr.mnemonic + " " + csinstr.opStr);
             instr = X86CapstoneParser.getInstruction(csinstr, prefixes, factory);
             byteIndex = csinstr.size + instrStartIndex;
         } catch (Exception exp) {

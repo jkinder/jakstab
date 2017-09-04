@@ -31,8 +31,6 @@ public class X86CapstoneParser{
         //TODO-Dom Correctly differentiate between relative and absolute
         if (getOperand(((X86.OpInfo)(csinstr.operands)).op[0], csinstr) instanceof Immediate)
             return factory.newCallInstruction(csinstr.mnemonic, new X86PCRelativeAddress((((X86.OpInfo) (csinstr.operands)).op[0].value.imm - csinstr.size) - csinstr.address), csinstr.size, prefixes);
-            //return factory.newCallInstruction(csinstr.mnemonic, new X86AbsoluteAddress(((X86.OpInfo)(csinstr.operands)).op[0].value.imm), csinstr.size, prefixes);
-        //throw new NotImplementedException();
         return factory.newCallInstruction(csinstr.mnemonic, getOperand(((X86.OpInfo)(csinstr.operands)).op[0], csinstr), csinstr.size, prefixes);
     }
 
@@ -76,8 +74,8 @@ public class X86CapstoneParser{
                 return getMemOp(op, csinstr);
             case X86_const.X86_OP_FP:
                 //TODO-Dom Not sure if this works so throwing exception until tested
-                throw new NotImplementedException();
-                //return getFPImmidiate(op.value.fp, op.size);
+                //throw new NotImplementedException();
+                return getFPImmidiate(op.value.fp, op.size);
             //case X86_const.X86_OP_INVALID://This part is the same as default
             default:
                 throw new NotImplementedException();
@@ -88,7 +86,7 @@ public class X86CapstoneParser{
         return new Immediate(getNumber(imm, getDataType(size)), getDataType(size));
     }
 
-    private static X86Register getRegister(int reg, Capstone.CsInsn csinstr) {
+    public static X86Register getRegister(int reg, Capstone.CsInsn csinstr) {
         return new X86Register(reg, "%" + csinstr.regName(reg));
     }
 
@@ -101,7 +99,7 @@ public class X86CapstoneParser{
         if (op.value.mem.index != 0)
             ir = getRegister(op.value.mem.index, csinstr);
         if (op.value.mem.base != 0)
-            ir = getRegister(op.value.mem.base, csinstr);
+            br = getRegister(op.value.mem.base, csinstr);
         return new X86MemoryOperand(getDataType(op.size), sr, br, ir, op.value.mem.disp, op.value.mem.scale);
     }
 
@@ -124,6 +122,7 @@ public class X86CapstoneParser{
         }
         return DataType.STRING;
         //return null;
+        //return DataType.sIntfromBits(size*8);
     }
     private static DataType getFPDataType(int size) {
         switch (size) {//TODO-Dom careful with this. may break with strings.
@@ -157,7 +156,7 @@ public class X86CapstoneParser{
         switch (type){
             case FL_SINGLE:
                 return (float)val;
-            case FL_EXT_DOUBLE:
+            case FL_DOUBLE:
                 return val;
             case FL_QUAD:
                 throw new NotImplementedException();
