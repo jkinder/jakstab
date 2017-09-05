@@ -74,8 +74,8 @@ public class X86CapstoneParser{
                 return getMemOp(op, csinstr);
             case X86_const.X86_OP_FP:
                 //TODO-Dom Not sure if this works so throwing exception until tested
-                //throw new NotImplementedException();
-                return getFPImmidiate(op.value.fp, op.size);
+                throw new NotImplementedException();
+                //turn getFPImmidiate(op.value.fp, op.size);
             //case X86_const.X86_OP_INVALID://This part is the same as default
             default:
                 throw new NotImplementedException();
@@ -173,4 +173,40 @@ public class X86CapstoneParser{
         }*//*
         return null;//TODO-Dom Implement this?
     }*/
+/*private DataType getDataType(int operandType, boolean operandSize) {
+
+    switch (operandType) {
+        case d_mode:
+            return DataType.INT32;
+        case v_mode:
+            if (operandSize) return DataType.INT32;
+            else return DataType.INT16;
+        case w_mode:
+            return DataType.INT16;
+        case b_mode:
+            return DataType.INT8;
+        case q_mode:
+            return DataType.INT64;
+        case dq_mode:
+            return DataType.INT128;
+        case fs_mode:
+        case ss_mode: // SSE: scalar single precision : 32 bit
+            return DataType.FL_SINGLE;
+        case fd_mode:
+        case sd_mode: // SSE: scalar double precision : 64 bit
+            return DataType.FL_DOUBLE;
+        case fe_mode:
+            return DataType.FL_EXT_DOUBLE;
+        case fq_mode:
+            return DataType.FL_QUAD;
+        case ps_mode: // SSE: packed single precision : 128 bit
+        case pd_mode: // SSE: packed double precision : 128 bit
+            return DataType.FL_QUAD;
+        default:
+            // This should only be the case for SSA-instructions and maybe segment-load instructions?
+            logger.error("Unknown data type for operand type: " + operandType + "!");
+            throw new RuntimeException();
+            //return DataType.UNKNOWN;
+    }
+}*/
 }

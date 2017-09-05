@@ -35,14 +35,16 @@ package org.jakstab.asm;
  * implementations for the {@link Instruction} interface. 
  */
 public abstract class AbstractInstruction implements Instruction {
-	protected String name;
+	protected final String name;
 
 	/**
 	 * Top level constructor for all instructions. Creates a new instruction given its menmonic.
 	 * @param name the instruction mnemonic.
 	 */
 	public AbstractInstruction(String name) {
-		this.name = name;//TODO-Dom Move checklock here and fix checklock then put name back to finalz
+		if (name.contains(" "))//TODO-Dom Actually replace with real code this hack is worse than before
+			name = name.split(" ")[1];
+		this.name = name;//TODO-Dom Move checklock here and fix checklock then put name back to final
 	}
 
 	public String getName() {
@@ -53,12 +55,5 @@ public abstract class AbstractInstruction implements Instruction {
 		return name;
 	}
 
-	public void checkLock(){
-		//TODO-Dom replace with real code
-		if (name.contains(" "))//TODO-Dom Actually replace with real code this hack is worse than before
-			name = name.split(" ")[1];
-/*		if (name.contains("lock "))
-			name = name.split("lock ")[1];*/
-	}
 }
 

@@ -30,6 +30,7 @@
 
 package org.jakstab.asm.x86;
 
+import capstone.X86_const;
 import org.jakstab.util.Logger;
 
 
@@ -69,14 +70,14 @@ public class X86FloatRegisters {
 	private static final X86FloatRegister registers[];
 
 	static {
-		ST0 = new X86FloatRegister(0);
-		ST1 = new X86FloatRegister(1);
-		ST2 = new X86FloatRegister(2);
-		ST3 = new X86FloatRegister(3);
-		ST4 = new X86FloatRegister(4);
-		ST5 = new X86FloatRegister(5);
-		ST6 = new X86FloatRegister(6);
-		ST7 = new X86FloatRegister(7);
+		ST0 = new X86FloatRegister(X86_const.X86_REG_ST0);
+		ST1 = new X86FloatRegister(X86_const.X86_REG_ST1);
+		ST2 = new X86FloatRegister(X86_const.X86_REG_ST2);
+		ST3 = new X86FloatRegister(X86_const.X86_REG_ST3);
+		ST4 = new X86FloatRegister(X86_const.X86_REG_ST4);
+		ST5 = new X86FloatRegister(X86_const.X86_REG_ST5);
+		ST6 = new X86FloatRegister(X86_const.X86_REG_ST6);
+		ST7 = new X86FloatRegister(X86_const.X86_REG_ST7);
 		registers = (new X86FloatRegister[] {
 				ST0, ST1, ST2, ST3, ST4, ST5, ST6, ST7
 		});

@@ -59,7 +59,8 @@ public class X86FloatRegister extends Register {
    }
 
    public boolean isValid() {
-      return number >= 0 && number < X86FloatRegisters.getNumRegisters();
+      return  true;//TODO-Dom temporary fix
+      //return number >= 0 && number < X86FloatRegisters.getNumRegisters();
    }
 
    public String toString() {

@@ -77,10 +77,10 @@ public class X86Disassembler implements Disassembler, X86Opcodes {
             prefixes = getPrefixes();
             byte[] insbytes = new byte[15 + (byteIndex - instrStartIndex)];
             for (int i = instrStartIndex; i < 15 + byteIndex; i++) {// TODO Dom - This is a (mostly) arbitrary number should probably calculate this.
-                insbytes[i - instrStartIndex] = (byte) InstructionDecoder.readByte(code, i);
+                insbytes[i - instrStartIndex] = (byte)readByte(code, i);
             }
             csinstr = cs.disasm(insbytes, addr, 1)[0];
-            logger.warn(csinstr.address + " " + csinstr.mnemonic + " " + csinstr.opStr);
+            //logger.warn(csinstr.address + " " + csinstr.mnemonic + " " + csinstr.opStr);
             instr = X86CapstoneParser.getInstruction(csinstr, prefixes, factory);
             byteIndex = csinstr.size + instrStartIndex;
         } catch (Exception exp) {
@@ -89,8 +89,18 @@ public class X86Disassembler implements Disassembler, X86Opcodes {
                 exp.printStackTrace();
             return null;
         }
-        ((X86Instruction)instr).checkLock();
         return instr;
+    }
+
+    static int readByte(BinaryInputBuffer bytesArray, int index) {
+        int ret;
+        if (index < bytesArray.getSize()) {
+            ret = bytesArray.getByteAt(index);
+            ret = ret & 0xff;
+        } else {
+            throw new ArrayIndexOutOfBoundsException("Disassembler requested byte outside of file area: 0x" + Long.toHexString(index));
+        }
+        return ret;
     }
 
     private final int getPrefixes() {
@@ -99,7 +109,7 @@ public class X86Disassembler implements Disassembler, X86Opcodes {
         boolean isPrefix = true;
 
         while (isPrefix) {
-            int prefixByte = InstructionDecoder.readByte(code, byteIndex);
+            int prefixByte = readByte(code, byteIndex);
 
             switch (prefixByte) {
                 case 0xf3:

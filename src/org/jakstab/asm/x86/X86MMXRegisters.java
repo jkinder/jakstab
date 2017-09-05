@@ -30,6 +30,7 @@
 
 package org.jakstab.asm.x86;
 
+import capstone.X86_const;
 import org.jakstab.util.Logger;
 
 public class X86MMXRegisters {
@@ -50,14 +51,14 @@ public class X86MMXRegisters {
 	private static X86MMXRegister mmxRegisters[];
 
 	static {
-		MM0 = new X86MMXRegister(0, "%mm0");
-		MM1 = new X86MMXRegister(1, "%mm1");
-		MM2 = new X86MMXRegister(2, "%mm2");
-		MM3 = new X86MMXRegister(3, "%mm3");
-		MM4 = new X86MMXRegister(4, "%mm4");
-		MM5 = new X86MMXRegister(5, "%mm5");
-		MM6 = new X86MMXRegister(6, "%mm6");
-		MM7 = new X86MMXRegister(7, "%mm7");
+		MM0 = new X86MMXRegister(X86_const.X86_REG_MM0, "%mm0");
+		MM1 = new X86MMXRegister(X86_const.X86_REG_MM1, "%mm1");
+		MM2 = new X86MMXRegister(X86_const.X86_REG_MM2, "%mm2");
+		MM3 = new X86MMXRegister(X86_const.X86_REG_MM3, "%mm3");
+		MM4 = new X86MMXRegister(X86_const.X86_REG_MM4, "%mm4");
+		MM5 = new X86MMXRegister(X86_const.X86_REG_MM5, "%mm5");
+		MM6 = new X86MMXRegister(X86_const.X86_REG_MM6, "%mm6");
+		MM7 = new X86MMXRegister(X86_const.X86_REG_MM7, "%mm7");
 
 		mmxRegisters = (new X86MMXRegister[] {
 				MM0, MM1, MM2, MM3, MM4, MM5, MM6, MM7
