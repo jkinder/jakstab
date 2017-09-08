@@ -1,6 +1,6 @@
 #!/bin/bash
 JS_HOME="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-JSCLASSPATH=${JS_HOME}/lib/antlr.jar:${JS_HOME}/lib/google-collect-1.0.jar:lib/javabdd-1.0b2.jar:${JS_HOME}/bin
+JSCLASSPATH=${JS_HOME}/lib/antlr.jar:${JS_HOME}/lib/google-collect-1.0.jar:lib/javabdd-1.0b2.jar:${JS_HOME}/bin:${JS_HOME}/lib/capstone.jar:${JS_HOME}/lib/jna-4.4.0.jar
 case `uname` in
     CYGWIN*)
         JSCLASSPATH=`cygpath -p -w -m -s "$JSCLASSPATH"`

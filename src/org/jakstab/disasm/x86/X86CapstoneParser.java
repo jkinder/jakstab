@@ -120,7 +120,7 @@ public class X86CapstoneParser{
             case 16:
                 return DataType.INT128;
         }
-        return DataType.STRING;
+        throw new NotImplementedException();
         //return null;
         //return DataType.sIntfromBits(size*8);
     }
@@ -172,9 +172,8 @@ public class X86CapstoneParser{
 
         }*//*
         return null;//TODO-Dom Implement this?
-    }*/
-/*private DataType getDataType(int operandType, boolean operandSize) {
-
+    }*//*
+private DataType getDataType(int operandType, boolean operandSize, Capstone.CsInsn csinstr) {
     switch (operandType) {
         case d_mode:
             return DataType.INT32;
