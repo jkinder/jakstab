@@ -9,12 +9,13 @@ import org.jakstab.asm.Instruction;
 import org.jakstab.asm.Operand;
 import org.jakstab.asm.x86.*;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
+import org.jakstab.util.Logger;
 
 /**
  * Created by dmium on 7/28/17.
  */
 public class X86CapstoneParser{
-    public static Instruction getInstruction(Capstone.CsInsn csinstr, int prefixes, X86InstructionFactory factory) {
+    public static Instruction getInstruction(Capstone.CsInsn csinstr, int prefixes, X86InstructionFactory factory, Logger logger) {
         if (csinstr.group(X86_const.X86_GRP_CALL)) {
             return getCallInstruction(csinstr, prefixes, factory);
         }
@@ -24,6 +25,8 @@ public class X86CapstoneParser{
         if (csinstr.group(X86_const.X86_GRP_JUMP)) {
             return getJumpInstruction(csinstr,prefixes,factory);
         }
+        if (csinstr.mnemonic.contains("fld"))
+            logger.warn(csinstr.mnemonic + ": " +csinstr.regName( ((X86.OpInfo) (csinstr.operands)).op[0].value.reg));
         return getGeneralInstruction(csinstr,prefixes,factory);
     }
 
@@ -67,16 +70,14 @@ public class X86CapstoneParser{
     private static Operand getOperand(X86.Operand op, Capstone.CsInsn csinstr) {
         switch (op.type) {
             case X86_const.X86_OP_REG:
+                if (csinstr.regName(op.value.reg).toUpperCase().startsWith("ST")) {
+                    return new X86FloatRegister(op.value.reg, "%st" + csinstr.regName(op.value.reg).charAt(3));//csinstr.regName(op.value.reg));
+                }
                 return getRegister(op.value.reg, csinstr);
             case X86_const.X86_OP_IMM:
                 return getImmediate(op.value.imm, op.size);
             case X86_const.X86_OP_MEM:
                 return getMemOp(op, csinstr);
-            case X86_const.X86_OP_FP:
-                //TODO-Dom Not sure if this works so throwing exception until tested
-                throw new NotImplementedException();
-                //turn getFPImmidiate(op.value.fp, op.size);
-            //case X86_const.X86_OP_INVALID://This part is the same as default
             default:
                 throw new NotImplementedException();
         }
@@ -166,46 +167,4 @@ public class X86CapstoneParser{
 
         }
     }
-/*
-    private static X86SegmentRegister getSegmentRegister(int regID) {
-*//*switch (regID){
-
-        }*//*
-        return null;//TODO-Dom Implement this?
-    }*//*
-private DataType getDataType(int operandType, boolean operandSize, Capstone.CsInsn csinstr) {
-    switch (operandType) {
-        case d_mode:
-            return DataType.INT32;
-        case v_mode:
-            if (operandSize) return DataType.INT32;
-            else return DataType.INT16;
-        case w_mode:
-            return DataType.INT16;
-        case b_mode:
-            return DataType.INT8;
-        case q_mode:
-            return DataType.INT64;
-        case dq_mode:
-            return DataType.INT128;
-        case fs_mode:
-        case ss_mode: // SSE: scalar single precision : 32 bit
-            return DataType.FL_SINGLE;
-        case fd_mode:
-        case sd_mode: // SSE: scalar double precision : 64 bit
-            return DataType.FL_DOUBLE;
-        case fe_mode:
-            return DataType.FL_EXT_DOUBLE;
-        case fq_mode:
-            return DataType.FL_QUAD;
-        case ps_mode: // SSE: packed single precision : 128 bit
-        case pd_mode: // SSE: packed double precision : 128 bit
-            return DataType.FL_QUAD;
-        default:
-            // This should only be the case for SSA-instructions and maybe segment-load instructions?
-            logger.error("Unknown data type for operand type: " + operandType + "!");
-            throw new RuntimeException();
-            //return DataType.UNKNOWN;
-    }
-}*/
 }

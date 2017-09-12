@@ -81,7 +81,7 @@ public class X86Disassembler implements Disassembler, X86Opcodes {
             }
             csinstr = cs.disasm(insbytes, addr, 1)[0];
             //logger.warn(csinstr.address + " " + csinstr.mnemonic + " " + csinstr.opStr);
-            instr = X86CapstoneParser.getInstruction(csinstr, prefixes, factory);
+            instr = X86CapstoneParser.getInstruction(csinstr, prefixes, factory, logger);
             byteIndex = csinstr.size + instrStartIndex;
         } catch (Exception exp) {
             logger.error("Error during disassembly:", exp);
