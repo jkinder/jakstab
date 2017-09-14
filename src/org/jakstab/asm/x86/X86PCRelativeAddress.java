@@ -62,7 +62,6 @@ public class X86PCRelativeAddress extends PCRelativeAddress {
 	 * @return the target's displacement from the start of the next instruction.
 	 */
 	public long getDisplacement() {
-		long displacement = super.getDisplacement();
-		return displacement;
+		return super.getDisplacement();
 	}
 }

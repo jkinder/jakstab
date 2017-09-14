@@ -69,9 +69,9 @@ public class X86Registers {
 	public static final X86Register DH;
 	public static final X86Register BH;
 
-	private static X86Register registers8[];
+/*	private static X86Register registers8[];
 	private static X86Register registers16[];
-	private static X86Register registers32[];
+	private static X86Register registers32[];*/
 
 	static {
 		//TODO-Dom   This.
@@ -102,7 +102,7 @@ public class X86Registers {
 		DH = new X86RegisterPart(X86_const.X86_REG_DH, "%dh", 8, 8);
 		BH = new X86RegisterPart(X86_const.X86_REG_BH, "%bh", 8, 8);
 
-		registers32 = (new X86Register[] {
+/*		registers32 = (new X86Register[] {
 				EAX, ECX, EDX, EBX, ESP, EBP, ESI, EDI
 		});
 		registers16 = (new X86Register[] {
@@ -110,7 +110,7 @@ public class X86Registers {
 		});
 		registers8 = (new X86Register[] {
 				AL, CL, DL, BL, AH, CH, DH, BH
-		});
+		});*/
 	}
 
 	public static int getNumberOfRegisters() {

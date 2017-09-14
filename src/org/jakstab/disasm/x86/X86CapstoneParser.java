@@ -55,8 +55,8 @@ public class X86CapstoneParser{
 
     private static Instruction getGeneralInstruction(Capstone.CsInsn csinstr, int prefixes, X86InstructionFactory factory){
         switch (((X86.OpInfo) (csinstr.operands)).op.length) {
-            case 0://TODO-Dom Check this isn't evil/add new factory method
-                return factory.newGeneralInstruction(csinstr.mnemonic, null, csinstr.size, prefixes);
+            case 0:
+                return factory.newGeneralInstruction(csinstr.mnemonic, csinstr.size, prefixes);
             case 1:
                 return factory.newGeneralInstruction(csinstr.mnemonic, getOperand(((X86.OpInfo) (csinstr.operands)).op[0], csinstr), csinstr.size, prefixes);
             case 2:
@@ -71,7 +71,7 @@ public class X86CapstoneParser{
         switch (op.type) {
             case X86_const.X86_OP_REG:
                 if (csinstr.regName(op.value.reg).toUpperCase().startsWith("ST")) {
-                    return new X86FloatRegister(op.value.reg, "%st" + csinstr.regName(op.value.reg).charAt(3));//csinstr.regName(op.value.reg));
+                    return new X86FloatRegister(op.value.reg, "%st" + csinstr.regName(op.value.reg).charAt(3));
                 }
                 return getRegister(op.value.reg, csinstr);
             case X86_const.X86_OP_IMM:
@@ -104,10 +104,6 @@ public class X86CapstoneParser{
         return new X86MemoryOperand(getDataType(op.size), sr, br, ir, op.value.mem.disp, op.value.mem.scale);
     }
 
-    private static Immediate getFPImmidiate(double imm, int size) {
-        return new Immediate(getNumber(imm, getFPDataType(size)), getFPDataType(size));
-    }
-
     private static DataType getDataType(int size) {
         switch (size) {
             case 1:
@@ -120,21 +116,6 @@ public class X86CapstoneParser{
                 return DataType.INT64;
             case 16:
                 return DataType.INT128;
-        }
-        throw new NotImplementedException();
-        //return null;
-        //return DataType.sIntfromBits(size*8);
-    }
-    private static DataType getFPDataType(int size) {
-        switch (size) {//TODO-Dom careful with this. may break with strings.
-            case 4:
-                return DataType.FL_SINGLE;
-            case 8:
-                return DataType.FL_DOUBLE;
-            case 10:
-                return DataType.FL_EXT_DOUBLE;
-            case 16:
-                return DataType.FL_QUAD;
         }
         throw new NotImplementedException();
     }
@@ -151,20 +132,5 @@ public class X86CapstoneParser{
                 return/* (long)*/ val;
         }
         throw new NotImplementedException();
-    }
-
-    private static Number getNumber(double val, DataType type){
-        switch (type){
-            case FL_SINGLE:
-                return (float)val;
-            case FL_DOUBLE:
-                return val;
-            case FL_QUAD:
-                throw new NotImplementedException();
-            //case FL_DOUBLE:
-            default:
-                throw new NotImplementedException();
-
-        }
     }
 }

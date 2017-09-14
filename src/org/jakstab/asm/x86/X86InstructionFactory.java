@@ -76,4 +76,6 @@ public interface X86InstructionFactory {
 
 	public X86Instruction newGeneralInstruction(String name, Operand op1, int size, int prefixes);
 
+	public X86Instruction newGeneralInstruction(String name, int size, int prefixes);
+
 }

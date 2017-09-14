@@ -106,5 +106,9 @@ public class X86InstructionFactoryImpl implements X86InstructionFactory {
 		return new X86Instruction(name, op1, size, prefixes);
 	}
 
+	@Override
+	public X86Instruction newGeneralInstruction(String name, int size, int prefixes) {
+		return new X86Instruction(name, size, prefixes);
+	}
 }
 
