@@ -117,13 +117,13 @@ public class X86Registers {
 		return NUM_REGISTERS;
 	}
 
-	public static X86Register getRegister8(int regNum) {
-		if (regNum < 0 || regNum >= NUM_REGISTERS) {
-			logger.error("Invalid integer register number!");
-			return null;
+/*	public static X86Register getRegister8(int regNum) {
+			if (regNum < 0 || regNum >= NUM_REGISTERS) {
+				logger.error("Invalid integer register number!");
+				return null;
+			}
+			return registers8[regNum];
 		}
-		return registers8[regNum];
-	}
 
 	public static X86Register getRegister16(int regNum) {
 		if (regNum < 0 || regNum >= NUM_REGISTERS) {
@@ -141,12 +141,12 @@ public class X86Registers {
 		return registers32[regNum];
 	}
 
-	 // Returns the name of the 32bit register with the given code number.//TODO-Dom fix this again
+	// Returns the name of the 32bit register with the given code number.//TODO-Dom fix this again
 	public static String getRegisterName(int regNum) {
 		if (regNum < 0 || regNum >= NUM_REGISTERS) {
 			logger.error("Invalid integer register number!");
 			return null;
 		}
 		return registers32[regNum].toString();
-	}
+	}*/
 }

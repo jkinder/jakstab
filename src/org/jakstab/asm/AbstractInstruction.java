@@ -44,7 +44,7 @@ public abstract class AbstractInstruction implements Instruction {
 	public AbstractInstruction(String name) {
 		if (name.contains(" "))//TODO-Dom Actually replace with real code this hack is worse than before
 			name = name.split(" ")[1];
-		this.name = name;//TODO-Dom Move checklock here and fix checklock then put name back to final
+		this.name = name;
 	}
 
 	public String getName() {
