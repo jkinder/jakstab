@@ -25,13 +25,10 @@ public class X86CapstoneParser{
         if (csinstr.group(X86_const.X86_GRP_JUMP)) {
             return getJumpInstruction(csinstr,prefixes,factory);
         }
-        if (csinstr.mnemonic.contains("fld"))
-            logger.warn(csinstr.mnemonic + ": " +csinstr.regName( ((X86.OpInfo) (csinstr.operands)).op[0].value.reg));
         return getGeneralInstruction(csinstr,prefixes,factory);
     }
 
     private static Instruction getCallInstruction(Capstone.CsInsn csinstr, int prefixes, X86InstructionFactory factory) {
-        //TODO-Dom Correctly differentiate between relative and absolute
         if (getOperand(((X86.OpInfo)(csinstr.operands)).op[0], csinstr) instanceof Immediate)
             return factory.newCallInstruction(csinstr.mnemonic, new X86PCRelativeAddress((((X86.OpInfo) (csinstr.operands)).op[0].value.imm - csinstr.size) - csinstr.address), csinstr.size, prefixes);
         return factory.newCallInstruction(csinstr.mnemonic, getOperand(((X86.OpInfo)(csinstr.operands)).op[0], csinstr), csinstr.size, prefixes);
@@ -130,6 +127,8 @@ public class X86CapstoneParser{
                 return (int) val;
             case INT64:
                 return/* (long)*/ val;
+            case INT128:
+                throw new NotImplementedException();//TODO-Dom Work out what to do with this
         }
         throw new NotImplementedException();
     }

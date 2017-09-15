@@ -74,7 +74,6 @@ public class X86Registers {
 	private static X86Register registers32[];*/
 
 	static {
-		//TODO-Dom   This.
 		EAX = new X86Register(X86_const.X86_REG_EAX, "%eax");
 		ECX = new X86Register(X86_const.X86_REG_ECX, "%ecx");
 		EDX = new X86Register(X86_const.X86_REG_EDX, "%edx");

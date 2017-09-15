@@ -54,13 +54,13 @@ public abstract class Register extends ImmediateOrRegister {
 	 * Returns the total number of available registers on this platform
 	 */
 	public abstract int getNumberOfRegisters();
-
-	/**
+/*
+	*//**
 	 * Returns whether this register has a valid code number.
-	 */
+	 *//*
 	public boolean isValid() {
 		return ((0 <= number) && (number <= getNumberOfRegisters()));
-	}
+	}*/
 
 	/**
 	 * Returns the code of this register as it appears in instructions.

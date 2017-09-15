@@ -292,7 +292,7 @@ public class Architecture {
 
 				// Special handling for implicit operands
 				//((X86Register)oper).toString().equals("EAX");
-				if (oper instanceof X86Register && (//TODO-Dom. Replaced this code with .Equals(X86Registers.register) instead of comparing strings. May break.
+				if (oper instanceof X86Register && (//Dom-Replaced this code with .Equals(X86Registers.register) instead of comparing strings. May break.
 						(oper.equals(X86Registers.EAX) && proto.getName().endsWith("EAX"))||
 						(oper.equals(X86Registers.AX) && proto.getName().endsWith("AX")) ||
 						(oper.equals(X86Registers.AL) && proto.getName().endsWith("AL")) ||
