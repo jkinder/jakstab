@@ -42,7 +42,7 @@ public class RTLMemoryLocationTest {
 	public void testEvaluate() {
 		RTLExpression addrExp = ExpressionFactory.createPlus(
 				ExpressionFactory.createNumber(4), 
-				ExpressionFactory.createVariable("x", 32), 
+				ExpressionFactory.createVariable("myvar", 32), 
 				ExpressionFactory.createNumber(8));
 		RTLMemoryLocation memLoc32 = ExpressionFactory.createMemoryLocation(addrExp, 32);
 		RTLMemoryLocation evaldMemLoc32 = (RTLMemoryLocation)memLoc32.evaluate(new Context());
