@@ -316,8 +316,8 @@ public class ELFModule implements ExecutableImage {
 		long a = va.getValue();
 		for (Elf.Section section : elf.sections) {
 			if (a >= section.sh_addr.getValue().longValue() && 
-					a <= section.sh_addr.getValue().longValue() + section.sh_size) {
-				return (section.sh_type == Elf.Section.SHT_PROGBITS); 
+					a < section.sh_addr.getValue().longValue() + section.sh_size) {
+				return (section.sh_type == Elf.Section.SHT_PROGBITS);
 			}
 		}
 		// Section not found
