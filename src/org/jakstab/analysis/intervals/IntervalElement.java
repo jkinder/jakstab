@@ -249,9 +249,13 @@ public class IntervalElement implements AbstractDomainElement, BitVectorType, It
 	public boolean lessOrEqual(LatticeElement l) {
 		if (isBot()) return true;
 		IntervalElement other = (IntervalElement)l;
-		assert bitWidth == other.bitWidth;
-		return other.left <= this.left && other.right >= this.left && 
-		other.stride <= this.stride;  
+		assert bitWidth == other.bitWidth;		
+
+		if (other.stride == 0) {
+			return this.left == other.left && this.right==other.left;
+ 		}
+ 		return other.left <= this.left && this.right <= other.right && 
+ 				(((this.left - other.left) % other.stride) == 0) && (this.stride % other.stride) == 0;		
 	}
 
 	/*

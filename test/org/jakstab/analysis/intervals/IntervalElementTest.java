@@ -154,5 +154,12 @@ public class IntervalElementTest {
 		r = i1.join(i2);
 		assertEquals(expected, r);
 	}
+	
+	@Test 
+	public void testLessOrEqual() {
+		i1 =  new IntervalElement(MemoryRegion.GLOBAL, 134512746, 134512746, 0, 32);
+		i2 =  new IntervalElement(MemoryRegion.GLOBAL, 134512741, 2147483646, 5, 32);
+		assertTrue(i1.lessOrEqual(i2));
+	}
 
 }
