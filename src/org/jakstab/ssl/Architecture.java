@@ -20,6 +20,8 @@ package org.jakstab.ssl;
 import java.io.*;
 import java.util.*;
 
+import capstone.X86;
+import capstone.X86_const;
 import org.jakstab.Options;
 import org.jakstab.util.Logger;
 import org.jakstab.asm.*;
@@ -289,17 +291,18 @@ public class Architecture {
 				Operand oper = instr.getOperand(i);
 
 				// Special handling for implicit operands
-				if (oper instanceof Register && ( 
-						(oper.equals(X86Registers.EAX) && proto.getName().endsWith("EAX")) ||
+				//((X86Register)oper).toString().equals("EAX");
+				if (oper instanceof X86Register && (//Dom-Replaced this code with .Equals(X86Registers.register) instead of comparing strings. May break.
+						(oper.equals(X86Registers.EAX) && proto.getName().endsWith("EAX"))||
 						(oper.equals(X86Registers.AX) && proto.getName().endsWith("AX")) ||
 						(oper.equals(X86Registers.AL) && proto.getName().endsWith("AL")) ||
-						(oper.equals(X86SegmentRegisters.CS) && proto.getName().endsWith("CS")) ||
+						(oper.equals(X86SegmentRegisters.CS)&& proto.getName().endsWith("CS")) ||
 						(oper.equals(X86SegmentRegisters.DS) && proto.getName().endsWith("DS")) ||
 						(oper.equals(X86SegmentRegisters.ES) && proto.getName().endsWith("ES")) ||
 						(oper.equals(X86SegmentRegisters.FS) && proto.getName().endsWith("FS")) ||
-						(oper.equals(X86SegmentRegisters.GS) && proto.getName().endsWith("GS")) ||
-						(oper.equals(X86SegmentRegisters.SS) && proto.getName().endsWith("SS"))
-						
+						(oper.equals(X86SegmentRegisters.GS)&& proto.getName().endsWith("GS")) ||
+						(oper.equals(X86SegmentRegisters.SS)&& proto.getName().endsWith("SS"))
+
 				)) {
 					score += IMPLICIT_OPERAND_MATCH_SCORE;
 					if (instr.getOperandCount() == proto.getParameterCount() + 1) {

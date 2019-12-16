@@ -30,6 +30,7 @@
 
 package org.jakstab.asm.x86;
 
+import capstone.X86_const;
 import org.jakstab.util.Logger;
 
 /**
@@ -52,11 +53,11 @@ public class X86ControlRegisters {
 	private static X86ControlRegister controlRegisters[];
 
 	static {
-		CR0 = new X86ControlRegister(0, "%cr0");
-		INVALID = new X86ControlRegister(1, "Invalid Control Register");
-		CR2 = new X86ControlRegister(2, "%cr2");
-		CR3 = new X86ControlRegister(3, "%cr3");
-		CR4 = new X86ControlRegister(4, "%cr4");
+		CR0 = new X86ControlRegister(X86_const.X86_REG_CR0, "%cr0");
+		INVALID = new X86ControlRegister(X86_const.X86_REG_CR1, "Invalid Control Register");//Not sure if capstone would output CR1 or invalid must test.
+		CR2 = new X86ControlRegister(X86_const.X86_REG_CR2, "%cr2");
+		CR3 = new X86ControlRegister(X86_const.X86_REG_CR3, "%cr3");
+		CR4 = new X86ControlRegister(X86_const.X86_REG_CR4, "%cr4");
 
 		controlRegisters = (new X86ControlRegister[] {
 				CR0, INVALID, CR2, CR3, CR4

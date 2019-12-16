@@ -23,11 +23,16 @@ import org.jakstab.asm.Instruction;
  * @author Johannes Kinder
  */
 public interface Disassembler {
-
+/**
+	 * Disassembles one instruction at the given index in the code array.
+	 *
+	 * @return instr The disassembled instruction, null on failure.
+	 */
+	//public Instruction decodeInstruction(long fp);
 	/**
 	 * Disassembles one instruction at the given index in the code array. 
 	 * 
 	 * @return instr The disassembled instruction, null on failure.
 	 */
-	public Instruction decodeInstruction(long fp);
+	public Instruction decodeInstruction(long fp, long addr);
 }

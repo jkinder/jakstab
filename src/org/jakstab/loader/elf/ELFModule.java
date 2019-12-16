@@ -119,11 +119,11 @@ public class ELFModule implements ExecutableImage {
 
 		X86Disassembler disasm = new X86Disassembler(inBuf);
 		// push GOT + 4
-		Instruction instr = disasm.decodeInstruction(pltIdx);
+		Instruction instr = disasm.decodeInstruction(pltIdx, pltStart);//TODO-Dom update these to parse the current address when ELF loader is working (probably use pltStart)-Done but untested
 		assert instr.getName().equals("pushl");
 		pltIdx += instr.getSize();
 		// jmp *(GOT + 8) 
-		instr = disasm.decodeInstruction(pltIdx);
+		instr = disasm.decodeInstruction(pltIdx, pltStart);
 		assert instr instanceof X86JmpInstruction;
 		pltIdx += instr.getSize();
 
@@ -131,7 +131,7 @@ public class ELFModule implements ExecutableImage {
 			if (data[pltIdx] == 0) {
 				pltIdx++;
 			} else {
-				instr = disasm.decodeInstruction(pltIdx);
+				instr = disasm.decodeInstruction(pltIdx, pltStart);
 				pltIdx += instr.getSize();
 				if (!instr.getName().equals("nop")) break;
 			}
@@ -151,7 +151,7 @@ public class ELFModule implements ExecutableImage {
 			//logger.debug("Trampoline destination is " + trampolineDest);
 			pltIdx = (int)getFilePointer(trampolineDest);
 			// Read the push instruction
-			instr = disasm.decodeInstruction(pltIdx);
+			instr = disasm.decodeInstruction(pltIdx,pltStart);
 			X86Instruction pushSTOff = (X86Instruction)instr;
 			// The push instruction's parameter is an index into the symbol table
 			int symbolTableOff = ((Immediate)pushSTOff.getOperand1()).getNumber().intValue();
@@ -177,7 +177,7 @@ public class ELFModule implements ExecutableImage {
 			symbolMap.put(pltSlot, "__imp_" + functionName);
 			// Now skip the following jump to PLT0 (a call to the dynamic loader)
 			pltIdx += instr.getSize();
-			instr = disasm.decodeInstruction(pltIdx);
+			instr = disasm.decodeInstruction(pltIdx, pltStart);
 			assert instr instanceof X86JmpInstruction : "Expected jmp to PLT[0] in PLT at this offset!";
 			pltIdx += instr.getSize();
 			// And now pltIdx points to the next PLT entry
@@ -186,7 +186,7 @@ public class ELFModule implements ExecutableImage {
 			if (data[pltIdx] == 0) {
 				break;
 			}
-			instr = disasm.decodeInstruction(pltIdx);
+			instr = disasm.decodeInstruction(pltIdx, pltStart);
 			if (!(instr instanceof X86JmpInstruction)) {
 				break;
 			}

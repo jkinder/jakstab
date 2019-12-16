@@ -19,17 +19,21 @@
  * Please contact Sun Microsystems, Inc., 4150 Network Circle, Santa Clara,
  * CA 95054 USA or visit www.sun.com if you need additional information or
  * have any questions.
- *  
- */
+ *
+ *//*
 
-/* 
- * Original code for this class taken from the Java HotSpot VM. 
- * Modified for use with the Jakstab project. All modifications 
+
+*/
+/*
+ * Original code for this class taken from the Java HotSpot VM.
+ * Modified for use with the Jakstab project. All modifications
  * Copyright 2007-2015 Johannes Kinder <jk@jakstab.org>
  */
 
+
 package org.jakstab.asm.x86;
 
+import capstone.X86_const;
 import org.jakstab.util.Logger;
 
 public class X86Registers {
@@ -65,39 +69,39 @@ public class X86Registers {
 	public static final X86Register DH;
 	public static final X86Register BH;
 
-	private static X86Register registers8[];
+/*	private static X86Register registers8[];
 	private static X86Register registers16[];
-	private static X86Register registers32[];
+	private static X86Register registers32[];*/
 
 	static {
-		EAX = new X86Register(0, "%eax");
-		ECX = new X86Register(1, "%ecx");
-		EDX = new X86Register(2, "%edx");
-		EBX = new X86Register(3, "%ebx");
-		ESP = new X86Register(4, "%esp");
-		EBP = new X86Register(5, "%ebp");
-		ESI = new X86Register(6, "%esi");
-		EDI = new X86Register(7, "%edi");
+		EAX = new X86Register(X86_const.X86_REG_EAX, "%eax");
+		ECX = new X86Register(X86_const.X86_REG_ECX, "%ecx");
+		EDX = new X86Register(X86_const.X86_REG_EDX, "%edx");
+		EBX = new X86Register(X86_const.X86_REG_EBX, "%ebx");
+		ESP = new X86Register(X86_const.X86_REG_ESP, "%esp");
+		EBP = new X86Register(X86_const.X86_REG_EBP, "%ebp");
+		ESI = new X86Register(X86_const.X86_REG_ESI, "%esi");
+		EDI = new X86Register(X86_const.X86_REG_EDI, "%edi");
 
-		AX = new X86RegisterPart(0, "%ax", 0, 16);
-		CX = new X86RegisterPart(1, "%cx", 0, 16);
-		DX = new X86RegisterPart(2, "%dx", 0, 16);
-		BX = new X86RegisterPart(3, "%bx", 0, 16);
-		SP = new X86RegisterPart(4, "%sp", 0, 16);
-		BP = new X86RegisterPart(5, "%bp", 0, 16);
-		SI = new X86RegisterPart(6, "%si", 0, 16);
-		DI = new X86RegisterPart(7, "%di", 0, 16);
+		AX = new X86RegisterPart(X86_const.X86_REG_AX, "%ax", 0, 16);
+		CX = new X86RegisterPart(X86_const.X86_REG_CX, "%cx", 0, 16);
+		DX = new X86RegisterPart(X86_const.X86_REG_DX, "%dx", 0, 16);
+		BX = new X86RegisterPart(X86_const.X86_REG_BX, "%bx", 0, 16);
+		SP = new X86RegisterPart(X86_const.X86_REG_SP, "%sp", 0, 16);
+		BP = new X86RegisterPart(X86_const.X86_REG_BP, "%bp", 0, 16);
+		SI = new X86RegisterPart(X86_const.X86_REG_SI, "%si", 0, 16);
+		DI = new X86RegisterPart(X86_const.X86_REG_DI, "%di", 0, 16);
 
-		AL = new X86RegisterPart(0, "%al", 0, 8);
-		CL = new X86RegisterPart(1, "%cl", 0, 8);
-		DL = new X86RegisterPart(2, "%dl", 0, 8);
-		BL = new X86RegisterPart(3, "%bl", 0, 8);
-		AH = new X86RegisterPart(0, "%ah", 8, 8);
-		CH = new X86RegisterPart(1, "%ch", 8, 8);
-		DH = new X86RegisterPart(2, "%dh", 8, 8);
-		BH = new X86RegisterPart(3, "%bh", 8, 8);
+		AL = new X86RegisterPart(X86_const.X86_REG_AL, "%al", 0, 8);
+		CL = new X86RegisterPart(X86_const.X86_REG_CL, "%cl", 0, 8);
+		DL = new X86RegisterPart(X86_const.X86_REG_DL, "%dl", 0, 8);
+		BL = new X86RegisterPart(X86_const.X86_REG_BL, "%bl", 0, 8);
+		AH = new X86RegisterPart(X86_const.X86_REG_AH, "%ah", 8, 8);
+		CH = new X86RegisterPart(X86_const.X86_REG_CH, "%ch", 8, 8);
+		DH = new X86RegisterPart(X86_const.X86_REG_DH, "%dh", 8, 8);
+		BH = new X86RegisterPart(X86_const.X86_REG_BH, "%bh", 8, 8);
 
-		registers32 = (new X86Register[] {
+/*		registers32 = (new X86Register[] {
 				EAX, ECX, EDX, EBX, ESP, EBP, ESI, EDI
 		});
 		registers16 = (new X86Register[] {
@@ -105,20 +109,20 @@ public class X86Registers {
 		});
 		registers8 = (new X86Register[] {
 				AL, CL, DL, BL, AH, CH, DH, BH
-		});
+		});*/
 	}
 
 	public static int getNumberOfRegisters() {
 		return NUM_REGISTERS;
 	}
 
-	public static X86Register getRegister8(int regNum) {
-		if (regNum < 0 || regNum >= NUM_REGISTERS) {
-			logger.error("Invalid integer register number!");
-			return null;
+/*	public static X86Register getRegister8(int regNum) {
+			if (regNum < 0 || regNum >= NUM_REGISTERS) {
+				logger.error("Invalid integer register number!");
+				return null;
+			}
+			return registers8[regNum];
 		}
-		return registers8[regNum];
-	}
 
 	public static X86Register getRegister16(int regNum) {
 		if (regNum < 0 || regNum >= NUM_REGISTERS) {
@@ -136,14 +140,12 @@ public class X86Registers {
 		return registers32[regNum];
 	}
 
-	/**
-	 * Returns the name of the 32bit register with the given code number.
-	 */
+	// Returns the name of the 32bit register with the given code number.//TODO-Dom fix this again
 	public static String getRegisterName(int regNum) {
 		if (regNum < 0 || regNum >= NUM_REGISTERS) {
 			logger.error("Invalid integer register number!");
 			return null;
 		}
 		return registers32[regNum].toString();
-	}
+	}*/
 }

@@ -57,7 +57,7 @@ public enum DataType {
 	
 	private int bits;
 	
-	private DataType(int bits) {
+	DataType(int bits) {
 		this.bits = bits;
 	}
 

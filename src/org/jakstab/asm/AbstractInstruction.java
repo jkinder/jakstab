@@ -42,6 +42,8 @@ public abstract class AbstractInstruction implements Instruction {
 	 * @param name the instruction mnemonic.
 	 */
 	public AbstractInstruction(String name) {
+		if (name.contains(" "))//TODO-Dom Actually replace with real code this hack is worse than before
+			name = name.split(" ")[1];
 		this.name = name;
 	}
 
@@ -52,4 +54,6 @@ public abstract class AbstractInstruction implements Instruction {
 	public String toString(long currentPc, SymbolFinder symFinder) {
 		return name;
 	}
+
 }
+

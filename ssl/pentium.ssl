@@ -704,7 +704,7 @@ BTSL.OD   modrm, reg32
             *1* %CF := modrm@[reg32:reg32]
             *32* modrm := modrm | tmp1;
 
-CALL.JVOW   reloc16 
+CALLL.JVOW   reloc16
             *32* %esp := %esp - 2
             *16* m[%esp] := %pc@[0:15]
 #--JK            *32* %pc := %pc + 3 + reloc16;
@@ -722,7 +722,7 @@ CALL.JVOW   reloc16
 # *destination*, not the offset (the offset is not avialable to the SSL, nor
 # is the "delta" required to convert from host to native.
 # Corrected in the matcher file
-CALL.JVOD   reloc32 
+CALLL.JVOD   reloc32
             *32* %esp := %esp - 4
             *32* m[%esp] := %pc
 #--JK            *32* %pc := %pc + 5 + reloc32;
@@ -742,7 +742,7 @@ CALL.JVOD   reloc32
 # Careful: A "call [esp + x]" instruction reads the operand first before modifying esp
 #          So, with modrm operands, modify esp last 
 
-CALL.EVOD   modrm
+CALLL.EVOD   modrm
 			*32* tmp1 := modrm 
             *32* %esp := %esp - 4
             *32* m[%esp] := %pc
@@ -1050,15 +1050,15 @@ JMP.JB   reloc8
             *32* %pc := %pc + reloc8; 
 #--JK            *32* %pc := %pc + 2 + reloc8;
 
-JMP.JVOW   reloc16 
+JMP.JVOW   reloc16
             *32* %pc := %pc + reloc16; 
 #--JK            *32* %pc := %pc + 3 + reloc16;
 
-JMP.JVOD   reloc32 
+JMPL.JVOD   reloc32
             *32* %pc := %pc + reloc32; 
 #--JK            *32* %pc := %pc + 5 + reloc32;
 
-JMP.EVOD   modrm 
+JMPL.EVOD   modrm
             *32* %pc := modrm;
             
 #LJMP	seg, off
@@ -1093,7 +1093,7 @@ MOVB.EB.IB   modrm, i8
 MOVW.EW.IVOW   modrm, i16 
             *16* modrm := i16;
 
-MOVL.ED.IVOD   modrm, i32 
+MOVL.ED.IVOD   modrm, i32
             *32* modrm := i32;
 
 MOVB.IB   reg8, i8 
@@ -1425,7 +1425,7 @@ ROTL[IDX].B.EV.IBOD modrm, i8
 ROLSL[IDX].B.EV.IBOD   modrm, i8  ROLFLAGS32(tmp2, tmp1, i8);
 RORSL[IDX].B.EV.IBOD   modrm, i8  RORFLAGS32(tmp2, tmp1, i8);
 
-RET    
+RETL
             *32* retaddr := m[%esp]{32}
             *32* %esp := %esp + 4
             *32* %pc := retaddr;
@@ -1434,7 +1434,7 @@ RET
 #     we now use tmp1 to allow forgetting the stack below esp
 
 
-RET.IW   i16 
+RETL.IW   i16
 			*32* retaddr := m[%esp]{32}
             *32* %esp := %esp + 4 + zfill(16,31,i16)
             *32* %pc := retaddr;

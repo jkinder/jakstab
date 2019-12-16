@@ -30,6 +30,7 @@
 
 package org.jakstab.asm.x86;
 
+import capstone.X86_const;
 import org.jakstab.util.Logger;
 
 /* There are 8 128-bit XMM registers*/
@@ -53,14 +54,14 @@ public class X86XMMRegisters {
 
 	static {
 		//XMM registers
-		XMM0 = new X86XMMRegister(0, "%xmm0");
-		XMM1 = new X86XMMRegister(1, "%xmm1");
-		XMM2 = new X86XMMRegister(2, "%xmm2");
-		XMM3 = new X86XMMRegister(3, "%xmm3");
-		XMM4 = new X86XMMRegister(4, "%xmm4");
-		XMM5 = new X86XMMRegister(5, "%xmm5");
-		XMM6 = new X86XMMRegister(6, "%xmm6");
-		XMM7 = new X86XMMRegister(7, "%xmm7");
+		XMM0 = new X86XMMRegister(X86_const.X86_REG_XMM0, "%xmm0");
+		XMM1 = new X86XMMRegister(X86_const.X86_REG_XMM1, "%xmm1");
+		XMM2 = new X86XMMRegister(X86_const.X86_REG_XMM2, "%xmm2");
+		XMM3 = new X86XMMRegister(X86_const.X86_REG_XMM3, "%xmm3");
+		XMM4 = new X86XMMRegister(X86_const.X86_REG_XMM4, "%xmm4");
+		XMM5 = new X86XMMRegister(X86_const.X86_REG_XMM5, "%xmm5");
+		XMM6 = new X86XMMRegister(X86_const.X86_REG_XMM6, "%xmm6");
+		XMM7 = new X86XMMRegister(X86_const.X86_REG_XMM7, "%xmm7");
 
 		xmmRegisters = (new X86XMMRegister[] {
 				XMM0, XMM1, XMM2, XMM3, XMM4, XMM5, XMM6, XMM7

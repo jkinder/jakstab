@@ -195,7 +195,7 @@ implements Instruction, X86Opcodes, MemoryInstruction, Cloneable {
 		if (!changed) 
 			return this;
 		else {
-			X86Instruction inst = null;
+			X86Instruction inst;
 			try {
 				inst = (X86Instruction) super.clone();
 				inst.operands = new Operand[inst.operands.length];

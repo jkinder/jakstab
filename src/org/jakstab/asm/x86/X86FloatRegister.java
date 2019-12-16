@@ -33,9 +33,10 @@ package org.jakstab.asm.x86;
 import org.jakstab.asm.Register;
 
 public class X86FloatRegister extends Register {
-
-   public X86FloatRegister(int number) {
+   protected String name;
+   public X86FloatRegister(int number, String name) {
       super(number);
+      this.name = name;
    }
 
    public int getNumber() {
@@ -43,7 +44,7 @@ public class X86FloatRegister extends Register {
    }
 
    public int getNumberOfRegisters() {
-      return X86FloatRegisters.getNumRegisters();
+      return 8;//X86FloatRegisters.getNumRegisters();
    }
 
    public boolean isFloat() {
@@ -58,12 +59,14 @@ public class X86FloatRegister extends Register {
       return false;
    }
 
-   public boolean isValid() {
-      return number >= 0 && number < X86FloatRegisters.getNumRegisters();
-   }
+/*   public boolean isValid() {
+      return  true;//TODO-Dom temporary fix
+      //return number >= 0 && number < X86FloatRegisters.getNumRegisters();
+   }*/
 
    public String toString() {
-      return X86FloatRegisters.getRegisterName(number);
+      return name;
+      //return X86FloatRegisters.getRegisterName(number);
    }
 
 }

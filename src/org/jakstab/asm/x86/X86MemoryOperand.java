@@ -54,7 +54,7 @@ public class X86MemoryOperand extends MemoryOperand {
 	}
 
 	public X86MemoryOperand(DataType dataType, X86SegmentRegister segReg, X86Register base, X86Register index, long disp, int scale) {
-		super(dataType, base, index, disp, 1 << scale);
+		super(dataType, base, index, disp, scale);//1 << scale);
 		this.segReg = segReg;
 	}
 
@@ -62,7 +62,11 @@ public class X86MemoryOperand extends MemoryOperand {
 		this(dataType, segReg, base, index, disp, 0);
 	}
 
-	public X86MemoryOperand(DataType dataType, X86SegmentRegister segReg, X86Register base) {
+	public X86MemoryOperand(DataType dataType, X86SegmentRegister segReg, X86Register base, long disp){//Dom- Added long disp instead of assuming 0
+		this(dataType, segReg, base, null, disp, 0);
+	}
+
+	public X86MemoryOperand(DataType dataType, X86SegmentRegister segReg, X86Register base){//Dom- Added long disp instead of assuming 0
 		this(dataType, segReg, base, null, 0, 0);
 	}
 

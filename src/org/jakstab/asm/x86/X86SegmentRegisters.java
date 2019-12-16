@@ -30,6 +30,7 @@
 
 package org.jakstab.asm.x86;
 
+import capstone.X86_const;
 import org.jakstab.util.Logger;
 
 public class X86SegmentRegisters {
@@ -49,12 +50,12 @@ public class X86SegmentRegisters {
 
 	static {
 		//Segment registers
-		ES = new X86SegmentRegister(0, "%es");
-		CS = new X86SegmentRegister(1, "%cs");
-		SS = new X86SegmentRegister(2, "%ss");
-		DS = new X86SegmentRegister(3, "%ds");
-		FS = new X86SegmentRegister(4, "%fs");
-		GS = new X86SegmentRegister(5, "%gs");
+		ES = new X86SegmentRegister(X86_const.X86_REG_ES, "%es");
+		CS = new X86SegmentRegister(X86_const.X86_REG_CS, "%cs");
+		SS = new X86SegmentRegister(X86_const.X86_REG_SS, "%ss");
+		DS = new X86SegmentRegister(X86_const.X86_REG_DS, "%ds");
+		FS = new X86SegmentRegister(X86_const.X86_REG_FS, "%fs");
+		GS = new X86SegmentRegister(X86_const.X86_REG_GS, "%gs");
 
 		segmentRegisters = (new X86SegmentRegister[] {
 				ES, CS, SS, DS, FS, GS
