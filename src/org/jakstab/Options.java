@@ -94,6 +94,7 @@ public class Options {
 	public static JOption<Boolean> initHeapToBot = JOption.create("bot-heap", "Initialize heap cells to BOT to force strong updates.");
 	public static JOption<Boolean> summarizeRep = JOption.create("summarize-rep", "Use summarizing transformer for string instructions.");
 	public static JOption<Boolean> basicBlocks = JOption.create("basicblocks", "Build CFA from basic-blocks instead of single statements.");
+	public static JOption<Boolean> analyseDll = JOption.create("dll", "Run analysis for all exports of a DLL.");
 	public static JOption<Integer> simplifyVCFG = JOption.create("simplifyVCFG", "l", 1, "In VPC-CFG reconstruction, simplify the reconstructed graph using (0) nothing (1) DCE (2) DCE + Expression Substitution");
 	public static JOption<Integer> verbosity = JOption.create("v", "level", 3, "Set verbosity to value. Default is 3.");
 	public static JOption<Integer> timeout = JOption.create("timeout", "t", -1, "Set timeout in seconds for the analysis.");
